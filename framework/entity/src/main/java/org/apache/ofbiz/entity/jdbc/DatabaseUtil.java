@@ -716,22 +716,23 @@ public class DatabaseUtil {
 
         // get ALL tables from this database
         TreeSet<String> tableNames = this.getTableNames(messages);
-
-        // get ALL column info, put into hashmap by table name
-        Map<String, Map<String, ColumnCheckInfo>> colInfo = getColumnInfo(tableNames, true, messages, executor);
-
-        // go through each table and make a ModelEntity object, add to list
-        // for each entity make corresponding ModelField objects
-        // then print out XML for the entities/fields
         List<ModelEntity> newEntList = new LinkedList<>();
+        if (UtilValidate.isNotEmpty(tableNames)){
+            // get ALL column info, put into hashmap by table name
+            Map<String, Map<String, ColumnCheckInfo>> colInfo = getColumnInfo(tableNames, true, messages, executor);
 
-        boolean isCaseSensitive = getIsCaseSensitive(messages);
+            // go through each table and make a ModelEntity object, add to list
+            // for each entity make corresponding ModelField objects
+            // then print out XML for the entities/fields
 
-        // iterate over the table names is alphabetical order
-        for (String tableName: new TreeSet<>(colInfo.keySet())) {
-            Map<String, ColumnCheckInfo> colMap = colInfo.get(tableName);
-            ModelEntity newEntity = new ModelEntity(tableName, colMap, modelFieldTypeReader, isCaseSensitive);
-            newEntList.add(newEntity);
+            boolean isCaseSensitive = getIsCaseSensitive(messages);
+
+            // iterate over the table names is alphabetical order
+            for (String tableName: new TreeSet<>(colInfo.keySet())) {
+                Map<String, ColumnCheckInfo> colMap = colInfo.get(tableName);
+                ModelEntity newEntity = new ModelEntity(tableName, colMap, modelFieldTypeReader, isCaseSensitive);
+                newEntList.add(newEntity);
+            }
         }
 
         executor.shutdown();
@@ -1032,7 +1033,7 @@ public class DatabaseUtil {
 
     private Map<String, Map<String, ColumnCheckInfo>> getColumnInfo(Set<String> tableNames, boolean getPks, Collection<String> messages, ExecutorService executor) {
         // if there are no tableNames, don't even try to get the columns
-        if (tableNames.size() == 0) {
+        if (UtilValidate.isEmpty(tableNames)) {
             return new HashMap<>();
         }
 
