@@ -42,6 +42,7 @@ import org.apache.ofbiz.base.util.UtilMisc;
 import org.apache.ofbiz.base.util.UtilProperties;
 import org.apache.ofbiz.base.util.UtilValidate;
 import org.apache.ofbiz.base.util.UtilXml;
+import org.apache.ofbiz.common.uom.UomWorker;
 import org.apache.ofbiz.content.content.ContentWorker;
 import org.apache.ofbiz.entity.Delegator;
 import org.apache.ofbiz.entity.GenericEntityException;
@@ -51,7 +52,6 @@ import org.apache.ofbiz.entity.util.EntityUtilProperties;
 import org.apache.ofbiz.service.DispatchContext;
 import org.apache.ofbiz.service.GenericServiceException;
 import org.apache.ofbiz.service.LocalDispatcher;
-import org.apache.ofbiz.service.ModelService;
 import org.apache.ofbiz.service.ServiceUtil;
 import org.apache.ofbiz.shipment.shipment.ShipmentServices;
 import org.w3c.dom.Document;
@@ -72,14 +72,12 @@ import org.xml.sax.SAXException;
  * <li>Label size 4"x6"</li>
  * <li>Out of origin shipping</li>
  * </ul>
- *
- * TODO: International
  */
+
 public class DhlServices {
 
     public final static String module = DhlServices.class.getName();
     public final static String shipmentPropertiesFile = "shipment.properties";
-    public final static String DHL_WEIGHT_UOM_ID = "WT_lb"; // weight Uom used by DHL
     public static final String resourceError = "ProductUiLabels";
 
     /**
@@ -157,11 +155,11 @@ public class DhlServices {
         LocalDispatcher dispatcher = dctx.getDispatcher();
         Locale locale = (Locale) context.get("locale");
 
-        // some of these can be refactored
         String carrierPartyId = (String) context.get("carrierPartyId");
         String shipmentMethodTypeId = (String) context.get("shipmentMethodTypeId");
         String shippingContactMechId = (String) context.get("shippingContactMechId");
         BigDecimal shippableWeight = (BigDecimal) context.get("shippableWeight");
+        String shippableWeightUom = (String) context.get("shippableWeightUom");
 
         if ("NO_SHIPPING".equals(shipmentMethodTypeId)) {
             Map<String, Object> result = ServiceUtil.returnSuccess();
@@ -193,6 +191,8 @@ public class DhlServices {
         String password = getShipmentGatewayConfigValue(delegator, shipmentGatewayConfigId, "accessPassword", resource, "shipment.dhl.access.password");
         String shippingKey = getShipmentGatewayConfigValue(delegator, shipmentGatewayConfigId, "accessShippingKey", resource, "shipment.dhl.access.shippingKey");
         String accountNbr = getShipmentGatewayConfigValue(delegator, shipmentGatewayConfigId, "accessAccountNbr", resource, "shipment.dhl.access.accountNbr");
+        String defaultWeightUomId = getShipmentGatewayConfigValue(delegator, shipmentGatewayConfigId, "defaultUom", resource, "shipment.dhl.default.weight.uom");
+
         if ((shippingKey.length() == 0) || (accountNbr.length() == 0)) {
             return ServiceUtil.returnError(UtilProperties.getMessage(resourceError, 
                     "FacilityShipmentDhlGatewayNotAvailable", locale));
@@ -225,7 +225,9 @@ public class DhlServices {
             }
         }
 
-        // TODO: if a weight UOM is passed in, use convertUom service to convert it here
+        if (shippableWeightUom != null && !defaultWeightUomId.equals(shippableWeightUom)) {
+            shippableWeight = UomWorker.convertUom(shippableWeight, shippableWeightUom, defaultWeightUomId, dispatcher);
+        }
         if (shippableWeight.compareTo(BigDecimal.ONE) < 0) {
             Debug.logWarning("DHL Estimate: Weight is less than 1 lb, submitting DHL minimum of 1 lb for estimate.", module);
             shippableWeight = BigDecimal.ONE;
@@ -234,8 +236,6 @@ public class DhlServices {
             return ServiceUtil.returnError(UtilProperties.getMessage(resourceError, 
                     "FacilityShipmentDhlShippableWeightExceed", locale));
         }
-        String weight = shippableWeight.toString();
-
         // create AccessRequest XML doc using FreeMarker template
         String templateName = getShipmentGatewayConfigValue(delegator, shipmentGatewayConfigId, "rateEstimateTemplate", resource, "shipment.dhl.template.rate.estimate");
         if (templateName.trim().length() == 0) {
@@ -251,7 +251,7 @@ public class DhlServices {
         inContext.put("shippingKey", shippingKey);
         inContext.put("shipDate", UtilDateTime.nowTimestamp());
         inContext.put("dhlShipmentDetailCode", dhlShipmentDetailCode);
-        inContext.put("weight", weight);
+        inContext.put("weight", shippableWeight.toString());
         inContext.put("state", shipToAddress.getString("stateProvinceGeoId"));
         // DHL ShipIT API does not accept ZIP+4
         if ((shipToAddress.getString("postalCode") != null) && (shipToAddress.getString("postalCode").length() > 5)) {
@@ -506,6 +506,8 @@ public class DhlServices {
         Map<String, Object> shipmentGatewayConfig = ShipmentServices.getShipmentGatewayConfigFromShipment(delegator, shipmentId, locale);
         String shipmentGatewayConfigId = (String) shipmentGatewayConfig.get("shipmentGatewayConfigId");
         String resource = (String) shipmentGatewayConfig.get("configProps");
+        String defaultWeightUomId = getShipmentGatewayConfigValue(delegator, shipmentGatewayConfigId, "defaultUom", resource, "shipment.dhl.default.weight.uom");
+        String defaultBillingWeightUomId = getShipmentGatewayConfigValue(delegator, shipmentGatewayConfigId, "defaultUom", resource, "shipment.dhl.default.billing.weight.uom");
         if (UtilValidate.isEmpty(shipmentGatewayConfigId) && UtilValidate.isEmpty(resource)) {
             return ServiceUtil.returnError(UtilProperties.getMessage(resourceError, 
                     "FacilityShipmentDhlGatewayNotAvailable", locale));
@@ -624,10 +626,10 @@ public class DhlServices {
                 hasBillingWeight = true;
                 if (billingWeightUomId == null) {
                     Debug.logWarning("Shipment Route Segment missing billingWeightUomId in shipmentId " + shipmentId,  module);
-                    billingWeightUomId = "WT_lb"; // TODO: this should be specified in a properties file
+                    billingWeightUomId = defaultBillingWeightUomId;
                 }
                 // convert
-                results = dispatcher.runSync("convertUom", UtilMisc.<String, Object>toMap("uomId", billingWeightUomId, "uomIdTo", DHL_WEIGHT_UOM_ID, "originalValue", billingWeight));
+                results = dispatcher.runSync("convertUom", UtilMisc.<String, Object>toMap("uomId", billingWeightUomId, "uomIdTo", defaultWeightUomId, "originalValue", billingWeight));
                 if (ServiceUtil.isError(results) || (results.get("convertedValue") == null)) {
                     Debug.logWarning("Unable to convert billing weights for shipmentId " + shipmentId , module);
                     // try getting the weight from package instead
@@ -639,16 +641,35 @@ public class DhlServices {
 
             // loop through Shipment segments (NOTE: only one supported, loop is here for future refactoring reference)
             BigDecimal packageWeight = null;
-            for (GenericValue shipmentPackageRouteSeg: shipmentPackageRouteSegs) {
-                GenericValue shipmentPackage = shipmentPackageRouteSeg.getRelatedOne("ShipmentPackage", false);
-                GenericValue shipmentBoxType = shipmentPackage.getRelatedOne("ShipmentBoxType", false);
+            GenericValue shipmentPackageRouteSeg = shipmentPackageRouteSegs.get(0);
 
-                if (shipmentBoxType != null) {
-                    // TODO: determine what default UoM is (assuming inches) - there should be a defaultDimensionUomId in Facility
+            GenericValue shipmentPackage = shipmentPackageRouteSeg.getRelatedOne("ShipmentPackage", false);
+            GenericValue shipmentBoxType = shipmentPackage.getRelatedOne("ShipmentBoxType", false);
+            String dhlDimensionUom = getShipmentGatewayConfigValue(delegator, shipmentGatewayConfigId, "defaultUom", resource, "shipment.dhl.default.dimension.uom");
+            Map<String, BigDecimal> dimensions = null;
+
+            if (shipmentBoxType != null) {
+                BigDecimal length = shipmentBoxType.getBigDecimal("boxLength");
+                BigDecimal width = shipmentBoxType.getBigDecimal("boxWidth");
+                BigDecimal height = shipmentBoxType.getBigDecimal("boxHeight");
+
+                String boxTypeUomId = shipmentBoxType.getString("dimensionUomId");
+
+                if (UtilValidate.isEmpty(boxTypeUomId)) {
+                    GenericValue facility = (GenericValue) shipment.getRelatedOne("originFacilityId", true);
+                    boxTypeUomId = facility.getString("dimensionUomId");
+                }
+                if (UtilValidate.isNotEmpty(boxTypeUomId)) {
+                    length = UomWorker.convertUom(length, boxTypeUomId, dhlDimensionUom, dispatcher);
+                    width = UomWorker.convertUom(width, boxTypeUomId, dhlDimensionUom, dispatcher);
+                    height = UomWorker.convertUom(height, boxTypeUomId, dhlDimensionUom, dispatcher);
                 }
 
-                // next step is weight determination, so skip if we have a billing weight
-                if (hasBillingWeight) continue;
+                dimensions = UtilMisc.toMap("length", length, "width", width,"height", height);
+            }
+
+            // next step is weight determination, so skip if we have a billing weight
+            if (!hasBillingWeight) {
 
                 // compute total packageWeight (for now, just one package)
                 if (shipmentPackage.getString("weight") != null) {
@@ -666,18 +687,9 @@ public class DhlServices {
                 String weightUomId = (String) shipmentPackage.get("weightUomId");
                 if (weightUomId == null) {
                     Debug.logWarning("Shipment Route Segment missing weightUomId in shipmentId " + shipmentId,  module);
-                    weightUomId = "WT_lb"; // TODO: this should be specified in a properties file
+                    weightUomId = defaultWeightUomId;
                 }
-                results = dispatcher.runSync("convertUom", UtilMisc.<String, Object>toMap("uomId", weightUomId, "uomIdTo", DHL_WEIGHT_UOM_ID, "originalValue", packageWeight));
-                if (ServiceUtil.isError(results)) {
-                    return ServiceUtil.returnError(ServiceUtil.getErrorMessage(results));
-                }
-                if ((results == null) || (results.get(ModelService.RESPONSE_MESSAGE).equals(ModelService.RESPOND_ERROR)) || (results.get("convertedValue") == null)) {
-                    Debug.logWarning("Unable to convert weights for shipmentId " + shipmentId , module);
-                    packageWeight = BigDecimal.ONE;
-                } else {
-                    packageWeight = (BigDecimal) results.get("convertedValue");
-                }
+                packageWeight = UomWorker.convertUom(packageWeight, weightUomId, defaultWeightUomId, dispatcher);
             }
 
             // pick which weight to use and round it
@@ -741,6 +753,9 @@ public class DhlServices {
             inContext.put("shipDate", UtilDateTime.nowTimestamp());
             inContext.put("dhlShipmentDetailCode", dhlShipmentDetailCode);
             inContext.put("weight", roundedWeight);
+            if (UtilValidate.isNotEmpty(dimensions)) {
+                inContext.put("dimensions", dimensions);
+            }
             inContext.put("senderPhoneNbr", originPhoneNumber);
             inContext.put("companyName", destPostalAddress.getString("toName"));
             inContext.put("attnTo", destPostalAddress.getString("attnName"));
@@ -805,6 +820,7 @@ public class DhlServices {
     public static Map<String, Object> handleDhlShipmentConfirmResponse(String rateResponseString, GenericValue shipmentRouteSegment,
             List<GenericValue> shipmentPackageRouteSegs, Locale locale) throws GenericEntityException {
         GenericValue shipmentPackageRouteSeg = shipmentPackageRouteSegs.get(0);
+        //GenericValue shipment = shipmentPackageRouteSeg.get
 
         // TODO: figure out how to handle validation on return XML, which can be mangled
         // Ideas: try again right away, let user try again, etc.
@@ -841,16 +857,7 @@ public class DhlServices {
                     UtilMisc.toMap("shipmentPackageRouteSeg", shipmentPackageRouteSeg, 
                             "rateResponseString", rateResponseString), locale));
         }
-
-        // TODO: this is a temporary hack to replace the newlines so that Base64 likes the input This is NOT platform independent
-        int size = encodedImageString.length();
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < size; i++) {
-            if (encodedImageString.charAt(i) == '\n')
-                continue;
-            sb.append(encodedImageString.charAt(i));
-        }
-        byte[] labelBytes = Base64.getMimeDecoder().decode(sb.toString().getBytes(StandardCharsets.UTF_8));
+        byte[] labelBytes = Base64.getMimeDecoder().decode(encodedImageString.getBytes(StandardCharsets.UTF_8));
 
         if (labelBytes != null) {
             // store in db blob
@@ -861,7 +868,7 @@ public class DhlServices {
         }
 
         shipmentPackageRouteSeg.set("trackingCode", trackingNumber);
-        shipmentPackageRouteSeg.set("labelHtml", sb.toString());
+        shipmentPackageRouteSeg.set("labelHtml", encodedImageString);
         shipmentPackageRouteSeg.store();
 
         shipmentRouteSegment.set("trackingIdNumber", trackingNumber);
@@ -871,7 +878,6 @@ public class DhlServices {
         return ServiceUtil.returnSuccess(UtilProperties.getMessage(resourceError, 
                 "FacilityShipmentDhlShipmentConfirmed", locale));
     }
-
 
     public static Document createAccessRequestDocument(Delegator delegator, String shipmentGatewayConfigId, String resource) {
         Document eCommerceRequestDocument = UtilXml.makeEmptyXmlDocument("eCommerce");
