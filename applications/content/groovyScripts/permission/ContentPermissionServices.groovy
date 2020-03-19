@@ -104,9 +104,7 @@ def genericContentPermission() {
                 }
             }
         } // all other actions use main base check
-    }
-
-    else {
+    } else {
         logInfo("Admin permission found: ${parameters.primaryPermission}_${mainAction}")
     }
 
@@ -676,12 +674,6 @@ def findAllAssociatedPartyIds () {
     logVerbose("Got list of associated parties: ${partyIdList}")
     return partyIdList
 }
-
-
-
-
-
-// Methode is never used
 
 /**
  * Finds all associated parent content
