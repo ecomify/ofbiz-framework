@@ -51,16 +51,16 @@ def contentManagerRolePermission() {
  * @return
  */
 def genericContentPermission() {
+    Map result = success()
     String statusId = parameters.statusId
     String contentPurposeTypeId = parameters.contentPurposeTypeId
     String contentId = parameters.contentId
-    parameters.primaryPermission = "CONTENTMGR"
-    Map result = success()
     String ownerContentId = parameters.ownerContentId
     String contentOperationId = parameters.contentOperationId
+    String mainAction = parameters.mainAction
+    parameters.primaryPermission = "CONTENTMGR"
     Map resultService = run service: "genericBasePermissionCheck", with: parameters
     Boolean hasPermission = resultService.hasPermission
-    String mainAction = parameters.mainAction
 
     // setting the roleEntity or this service
     String roleEntityField = "contentId"
@@ -96,18 +96,18 @@ def genericContentPermission() {
             // update content
             // setup default operation
             if (!parameters.contentOperationId) {
-                Map serviceUCP = updateContentPermission(hasPermission, contentId, ownerContentId, contentOperationId, contentPurposeTypeId, roleEntity, roleEntityField)
+                contentOperationId = "CONTENT_UPDATE"
+            }
+            Map serviceUCP = updateContentPermission(hasPermission, contentId, ownerContentId, contentOperationId, contentPurposeTypeId, roleEntity, roleEntityField)
                 if (serviceUCP.errorMessage != null) {
                     logError(serviceUCP.errorMessage)
                 } else {
                     hasPermission = serviceUCP.hasPermission
                 }
-            }
         } // all other actions use main base check
     } else {
         logInfo("Admin permission found: ${parameters.primaryPermission}_${mainAction}")
     }
-
     logInfo("Permission service [${mainAction} / ${parameters.contentId}] completed; returning hasPermission = ${hasPermission}")
 
     result.hasPermission = hasPermission
@@ -162,7 +162,7 @@ def viewContentPermission(Boolean hasPermission, String contentId, String conten
         contentOperationId = parameters.contentOperationId
         String checkId = contentId
         Map serviceCCOS = checkContentOperationSecurity(contentOperationId, contentPurposeTypeId, checkId, roleEntity, roleEntityField)
-        hasPermission = parameters.hasPermission
+        hasPermission = serviceCCOS.hasPermission
     }
     result.hasPermission = hasPermission
     return result
@@ -237,9 +237,9 @@ def createContentPermission(Boolean hasPermission, String ownerContentId, String
                 } else {
                     hasPermission = serviceResultCO.hasPermission
                 }
-                if (hasPermission == false) {
+                if (!hasPermission) {
                     // no permission on this parent; check the parent's parent(s)
-                    while (hasPermission == false && !checkId) {
+                    while (!hasPermission && checkId) {
                         // iterate until either we have permission or there are no more parents
                         GenericValue currentContent = from("Content").where(contentId: checkId).queryOne()
                         if (currentContent?.ownerContentId) {
@@ -322,7 +322,7 @@ def updateContentPermission(Boolean hasPermission, String contentId, String owne
         // obtain the current content record
         GenericValue thisContent = from("Content").where(contentId: contentId).queryOne()
         if (!thisContent) {
-            return error(UtilProperties.getMessage('ContentUiLabels', 'ContentNoContentFound', locale))
+            return error(UtilProperties.getMessage("ContentUiLabels", "ContentNoContentFound", locale))
         }
 
         // check the operation
@@ -334,7 +334,7 @@ def updateContentPermission(Boolean hasPermission, String contentId, String owne
         }
 
         // check if there was no operation; or if the operation check failed
-        if (!contentOperationId || hasPermission == false) {
+        if (!contentOperationId || !hasPermission) {
             // if no valid operation is passed; check ownership for permission
             logVerbose("No valid operation for UPDATE; checking ownership instead!")
             checkId = contentId
@@ -357,9 +357,9 @@ def updateContentPermission(Boolean hasPermission, String contentId, String owne
                 } else {
                     hasPermission = serviceResultCO.hasPermission
                 }
-                if (hasPermission == false) {
+                if (!hasPermission) {
                     // no permission on this parent; check the parent's parent(s)
-                    while (hasPermission == false && checkId) {
+                    while (!hasPermission && checkId) {
                         // iterate until either we have permission or there are no more parents
                         GenericValue currentContent = from("Content").where(contentId: checkId).queryOne()
                         if (currentContent?.ownerContentId) {
@@ -413,7 +413,7 @@ def checkContentOperationSecurity(String contentOperationId, String contentPurpo
     }
 
     GenericValue checkContent = from("Content").where(contentId: checkId).queryOne()
-    String statusId = checkContent.statusId
+    String statusId = checkContent?.statusId
 
     // If operation is CONTENT_CREATE and contentPurposeTypeId exists in parameters than obtain operations
     // for that contentPurposeTypeId, else get the operations for checkContent
@@ -458,7 +458,7 @@ def checkContentOperationSecurity(String contentOperationId, String contentPurpo
 
         // check each operation security
         for (GenericValue operation : operations) {
-            if (hasPermission == false) {
+            if (!hasPermission) {
                 // reset the checkId if needed
                 if (!checkId && toCheckContentId) {
                     checkId = toCheckContentId
@@ -472,7 +472,7 @@ def checkContentOperationSecurity(String contentOperationId, String contentPurpo
 
                     // first check passed; now we test for the role membership(s)
                     for (String thisPartyId : partyIdList) {
-                        if (hasPermission == false) {
+                        if (!hasPermission) {
                             String checkRoleTypeId = operation.roleTypeId
                             String checkPartyId = thisPartyId
                             // reset the checkId if needed
@@ -487,10 +487,10 @@ def checkContentOperationSecurity(String contentOperationId, String contentPurpo
                             }
 
                             // check the parent(s) for permission
-                            if (hasPermission == false && checkId) {
+                            if (!hasPermission && checkId) {
                                 logVerbose("Starting loop; checking operation: ${operation.contentOperationId}")
                                 // iterate until either we have permission or there are no more parents
-                                while (hasPermission == false && checkId) {
+                                while (!hasPermission && checkId) {
                                     GenericValue currentContent = from("Content").where(contentId: checkId).queryOne()
                                     if (currentContent?.ownerContentId) {
                                         checkId = currentContent.ownerContentId
@@ -603,7 +603,7 @@ def checkRoleSecurity(String roleEntity, String roleEntityField, String checkId,
     }
     logVerbose("About to test of checkRoleTypeId is empty... ${checkRoleTypeId}")
 
-    if (checkRoleTypeId == "_NA_") {
+    if (checkRoleTypeId && checkRoleTypeId == "_NA_") {
         // _NA_ role means anyone (logged in) has permission
         hasPermission = true
     } else {
@@ -614,13 +614,11 @@ def checkRoleSecurity(String roleEntity, String roleEntityField, String checkId,
             Map lookup = ["${roleEntityField}": checkId, roleTypeId: checkRoleTypeId, partyId: checkPartyId]
             foundRoles = from("${roleEntity}").where(lookup).queryList()
             /**
-             * <!--
              * <entity-and entity-name="${roleEntity}" list="foundRoles">
              * <field-map from-field="${roleEntityField}"/>
              * <field-map field-name="roleTypeId" from-field="checkRoleTypeId"/>
              * <field-map field-name="partyId" from-field="checkPartyId"/>
              * </entity-and>
-             * -->
              */
         } else {
             logVerbose("Doing lookup without roleTypeId")
@@ -628,12 +626,10 @@ def checkRoleSecurity(String roleEntity, String roleEntityField, String checkId,
             Map lookup =["${roleEntityField}": checkId, partyId: checkPartyId]
             foundRoles = from("${roleEntity}").where(lookup).queryList()
             /**
-             * <!--
              * <entity-and entity-name="${roleEntity}" list="foundRoles">
              * <field-map from-field="${roleEntityField}"/>
              * <field-map field-name="partyId" from-field="checkPartyId"/>
              * </entity-and>
-             * -->
              */
         }
         logVerbose("Checking for ContentRole: [party] - ${checkPartyId} [role] - ${checkRoleTypeId} [content] - ${checkId} :: ${foundRoles}")
@@ -657,8 +653,7 @@ def findAllContentPurposes(String checkId) {
         String requiredField ="checkId"
         return error(UtilProperties.getMessage('ContentUiLabels', 'ContentRequiredField', parameters.locale))
     }
-    Map purposeLookup = [contentId: checkId]
-    List contentPurposes = from("ContentPurpose").where(purposeLookup).queryList()
+    List contentPurposes = from("ContentPurpose").where(contentId: checkId).queryList()
     return contentPurposes
 }
 
