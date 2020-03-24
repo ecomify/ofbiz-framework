@@ -713,8 +713,8 @@ under the License.
         <override name="quantityAccepted" optional="false"/>
         <override name="quantityRejected" optional="false"/>
     </service>
-    <service name="createShipmentReceipt" engine="simple"
-            location="component://product/minilang/shipment/receipt/ShipmentReceiptServices.xml" invoke="createShipmentReceipt" auth="true">
+    <service name="createShipmentReceipt" engine="groovy"
+            location="component://product/groovyScrips/shipment/receipt/ShipmentReceiptServices.groovy" invoke="createShipmentReceipt" auth="true">
         <description>Creates a ShipmentReceipt Record</description>
         <permission-service service-name="facilityGenericPermission" main-action="CREATE"/>
         <implements service="interfaceShipmentReceipt"/>
@@ -733,8 +733,8 @@ under the License.
         <attribute name="shipmentId" type="String" mode="IN" optional="false"/>
     </service>
 
-    <service name="receiveInventoryProduct" engine="simple" transaction-timeout="600"
-            location="component://product/minilang/shipment/receipt/ShipmentReceiptServices.xml" invoke="receiveInventoryProduct" auth="true">
+    <service name="receiveInventoryProduct" engine="groovy" transaction-timeout="600"
+            location="component://product/groovyScrips/shipment/receipt/ShipmentReceiptServices.groovy" invoke="receiveInventoryProduct" auth="true">
         <description>Receive Inventory In Warehouse</description>
         <permission-service service-name="facilityGenericPermission" main-action="CREATE"/>
         <auto-attributes entity-name="InventoryItem" include="nonpk" mode="IN" optional="true">
@@ -756,8 +756,8 @@ under the License.
         <override name="facilityId" optional="false"/>
     </service>
 
-    <service name="issueOrderItemToShipmentAndReceiveAgainstPO" engine="simple" transaction-timeout="600"
-            location="component://product/minilang/shipment/receipt/ShipmentReceiptServices.xml" invoke="issueOrderItemToShipmentAndReceiveAgainstPO" auth="true">
+    <service name="issueOrderItemToShipmentAndReceiveAgainstPO" engine="groovy" transaction-timeout="600"
+            location="component://product/groovyScrips/shipment/receipt/ShipmentReceiptServices.groovy" invoke="issueOrderItemToShipmentAndReceiveAgainstPO" auth="true">
         <description>Issues order item quantity specified to the shipment, then receives inventory for that item and quantity</description>
         <required-permissions join-type="AND">
             <permission-service service-name="checkCanChangeShipmentStatusPacked" main-action="CREATE"/>
@@ -767,8 +767,8 @@ under the License.
         <implements service="receiveInventoryProduct"/>
     </service>
 
-    <service name="quickReceiveReturn" engine="simple"
-            location="component://product/minilang/shipment/receipt/ShipmentReceiptServices.xml" invoke="quickReceiveReturn" auth="true">
+    <service name="quickReceiveReturn" engine="groovy"
+            location="component://product/groovyScrips/shipment/receipt/ShipmentReceiptServices.groovy" invoke="quickReceiveReturn" auth="true">
         <permission-service service-name="facilityGenericPermission" main-action="CREATE"/>
         <attribute name="returnId" type="String" mode="IN" optional="false"/>
         <attribute name="inventoryItemTypeId" type="String" mode="IN" optional="true"/>
@@ -781,14 +781,14 @@ under the License.
         <attribute name="partyId" type="String" mode="IN" optional="false"/>
         <attribute name="roleTypeId" type="String" mode="IN" optional="false"/>
     </service>
-    <service name="createShipmentReceiptRole" engine="simple"
-            location="component://product/minilang/shipment/receipt/ShipmentReceiptServices.xml" invoke="createShipmentReceiptRole" auth="true">
+    <service name="createShipmentReceiptRole" engine="groovy"
+            location="component://product/groovyScrips/shipment/receipt/ShipmentReceiptServices.groovy" invoke="createShipmentReceiptRole" auth="true">
         <description>Create a ShipmentReceipt Role entry</description>
         <permission-service service-name="facilityGenericPermission" main-action="CREATE"/>
         <implements service="interfaceShipmentReceiptRole"/>
     </service>
-    <service name="removeShipmentReceiptRole" engine="simple"
-            location="component://product/minilang/shipment/receipt/ShipmentReceiptServices.xml" invoke="removeShipmentReceiptRole" auth="true">
+    <service name="removeShipmentReceiptRole" engine="groovy"
+            location="component://product/groovyScrips/shipment/receipt/ShipmentReceiptServices.groovy" invoke="removeShipmentReceiptRole" auth="true">
         <description>Remove a ShipmentReceipt Role entry</description>
         <permission-service service-name="facilityGenericPermission" main-action="DELETE"/>
         <implements service="interfaceShipmentReceiptRole"/>
@@ -865,8 +865,8 @@ under the License.
         <implements service="calcShipmentEstimateInterface"/>
     </service>
 
-    <service name="cancelReceivedItems" engine="simple"
-            location="component://product/minilang/shipment/receipt/ShipmentReceiptServices.xml" invoke="cancelReceivedItems" auth="true">
+    <service name="cancelReceivedItems" engine="groovy"
+            location="component://product/groovyScrips/shipment/receipt/ShipmentReceiptServices.groovy" invoke="cancelReceivedItems" auth="true">
         <description>Cancel Received Items against a purchase order if received something incorrectly</description>
         <attribute name="receiptId" type="String" mode="IN" optional="false"/>
         <attribute name="facilityId" type="String" mode="IN" optional="true"/>
@@ -941,8 +941,8 @@ under the License.
         <attribute name="messageWrapper" type="org.apache.ofbiz.service.mail.MimeMessageWrapper" mode="OUT" optional="true"/>
         <attribute name="communicationEventId" type="String" mode="OUT" optional="true"/>
     </service>
-    <service name="updateIssuanceShipmentAndPoOnReceiveInventory" engine="simple"
-            location="component://product/minilang/shipment/receipt/ShipmentReceiptServices.xml" invoke="updateIssuanceShipmentAndPoOnReceiveInventory">
+    <service name="updateIssuanceShipmentAndPoOnReceiveInventory" engine="groovy"
+            location="component://product/groovyScrips/shipment/receipt/ShipmentReceiptServices.groovy" invoke="updateIssuanceShipmentAndPoOnReceiveInventory">
         <description>Update issuance, shipment and order items if quantity received is higher than quantity on purchase order</description>
         <attribute name="orderId" type="String" mode="IN" optional="false"/>
         <attribute name="orderItemSeqId" type="String" mode="IN" optional="false"/>
