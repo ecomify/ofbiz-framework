@@ -17,6 +17,8 @@
  * under the License.
  */
 
+import java.sql.Timestamp
+
 import org.apache.ofbiz.base.util.UtilDateTime
 import org.apache.ofbiz.base.util.UtilProperties
 import org.apache.ofbiz.entity.GenericValue
@@ -132,9 +134,9 @@ def updateShipment() {
     }
     // Check the pickup and delivery dates for changes and update the corresponding WorkEfforts
     if (((parameters.estimatedShipDate) && (parameters.estimatedShipDate != lookedUpValue.estimatedShipDate))
-    || ((parameters.originFacilityId) && (parameters.originFacilityId != lookedUpValue.originFacilityId))
-    || ((parameters.statusId) && (parameters.statusId != lookedUpValue.statusId)
-    && ((parameters.statusId == "SHIPMENT_CANCELLED") || (parameters.statusId == "SHIPMENT_PACKED") || (parameters.statusId == "SHIPMENT_SHIPPED")))) {
+        || ((parameters.originFacilityId) && (parameters.originFacilityId != lookedUpValue.originFacilityId))
+        || ((parameters.statusId) && (parameters.statusId != lookedUpValue.statusId)
+            && ((parameters.statusId == "SHIPMENT_CANCELLED") || (parameters.statusId == "SHIPMENT_PACKED") || (parameters.statusId == "SHIPMENT_SHIPPED")))) {
         GenericValue estShipWe = from("WorkEffort").where(workEffortId: lookedUpValue.estimatedShipWorkEffId).queryOne()
         if (estShipWe) {
             estShipWe.estimatedStartDate = parameters.estimatedShipDate
@@ -211,7 +213,7 @@ def createShipmentForReturn() {
     GenericValue returnHeader = from("ReturnHeader").where(returnId: parameters.returnId).queryOne()
     Map shipmentCtx = [partyIdFrom: returnHeader.fromPartyId, partyIdTo: returnHeader.toPartyId, originContactMechId: returnHeader.originContactMechId, destinationFacilityId: returnHeader.destinationFacilityId, primaryReturnId: returnHeader.returnId]
     // later different behavior for customer vs. returns would happen here
-    if (returnHeader.returnHeaderTypeId.contains("CUStoMER")) {
+    if (returnHeader.returnHeaderTypeId.contains("CUSTOMER_")) {
         shipmentCtx.shipmentTypeId = "SALES_RETURN"
         shipmentCtx.statusId = "PURCH_SHIP_CREATED" // we may later need different status codes for return shipments
     } else if (returnHeader.returnHeaderTypeId == "VENDOR_RETURN") {
@@ -315,7 +317,7 @@ def createShipmentAndItemsForVendorReturn() {
  * Set Shipment Settings From Primary Order
  * @return
  */
-def setSthipmentSettingsFromPrimaryOrder() {
+def setShipmentSettingsFromPrimaryOrder() {
     GenericValue orderItemShipGroup
     // on Shipment set partyIdFrom, partyIdTo (vendorPartyId), originContactMechId, destinationContactMechId, estimatedShipCost
     GenericValue shipment = from("Shipment").where(parameters).queryOne()
@@ -406,7 +408,7 @@ def setSthipmentSettingsFromPrimaryOrder() {
     // originContactMechId.  Only do this if it is not a purchase shipment
     if (shipment.shipmentTypeId != "PURCHASE_SHIPMENT") {
         if (!shipment.originContactMechId) {
-            Mp originContactMap = [contactMechPurposeTypeId: "SHIP_ORIG_LOCATION"]
+            Map originContactMap = [contactMechPurposeTypeId: "SHIP_ORIG_LOCATION"]
             List originOrderContactMechs = EntityUtil.filterByAnd(orderContactMechs, originContactMap)
             GenericValue originOrderContactMech = originOrderContactMechs.get(0)
             if (originOrderContactMech) {
@@ -632,7 +634,7 @@ def balanceItemIssuancesForShipment() {
  * Delete ShipmentItem
  * @return
  */
-def deleteShipmentItem() {
+def deleteShipmentItem() { // DELETE IS AUTO
     //  If there is any Shipment Package Content available for this Shipment Item then it cannot be deleted as it require Shipment Package content to be deleted first
     List shipmentPackageContents = from("ShipmentPackageContent").where(shipmentId: parameters.shipmentId, shipmentItemSeqId: parameters.shipmentItemSeqId).queryList()
     if (shipmentPackageContents) {
@@ -753,7 +755,7 @@ def deleteShipmentPackage() {
  * Ensure ShipmentPackageRouteSeg exists for all RouteSegments for this Package
  * @return
  */
-def ensurePackageRouteSeq(String shipmentId, String shipmentPackageSeqId) {
+def ensurePackageRouteSeg(String shipmentId, String shipmentPackageSeqId) {
     List shipmentRouteSegments = from("ShipmentrouteSegment").where(shipmentId: shipmentId).queryList()
     for (GenericValue shipmentRouteSegment : shipmentRouteSegments) {
         GenericValue checkShipmentPackageRouteSeg = from("ShipmentPackageRouteSeq").where(shipmentId: shipmentId, shipmentPackageSeqId : shipmentPackageSeqId, shipmentRouteSegmentId: shipmentRouteSegment.shipmentRouteSegmentId).queryOne()
@@ -862,7 +864,7 @@ def checkCanChangeShipmentStatusGeneral(Map inputParameters) {
     || (((fromStatusId == "SHIPMENT_PACKED") || (fromStatusId == "SHIPMENT_SHIPPED") || (fromStatusId == "SHIPMENT_DELIVERED")) && (testShipment.statusId == "SHIPMENT_DELIVERD"))
     || (testShipment.statusId == "SHIPMENT_CANCELLED")) {
         GenericValue testShipmentStatus = delegator.getRelatedOne("StatusItem", testShipment, false)
-        String failMessage = UtilProperties.getMessage("ProductErrorUiLables", "ShipmentCanChangeStatusPermissionError", locale)
+        String failMessage = UtilProperties.getMessage("ProductErrorUiLabels", "ShipmentCanChangeStatusPermissionError", locale)
         hasPermission = false
         result.failMessage = failMessage
     }
@@ -878,6 +880,9 @@ def checkCanChangeShipmentStatusGeneral(Map inputParameters) {
  */
 def quickShipEntireOrder() {
     Map result = success()
+    List successMessageList
+    List shipmentIds
+    List shipmentShipGroupFacilityList
     // first get the order header; make sure we have a product store
     GenericValue orderHeader = from("OrderHeader").where(parameters).queryOne()
     if (!orderHeader?.productStoreId) {
@@ -908,14 +913,17 @@ def quickShipEntireOrder() {
             orderItemShipGrpInvResFacilityIds << orderItemAndShipGrpInvResAndItem.facilityId
         }
     }
-    getOrderItemShipGroupLists()
+    Map serviceResult = getOrderItemShipGroupLists(orderHeader)
 
     // traverse facilities, instantiate shipment for each
     for (GenericValue orderItemShipGrpInvResFacilityId : orderItemShipGrpInvResFacilityIds) {
         // sanity check for valid facility
         GenericValue facility = from("Facility").where(facilityId: orderItemShipGrpInvResFacilityId).queryOne()
         // should never be empty - referential integrity enforced
-        createShipmentForFacilityAndShipGroup(parameters.eventDate, parameters.setPackedOnly)
+        Map serviceResultCSFFASG = createShipmentForFacilityAndShipGroup(orderHeader, serviceResult.orderItemListByShGrpMap, serviceResult.orderItemShipGroupList, serviceResult.orderItemAndShipGroupAssocList, facility, orderItemShipGrpInvResFacilityId, null, parameters.eventDate, parameters.setPackedOnly)
+        successMessageList = serviceResultCSFFASG.successMessageList
+        shipmentIds = serviceResultCSFFASG.shipmentIds
+        shipmentShipGroupFacilityList = serviceResultCSFFASG.shipmentShipGroupFacilityList
     }
     logInfo("Finished quickShipEntireOrder:\nshipmentShipGroupFacilityList=${shipmentShipGroupFacilityList}\nsuccessMessageList=${successMessageList}")
     result.shipmentShipGroupFacilityList = shipmentShipGroupFacilityList
@@ -971,7 +979,8 @@ def quickDropShipOrder() {
         List orderItemAssocs = from("OrderItemAssoc").where(toOrderId: parameters.orderId, toOrderItemSeqId: orderItem.orderItemSeqId, orderItemassocTypeId: "DROP_SHIPMENT").queryList()
         if (orderItemAssocs) {
             for (GenericValue orderItemAssoc : orderItemAssocs) {
-                Map itemStatusContext = [orderId: orderItemAssoc.orderId, orderItemSeqId: orderItemAssoc.orderItemSeqId]
+                itemStatusContext.orderId = orderItemAssoc.orderId
+                itemStatusContext.orderItemSeqId = orderItemAssoc.orderItemSeqId
                 Map serviceResultCOIS = run service: "changeOrderItemStatus", with: itemStatusContext
                 if (!ServiceUtil.isSuccess(serviceResultCOIS)) {
                     return serviceResultCOIS
@@ -990,17 +999,18 @@ def quickReceivePurchaseOrder() {
     Map result = success()
     GenericValue orderHeader = from("OrderHeader").where(parameters).queryOne()
     GenericValue facility = from("Facility").where(parameters).queryOne()
-    getOrderItemShipGroupLists()
-    createShipmentForFacilityAndShipGroup()
+    Map serviceResult = getOrderItemShipGroupLists(orderHeader)
+    Map serviceResultCSFFASG = createShipmentForFacilityAndShipGroup(orderHeader, serviceResult.orderItemListByShGrpMap, serviceResult.orderItemShipGroupList, serviceResult.orderItemAndShipGroupAssocList, null, null, parameters.facilityId, null, null)
     logInfo("Finished quickReceivePurchaseOrder for orderId ${parameters.orderId} and destination facilityId ${parameters.facilityId} shipment created ${shipmentIds}")
-    result.shipmentIds = shipmentIds
+    result.shipmentIds = serviceResultCSFFASG.shipmentIds
 }
 
 /**
  * Sub-method used by quickShip methods to get a list of OrderItemAndShipGroupAssoc and a Map of shipGroupId -> OrderItemAndShipGroupAssoc
  * @return
  */
-def getOrderItemShipGroupLists(übergib Parameter) { // TODO ausfürhlich testen
+def getOrderItemShipGroupLists(GenericValue orderHeader) { // TODO ausfürhlich testen
+    Map result = success()
     // lookup all the approved items, doing by item because the item must be approved before shipping
     List orderItemAndShipGroupAssocList = from("OrderItemAndShipGroupAssoc").where(orderId: orderHeader.orderId, statusId: "ITEM_APPROVED").queryList()
     // make sure we have something to ship
@@ -1017,6 +1027,9 @@ def getOrderItemShipGroupLists(übergib Parameter) { // TODO ausfürhlich testen
         // TODO Test
         orderItemListByShGrpMap[orderItemAndShipGroupAssoc.shipGroupSeqId] << orderItemAndShipGroupAssoc
     }
+    result.orderItemListByShGrpMap = orderItemListByShGrpMap
+    result.orderItemAndShipGroupAssocList = orderItemAndShipGroupAssocList
+    result.orderItemShipGroupList = orderItemShipGroupList
     return
 }
 
@@ -1024,10 +1037,15 @@ def getOrderItemShipGroupLists(übergib Parameter) { // TODO ausfürhlich testen
  * Sub-method used by quickShip methods to create a shipment
  * @return
  */
-def createShipmentForFacilityAndShipGroup() {
+def createShipmentForFacilityAndShipGroup(GenericValue orderHeader, List orderItemListByShGrpMap, List orderItemShipGroupList, List orderItemAndShipGroupAssocList, GenericValue facility, String orderItemShipGrpInvResFacilityId, String facilityId, Timestamp eventDate, Boolean setPackedOnly) {
     Map result = success()
+    List shipmentIds
+    List shipmentShipGroupFacilityList
+    List successMessageList
+    String partyIdFrom
+    Map packedContext
     // for OrderItemShipGroup need to split all OISGIRs into their ship groups and create a shipment for each
-    for (GenericValue orderItemShipGroup : orderItemAndShipGroupAssoc) {
+    for (GenericValue orderItemShipGroup : orderItemShipGroupList) {
         // lookup all the approved items
         List orderItems = from("OrderItemAndShipGroupAssoc").where(orderId: orderHeader.orderId, shipGroupSeqId: orderItemShipGroup.shipGroupSeqId, statusId: "ITEM_APPROVED").queryList()
         GenericValue perShipGroupItemList = orderItemListByShGrpMap[orderItemShipGroup.shipGroupSeqId]
@@ -1046,7 +1064,7 @@ def createShipmentForFacilityAndShipGroup() {
                 if (orderItemShipGroup.vendorPartyId) {
                     partyIdFrom = orderItemShipGroup.vendorPartyId
                 } else {
-                    GenericValue facility = from("Facility").where(facilityId: orderItemShipGrpInvResFacilityId)
+                    facility = from("Facility").where(facilityId: orderItemShipGrpInvResFacilityId)
                     if (facility.ownerPartyId) {
                         partyIdFrom = facility.ownerPartyId
                     }
@@ -1095,16 +1113,16 @@ def createShipmentForFacilityAndShipGroup() {
                 logVerbose("In quick ship adding item to package: ${shipmentPackageSeqId}")
                 Map shipItemContext = [shipmentId: itemIssuance.shipmentId, shipmentItemSeqId: itemIssuance.shipmentId, quantity: itemIssuance.quantity, shipmentPackageSeqId: shipmentPackageSeqId]
                 Map serviceResultASCTP = run service: "addShipmentContentToPackage", with: shipItemContext
-                String shipmentPackageSeqId = serviceResultASCTP.shipmentPackageSeqId
+                shipmentPackageSeqId = serviceResultASCTP.shipmentPackageSeqId
             }
             if (orderHeader.orderTypeId == "SALES_ORDER") {
                 // update the shipment status to packed
-                Map packedContext = [shipmentId: shipment.shipmentId, evenDate: evenDate, statusId: "SHIPMENT_PACKED"]
+                packedContext = [shipmentId: shipment.shipmentId, evenDate: eventDate, statusId: "SHIPMENT_PACKED"]
                 run service: "updateShipment", with: packedContext
                 // update the shipment status to shipped (if setPackedOnly has NOT been set)
                 if (!setPackedOnly) {
-                    packedContext.shipmentId : shipment.shipmentId
-                    packedContext.statusId : "SHIPMENT_SHIPPED"
+                    packedContext.shipmentId = shipment.shipmentId
+                    packedContext.statusId = "SHIPMENT_SHIPPED"
                     run service: "updateShipment", with: packedContext
                 }
             } else { // PURCHASE_ORDER
@@ -1119,11 +1137,13 @@ def createShipmentForFacilityAndShipGroup() {
             argListNames << shipmentShipGroupFacility.shipmentId
             argListNames << shipmentShipGroupFacility.shipGroupSeqId
             argListNames << shipmentShipGroupFacility.facilityId
-            successMessage = UtilProperties.getMessage("ProductUiLabels", "FacilityShipmentIdCreated", argListNames, locale)
+            successMessageList.add(UtilProperties.getMessage("ProductUiLabels", "FacilityShipmentIdCreated", argListNames, locale))
             shipmentIds << shipment.shipmentId
         }
     }
     result.shipmentIds = shipmentIds
+    result.successMessageList = successMessageList
+    result.shipmentShipGroupFacilityList = shipmentShipGroupFacilityList
     return result
 }
 
@@ -1314,11 +1334,11 @@ def quickShipOrderByItem() {
         itemMap.itemIssuanceId = serviceResultIO.itemIssuanceId
     }
     // place all issued items into a unique package per tracking num
-    Map packageMap
+    Map packageMap = [:]
     for (Map itemMap : itemMapList) {
         logInfo("QuickShipOrderByItem grouping by tracking number : ${itemMap.trackingNum}")
         GenericValue itemIssuance = from("ItemIssuance").where(itemIssuanceId: itemMap.itemIssuanceId).queryOne()
-        Map shipItemContext = [shipmentPackageSeqId: packageMap.${itemMap.trackingNum}]
+        Map shipItemContext = [shipmentPackageSeqId: packageMap.'${itemMap.trackingNum}']
         if (!shipItemContext.shipmentPackageSeqId) {
             shipItemContext.shipmentPackageSeqId = "New"
         }
@@ -1327,7 +1347,7 @@ def quickShipOrderByItem() {
         shipItemContext.shipmentItemSeqId = itemIssuance.shipmentItemSeqId
         shipItemContext.quantity = itemIssuance.quantity
         Map serviceResultASCTP = run service: "addShipmentContentToPackage", with: shipItemContext
-        //      packageMap.${itemMap.trackingNum} = serviceResultASCTP.shipmentPackageSeqId
+        packageMap.'${itemMap.trackingNum}' = serviceResultASCTP.shipmentPackageSeqId
         Map routeSegLookup = [shipmentPackageSeqId: serviceResultASCTP.shipmentPackageSeqId]
 
         if (routeSegLookup.shipmentPackageSeqId) {
@@ -1363,7 +1383,7 @@ def quickShipOrderByItem() {
  * Delete an OrderShipment and updates the ShipmentItem
  * @return
  */
-def removerOrderShipmentFromShipment() {
+def removeOrderShipmentFromShipment() {
     GenericValue orderShipment = from("OrderShipment").where(parameters).queryOne()
     GenericValue shipmentItem = from("ShipmentItem").where(parameters).queryOne()
     Map inMap = [userLogin: parameters.userLogin, shipmentId: parameters.shipmentId, shipmentItemSeqId: parameters.shipmentItemSeqId, orderId: parameters.orderId, orderItemSeqId: parameters.orderItemSeqId, shipGroupSeqId: parameters.shipGroupSeqId]
@@ -1391,7 +1411,7 @@ def removerOrderShipmentFromShipment() {
  * Add or update a ShipmentPlan entry
  * @return
  */
-def addOrderHipmentToShipment() {
+def addOrderShipmentToShipment() {
     Map result = success()
     List error_list = []
     // if quantity is greater than 0 we add or update the ShipmentPlan
