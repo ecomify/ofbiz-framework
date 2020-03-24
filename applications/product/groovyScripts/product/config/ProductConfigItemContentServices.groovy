@@ -1,8 +1,3 @@
-import java.sql.Timestamp
-import org.apache.ofbiz.base.util.UtilDateTime
-import org.apache.ofbiz.entity.GenericValue
-import org.apache.ofbiz.service.ServiceUtil
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -22,21 +17,25 @@ import org.apache.ofbiz.service.ServiceUtil
  * under the License.
  */
 
+import java.sql.Timestamp
+import org.apache.ofbiz.base.util.UtilDateTime
+import org.apache.ofbiz.entity.GenericValue
+import org.apache.ofbiz.service.ServiceUtil
+
 // ProductConfigItemContent
 /**
  * Create Content For ProductConfigItem
  */
 def createProductConfigItemContent() {
+    Map result = success()
     GenericValue newEntity = makeValue("ProdConfItemContent", parameters)
     if (!newEntity.fromDate) {
-        Timestamp nowTimestamp = UtilDateTime.nowTimestamp()
-        newEntity.fromDate = nowTimestamp
+        newEntity.fromDate = UtilDateTime.nowTimestamp()
     }
     newEntity.create()
 
     run service: "updateContent", with: parameters
 
-    Map result = success()
     result.contentId = newEntity.contentId
     result.configItemId = newEntity.configItemId
     result.confItemContentTypeId = newEntity.confItemContentTypeId
