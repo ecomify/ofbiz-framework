@@ -524,24 +524,5 @@ def cancelReceivedItems() {
             run service:"setInvoiceStatus", with: invoiceStatusMap
         }
     }
-
     return result
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
