@@ -659,7 +659,6 @@ public class DataResourceWorker  implements org.apache.ofbiz.widget.content.Data
             locale = Locale.getDefault();
         }
 
-        //FIXME correctly propagate the theme, then fixes also the related FIXME below
         VisualTheme visualTheme = ThemeFactory.getVisualThemeFromId("COMMON");
         ModelTheme modelTheme = visualTheme.getModelTheme();
 
@@ -726,7 +725,6 @@ public class DataResourceWorker  implements org.apache.ofbiz.widget.content.Data
 
             } else if ("XSLT".equals(dataTemplateTypeId)) {
                 File targetFileLocation = new File(System.getProperty("ofbiz.home")+"/runtime/tempfiles/docbook.css");
-                // This is related with the other FIXME above: we need to correctly propagate the theme.
                 String defaultVisualThemeId = EntityUtilProperties.getPropertyValue("general", "VISUAL_THEME", delegator);
                 visualTheme = ThemeFactory.getVisualThemeFromId(defaultVisualThemeId);
                 modelTheme = visualTheme.getModelTheme();
@@ -803,7 +801,8 @@ public class DataResourceWorker  implements org.apache.ofbiz.widget.content.Data
                     ModelReader entityModelReader = delegator.getModelReader();
                     String formText = getDataResourceText(dataResource, targetMimeTypeId, locale, templateContext, delegator, cache);
                     Document formXml = UtilXml.readXmlDocument(formText, true, true);
-                    Map<String, ModelForm> modelFormMap = FormFactory.readFormDocument(formXml, entityModelReader, dispatcher.getDispatchContext(), null);
+                    Map<String, ModelForm> modelFormMap = FormFactory.readFormDocument(formXml, entityModelReader,
+                            UtilHttp.getVisualTheme(request), dispatcher.getDispatchContext(), null);
 
                     if (UtilValidate.isNotEmpty(modelFormMap)) {
                         Map.Entry<String, ModelForm> entry = modelFormMap.entrySet().iterator().next(); // get first entry, only one form allowed per file

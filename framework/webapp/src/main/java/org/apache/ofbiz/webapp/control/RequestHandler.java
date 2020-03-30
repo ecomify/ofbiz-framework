@@ -553,6 +553,7 @@ public class RequestHandler {
                 for (Map.Entry<String, Object> entry: preRequestMap.entrySet()) {
                     String key = entry.getKey();
                     if ("_ERROR_MESSAGE_LIST_".equals(key) || "_ERROR_MESSAGE_MAP_".equals(key) || "_ERROR_MESSAGE_".equals(key) ||
+                            "_WARNING_MESSAGE_LIST_".equals(key) || "_WARNING_MESSAGE_".equals(key) ||
                             "_EVENT_MESSAGE_LIST_".equals(key) || "_EVENT_MESSAGE_".equals(key)) {
                         request.setAttribute(key, entry.getValue());
                    }
@@ -965,6 +966,8 @@ public class RequestHandler {
         if (viewNoCache) {
            UtilHttp.setResponseBrowserProxyNoCache(resp);
            if (Debug.verboseOn()) Debug.logVerbose("Sending no-cache headers for view [" + nextPage + "]", module);
+        } else {
+            resp.setHeader("Cache-Control", "Set-Cookie");
         }
         
         //Security Headers

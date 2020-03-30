@@ -57,7 +57,6 @@ import org.apache.ofbiz.entity.util.EntityUtilProperties;
 import org.apache.ofbiz.security.Security;
 import org.apache.ofbiz.security.SecurityUtil;
 import org.apache.ofbiz.service.DispatchContext;
-import org.apache.ofbiz.service.GenericServiceException;
 import org.apache.ofbiz.service.LocalDispatcher;
 import org.apache.ofbiz.service.ModelService;
 import org.apache.ofbiz.service.ServiceUtil;
@@ -568,8 +567,11 @@ public class LoginServices {
         return null;
     }
 
-    public static void createUserLoginPasswordHistory(Delegator delegator,String userLoginId, String currentPassword) throws GenericEntityException{
+    public static void createUserLoginPasswordHistory(GenericValue userLogin) throws GenericEntityException{
         int passwordChangeHistoryLimit = 0;
+        Delegator delegator = userLogin.getDelegator();
+        String userLoginId = userLogin.getString("userLoginId");
+        String currentPassword = userLogin.getString("currentPassword");
         try {
             passwordChangeHistoryLimit = EntityUtilProperties.getPropertyAsInteger("security", "password.change.history.limit", 0);
         } catch (NumberFormatException nfe) {
@@ -606,8 +608,7 @@ public class LoginServices {
 
         // save this password in history
         GenericValue userLoginPwdHistToCreate = delegator.makeValue("UserLoginPasswordHistory", UtilMisc.toMap("userLoginId", userLoginId,"fromDate", nowTimestamp));
-        boolean useEncryption = "true".equals(EntityUtilProperties.getPropertyValue("security", "password.encrypt", delegator));
-        userLoginPwdHistToCreate.set("currentPassword", useEncryption ? HashCrypt.cryptUTF8(getHashType(), null, currentPassword) : currentPassword);
+        userLoginPwdHistToCreate.set("currentPassword", currentPassword);
         userLoginPwdHistToCreate.create();
     }
 
@@ -619,7 +620,6 @@ public class LoginServices {
     public static Map<String, Object> createUserLogin(DispatchContext ctx, Map<String, ?> context) {
         Map<String, Object> result =  new LinkedHashMap<>();
         Delegator delegator = ctx.getDelegator();
-        LocalDispatcher dispatcher = ctx.getDispatcher();
         Security security = ctx.getSecurity();
         GenericValue loggedInUserLogin = (GenericValue) context.get("userLogin");
         List<String> errorMessageList = new LinkedList<>();
@@ -637,9 +637,6 @@ public class LoginServices {
         String externalAuthId = (String) context.get("externalAuthId");
         String errMsg = null;
 
-        String questionEnumId = (String) context.get("securityQuestion");
-        String securityAnswer = (String) context.get("securityAnswer");
-        
         // security: don't create a user login if the specified partyId (if not empty) already exists
         // unless the logged in user has permission to do so (same partyId or PARTYMGR_CREATE)
         if (UtilValidate.isNotEmpty(partyId)) {
@@ -702,7 +699,7 @@ public class LoginServices {
 
         try {
             userLoginToCreate.create();
-            createUserLoginPasswordHistory(delegator,userLoginId, currentPassword);
+            createUserLoginPasswordHistory(userLoginToCreate);
         } catch (GenericEntityException e) {
             Debug.logWarning(e, "", module);
             Map<String, String> messageMap = UtilMisc.toMap("errorMessage", e.getMessage());
@@ -710,20 +707,6 @@ public class LoginServices {
             return ServiceUtil.returnError(errMsg);
         }
 
-        try {
-            if (UtilValidate.isNotEmpty(securityAnswer)) {
-                Map<String, Object> resultMap = dispatcher.runSync("createUserLoginSecurityQuestion",
-                        UtilMisc.toMap("userLogin", loggedInUserLogin, "userLoginId", userLoginId, "questionEnumId", questionEnumId, "securityAnswer", securityAnswer));
-                if (ServiceUtil.isError(resultMap)) {
-                    errMsg = ServiceUtil.getErrorMessage(resultMap);
-                    errorMessageList.add(errMsg);
-                    Debug.logError(errMsg, module);
-                }
-            }
-        } catch (GenericServiceException e1) {
-            errMsg = UtilProperties.getMessage(resource,"loginservices.error_setting_security_question", locale);
-            Debug.logError(e1, errMsg, module);
-        }
         result.put(ModelService.RESPONSE_MESSAGE, ModelService.RESPOND_SUCCESS);
         return result;
     }
@@ -849,7 +832,7 @@ public class LoginServices {
 
             try {
                 userLoginToUpdate.store();
-                createUserLoginPasswordHistory(delegator,userLoginId, newPassword);
+                createUserLoginPasswordHistory(userLoginToUpdate);
             } catch (GenericEntityException e) {
                 Map<String, String> messageMap = UtilMisc.toMap("errorMessage", e.getMessage());
                 errMsg = UtilProperties.getMessage(resource,"loginservices.could_not_change_password_write_failure", messageMap, locale);

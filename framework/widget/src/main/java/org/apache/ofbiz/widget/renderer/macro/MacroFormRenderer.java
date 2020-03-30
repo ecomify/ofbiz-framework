@@ -2241,7 +2241,7 @@ public final class MacroFormRenderer implements FormStringRenderer {
         StringBuilder targetParameterIter = new StringBuilder();
         StringBuilder imgSrc = new StringBuilder();
         // FIXME: refactor using the StringUtils methods
-        List<String> targetParameterList = lookupField.getTargetParameterList();
+        List<String> targetParameterList = lookupField.getTargetParameterList(context);
         targetParameterIter.append("[");
         for (String targetParameter : targetParameterList) {
             if (targetParameterIter.length() > 1) {
@@ -3395,7 +3395,7 @@ public final class MacroFormRenderer implements FormStringRenderer {
 
     @Override
     public void renderContainerFindField(Appendable writer, Map<String, Object> context, ContainerField containerField) throws IOException {
-        String id = containerField.getModelFormField().getIdName();
+        final String id = containerField.getModelFormField().getCurrentContainerId(context);
         String className = UtilFormatOut.checkNull(containerField.getModelFormField().getWidgetStyle());
         StringWriter sr = new StringWriter();
         sr.append("<@renderContainerField ");

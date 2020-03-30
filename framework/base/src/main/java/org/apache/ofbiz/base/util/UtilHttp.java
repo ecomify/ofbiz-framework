@@ -66,6 +66,7 @@ import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.FileUploadException;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
+import org.apache.commons.fileupload.servlet.ServletRequestContext;
 import org.apache.commons.lang.RandomStringUtils;
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
@@ -76,6 +77,7 @@ import org.apache.http.ssl.SSLContexts;
 import org.apache.ofbiz.entity.Delegator;
 import org.apache.ofbiz.entity.util.EntityUtilProperties;
 import org.apache.ofbiz.webapp.control.ConfigXMLReader;
+import org.apache.ofbiz.webapp.control.SameSiteFilter;
 import org.apache.ofbiz.webapp.event.FileUploadProgressListener;
 import org.apache.ofbiz.widget.renderer.VisualTheme;
 
@@ -224,6 +226,7 @@ public final class UtilHttp {
                 Debug.logError("File upload error" + e, module);
             }
             if (uploadedItems != null) {
+                request.setAttribute("fileItems", uploadedItems);
                 for (FileItem item: uploadedItems) {
                     String fieldName = item.getFieldName();
                     //byte[] itemBytes = item.get();
@@ -273,6 +276,7 @@ public final class UtilHttp {
                             }
                         }
                         multiPartMap.put(fieldName, ByteBuffer.wrap(item.get()));
+                        multiPartMap.put("_" + fieldName + "_fileItem", item);
                         multiPartMap.put("_" + fieldName + "_size", item.getSize());
                         multiPartMap.put("_" + fieldName + "_fileName", fileName);
                         multiPartMap.put("_" + fieldName + "_contentType", item.getContentType());
@@ -1129,6 +1133,8 @@ public final class UtilHttp {
         resp.setHeader("Referrer-Policy", "no-referrer-when-downgrade"); // This is the default (in Firefox at least)
         
         resp.setHeader("Content-Security-Policy-Report-Only", "default-src 'self'");
+        
+        SameSiteFilter.addSameSiteCookieAttribute(resp);
         
         // TODO in custom project. Public-Key-Pins-Report-Only is interesting but can't be used OOTB because of demos (the letsencrypt certificate is renewed every 3 months)
     }
