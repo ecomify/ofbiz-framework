@@ -38,8 +38,7 @@ def createShipmentReceipt() {
     result.receiptId = receiptId
 
     if (!newEntity.datetimeReceived) {
-        Timestamp nowTimestamp = UtilDateTime.nowTimestamp()
-        newEntity.datetimeReceived = nowTimestamp
+        newEntity.datetimeReceived = UtilDateTime.nowTimestamp()
     }
     newEntity.receivedByUserLoginId = userLogin.userLoginId
     newEntity.create()
@@ -66,9 +65,7 @@ def createShipmentReceipt() {
  * @return
  */
 def createShipmentReceiptRole() {
-    GenericValue newEntity = makeValue("ShipmentReceiptRole", parameters)
-    newEntity.create()
-    return success()
+    // TODO converted to entity-auto -> test
 }
 
 /**
@@ -76,13 +73,7 @@ def createShipmentReceiptRole() {
  * @return
  */
 def removeShipmentReceiptRole() {
-    GenericValue lookupPKMap = makeValue("ShipmentReceiptRole")
-    lookupPKMap.setPKFields(parameters)
-    GenericValue lookedUpValue = from("ShipmentReceiptRole")
-            .where(lookupPKMap)
-            .queryOne()
-    lookedUpValue.remove()
-    return success()
+    // TODO converted to entity-auto -> test
 }
 
 /**
@@ -102,16 +93,17 @@ def receiveInventoryProduct () {
     String currentInventoryItemId
     Double loops = 1.0
     if (parameters.inventoryItemTypeId == "SERIALIZED_INV_ITEM") {
-        if ((parameters.serialNumber || parameters.currentInventoryItemId) && (BigDecimal) parameters.quantityAccepted > 1) {
+        // if we are serialized and either a serialNumber or inventoyItemId is passed in and the quantityAccepted is greater than 1 then complain
+        if ((parameters.serialNumber || parameters.currentInventoryItemId) && (parameters.quantityAccepted > (BigDecimal) 1)) {
             Map errorLog = [parameters: parameters]
             return error(UtilProperties.getMessage("ProductUiLabels", "FacilityReceiveInventoryProduct", errorLog,  parameters.locale))
+            // before getting going, see if there are any validation issues so far
         }
         loops = parameters.quantityAccepted
         parameters.quantityAccepted = (BigDecimal) 1
     }
     parameters.quantityOnHandDiff = parameters.quantityAccepted
     parameters.availableToPromiseDiff = parameters.quantityAccepted
-    // before getting going, see if there are any validation issues so far
 
     //Status for Non serialized and Serialized inventory are different, lets make sure correct status is stored in database
     if (parameters.inventoryItemTypeId == "NON_SERIAL_INV_ITEM") {
@@ -122,17 +114,13 @@ def receiveInventoryProduct () {
             parameters.statusId = "INV_NS_ON_HOLD"
         } else if (parameters.statusId == "INV_RETURNED") {
             parameters.statusId = "INV_NS_RETURNED"
-        }
-
-        // Any other status should be just set to null, if it is not a valid status for Non Serialized inventory
-        if (parameters.statusId != "INV_NS_DEFECTIVE"
-        && parameters.statusId != "INV_NS_ON_HOLD"
-        && parameters.statusId != "INV_NS_RETURNED") {
+        } else {
+            // Any other status should be just set to null, if it is not a valid status for Non Serialized inventory
             parameters.statusId = null
         }
     }
 
-    for (Double currentLoop = 0; currentLoop <= loops ; currentLoop ++) {
+    for (Double currentLoop = 0; currentLoop <= loops; currentLoop++) {
         logInfo("receiveInventoryProduct Looping and creating inventory info - ${currentLoop}")
 
         // if there is an inventoryItemId, update it (this will happen when receiving serialized inventory already in the system, like for returns); if not create one
@@ -155,7 +143,6 @@ def receiveInventoryProduct () {
             if (parameters.currentInventoryItemId) {
                 parameters.inventoryItemId = parameters.currentInventoryItemId
             }
-
             run service:"updateInventoryItem", with: parameters
             currentInventoryItemId = parameters.currentInventoryItemId
         }
@@ -211,7 +198,7 @@ def quickReceiveReturn() {
         // before receiving inventory, check to see if there is inventory information in this database
         Long iiCount = from("InventoryItem").where(facilityId: returnHeader.destinationFacilityId).queryCount()
 
-        if (iiCount > 0) {
+        if (iiCount > (Integer) 0) {
             // create a return shipment for this return
             Map shipmentCtx = [returnId: parameters.returnId]
             Map serviceCSFR = run service:"createShipmentForReturn", with: shipmentCtx
@@ -222,18 +209,17 @@ def quickReceiveReturn() {
 
             // if no inventory item type specified, get default from facility
             if(!parameters.inventoryItemTypeId) {
-                GenericValue facility = returnHeader.getRelatedOne("Facility", false)
+                GenericValue facility = delegator.getRelatedOne("Facility", returnHeader, false)
                 parameters.inventoryItemTypeId = facility.defaultInventoryItemTypeId ?: "NON_SERIAL_INV_ITEM"
             }
             Timestamp nowTimestamp = UtilDateTime.nowTimestamp()
 
             Long returnItemCount = from("ReturnItem").where(returnId: returnHeader.returnId).queryCount()
-            Long nonProductItems =  0
+            Long nonProductItems =  (Long) 0
 
             for (GenericValue returnItem : returnItems) {
                 // record this return item on the return shipment as well.  not sure if this is actually necessary...
-                Map shipItemCtx = [:]
-                shipItemCtx = [shipmentId: shipmentId, productId: returnItem.productId, quantity: returnItem.returnQuantity]
+                Map shipItemCtx = [shipmentId: shipmentId, productId: returnItem.productId, quantity: returnItem.returnQuantity]
                 logInfo("calling create shipment item with ${shipItemCtx}")
                 Map serviceCSI = run service:"createShipmentItem", with: shipItemCtx
                 String shipmentItemSeqId = serviceCSI.shipmentItemSeqId
@@ -243,7 +229,7 @@ def quickReceiveReturn() {
                 if (!returnItem.expectedItemStatus) {
                     returnItem.expectedItemStatus = "INV_RETURNED"
                 }
-                GenericValue orderItem = returnItem.getRelatedOne("OrderItem", false)
+                GenericValue orderItem = delegator.getRelatedOne("OrderItem", returnItem, false)
                 if (orderItem?.productId) {
                     Map costCtx = [returnItemSeqId: returnItem.returnItemSeqId, returnId: returnItem.returnId]
                     Map serviceGRIIC = run service:"getReturnItemInitialCost", with: costCtx
@@ -264,7 +250,7 @@ def quickReceiveReturn() {
                         parameters.inventoryItemTypeId = "SERIALIZED_INV_ITEM"
                         returnItem.returnQuantity = (BigDecimal) 1
                     }
-                    receiveCtx =[inventoryItemTypeId: parameters.inventoryItemTypeId,
+                    receiveCtx = [inventoryItemTypeId: parameters.inventoryItemTypeId,
                         statusId: returnItem.expectedItemStatus,
                         productId: returnItem.productId,
                         returnItemSeqId: returnItem.returnItemSeqId,
@@ -279,14 +265,12 @@ def quickReceiveReturn() {
                     Map serviceResult = run service:"receiveInventoryProduct", with: receiveCtx
                     result.successMessageList = serviceResult.successMessageList
                 } else {
-                    nonProductItems += 1
+                    nonProductItems += (Long) 1
                 }
-
             }
             // now that the receive is done; set the need flag to N
             returnHeader.refresh()
-
-            //returnHeader.needsInventoryReceive = "N"
+            returnHeader.needsInventoryReceive = "N"
             returnHeader.store()
 
             // always check/update the ReturnHeader status, even though it might have been from the receiving above, just make sure
@@ -318,7 +302,7 @@ def issueOrderItemToShipmentAndReceiveAgainstPO() {
 
     // try to find an existing shipmentItem and attach to it, if none found create a new shipmentItem
     // if there is NO productId on the orderItem, ALWAYS create a new shipmentItem
-    if (orderItem.productId) {
+    if (orderItem?.productId) {
         EntityCondition condition = EntityCondition.makeCondition([
             EntityCondition.makeCondition(productId: orderItem.productId),
             EntityCondition.makeCondition(shipmentId: shipment.shipmentId)
@@ -349,7 +333,6 @@ def issueOrderItemToShipmentAndReceiveAgainstPO() {
         if (orderItemShipGroupAssoc) {
             // If we have a ShipGroup Assoc for this Item to focus on, set that; this is mostly the case for purchase orders and such
             orderShipmentCreate.shipGroupSeqId = orderItemShipGroupAssoc.shipGroupSeqId
-
         }
         run service:"createOrderShipment", with: orderShipmentCreate
     } else {
@@ -358,6 +341,7 @@ def issueOrderItemToShipmentAndReceiveAgainstPO() {
         Map serviceResult = run service:"getTotalIssuedQuantityForOrderItem", with: inputMap
         BigDecimal totalIssuedQuantity = serviceResult.totalIssuedQuantity
         BigDecimal receivedQuantity = getReceivedQuantityForOrderItem(orderItem)
+        receivedQuantity += parameters.quantity
         GenericValue orderShipment = from("OrderShipment")
                 .where(orderId: orderItem.orderId,
                 orderItemSeqId: orderItem.orderItemSeqId,
@@ -365,9 +349,9 @@ def issueOrderItemToShipmentAndReceiveAgainstPO() {
                 shipmentItemSeqId: shipmentItem.shipmentItemSeqId,
                 shipGroupSeqId: orderItemShipGroupAssoc.shipGroupSeqId)
                 .queryFirst()
-        if ((BigDecimal) totalIssuedQuantity < receivedQuantity) {
+        if (totalIssuedQuantity < receivedQuantity) {
             BigDecimal quantityToAdd = receivedQuantity - totalIssuedQuantity
-            shipmentItem.quantity = shipmentItem.quantity + quantityToAdd
+            shipmentItem.quantity += quantityToAdd
             shipmentItem.store()
             shipmentItemSeqId = shipmentItem.shipmentItemSeqId
 
@@ -395,7 +379,7 @@ def getReceivedQuantityForOrderItem (GenericValue orderItem) {
     BigDecimal receivedQuantity = 0
     List shipmentReceipts = from("ShipmentReceipt").where(orderId: orderItem.orderId, orderItemSeqId: orderItem.orderItemSeqId).queryList()
     for (GenericValue shipmentReceipt : shipmentReceipts) {
-        receivedQuantity = receivedQuantity + shipmentReceipt.quantityAccepted
+        receivedQuantity +=  shipmentReceipt.quantityAccepted
     }
     return receivedQuantity
 }
@@ -422,7 +406,7 @@ def updateIssuanceShipmentAndPoOnReceiveInventory() {
         GenericValue orderItemShipGroupAssoc = from("OrderItemShipGroupAssoc")
                 .where(orderId: orderItem.orderId, orderItemSeqId: orderItem.orderItemSeqId)
                 .queryFirst()
-        BigDecimal quantityVariance = (receivedQuantity-orderItem.quantity).setScale(2, BigDecimal.ROUND_HALF_UP)
+        BigDecimal quantityVariance = (receivedQuantity - orderItem.quantity).setScale(2, BigDecimal.ROUND_HALF_UP)
         BigDecimal oisgaQuantity = (orderItemShipGroupAssoc.quantity + quantityVariance).setScale(2, BigDecimal.ROUND_HALF_UP)
         orderItemShipGroupAssoc.quantity = oisgaQuantity
         orderItem.quantity = receivedQuantity
@@ -449,13 +433,13 @@ def updateIssuanceShipmentAndPoOnReceiveInventory() {
                 }
                 GenericValue shipmentItem = from("ShipmentItem").where(condition).orderBy("shipmentItemSeqId").queryFirst()
                 if (shipmentItem) {
-                    shipmentItem.quantity = shipmentItem.quantity + quantityToAdd
+                    shipmentItem.quantity += quantityToAdd
                     shipmentItem.store()
                     GenericValue orderShipment = from("OrderShipment")
                             .where(orderId: parameters.orderId, orderItemSeqId: parameters.orderItemSeqId, shipmentId: parameters.shipmentId, shipmentItemSeqId: shipmentItem.shipmentItemSeqId)
                             .queryFirst()
                     if (orderShipment) {
-                        orderShipment.quantity = orderShipment.quantity + quantityToAdd
+                        orderShipment.quantity += quantityToAdd
                         orderShipment.store()
                     }
                 }
@@ -482,8 +466,6 @@ def cancelReceivedItems() {
     // 3. createAcctgTransForShipmentReceipt
     // 4. updateProductIfAvailableFromShipment
 
-    Map result = success()
-
     // update the accepted and received quantity to zero in ShipmentReceipt entity
     GenericValue shipmentReceipt = from("ShipmentReceipt").where(parameters).queryOne()
     shipmentReceipt.quantityAccepted = 0.0
@@ -491,7 +473,7 @@ def cancelReceivedItems() {
     shipmentReceipt.store()
 
     // create record for InventoryItemDetail entity
-    GenericValue inventoryItem = shipmentReceipt.getRelatedOne("InventoryItem", false)
+    GenericValue inventoryItem = delegator.getRelatedOne("InventoryItem", shipmentReceipt, false)
     Map inventoryItemDetailMap = [inventoryItemId: inventoryItem.inventoryItemId]
     inventoryItemDetailMap.quantityOnHandDiff = inventoryItem.quantityOnHandTotal * (-1)
     inventoryItemDetailMap.availableToPromiseDiff = inventoryItem.availableToPromiseTotal *(-1)
@@ -502,21 +484,21 @@ def cancelReceivedItems() {
     run service:"balanceInventoryItems", with: balanceInventoryItemMap
 
     // update the shipment status, if shipment was received
-    GenericValue shipment = shipmentReceipt.getRelatedOne("Shipment", false)
+    GenericValue shipment = delegator.getRelatedOne("Shipment", shipmentReceipt, false)
     if (shipment?.statusId == "PURCH_SHIP_RECEIVED") {
         Map shipmentStatusMap = [shipmentId : shipment.shipmentId, statusId: "PURCH_SHIP_SHIPPED"]
         run service:"updateShipment", with: shipmentStatusMap
     }
     // change order item and order status
-    GenericValue orderItem = shipmentReceipt.getRelatedOne("OrderItem", false)
+    GenericValue orderItem = delegator.getRelatedOne("OrderItem", shipmentReceipt, false)
     if (orderItem?.statusId == "ITEM_COMPLETED") {
         // update the order item status
         orderItem.statusId = "ITEM_APPROVED"
-        Map orderItemCtx = dispatcher.getDispatchContext().makeValidContext('changeOrderItemStatus', 'IN', orderItem)
-
+        Map orderItemCtx = [:]
+        orderItemCtx << orderItem
         orderItemCtx.fromStatusId = "ITEM_COMPLETED"
         run service:"changeOrderItemStatus", with: orderItemCtx
-        GenericValue orderHeader = orderItem.getRelatedOne("OrderHeader", false)
+        GenericValue orderHeader = delegator.getRelatedOne("OrderHeader", orderItem, false)
         // cancel the invoice
         GenericValue orderItemBilling = from("OrderItemBilling").where(orderId: orderItem.orderId).queryFirst()
         if (orderItemBilling) {
@@ -524,5 +506,5 @@ def cancelReceivedItems() {
             run service:"setInvoiceStatus", with: invoiceStatusMap
         }
     }
-    return result
+    return success()
 }

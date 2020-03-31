@@ -30,13 +30,13 @@ def getTotalIssuedQuantityForOrderItem() {
     List orderShipments = from("OrderShipment").where(orderId: orderItem.orderId, orderItemSeqId: orderItem.orderItemSeqId).queryList()
     if (orderShipments) {
         for (GenericValue orderShipment : orderShipments) {
-            totalIssuedQuantity = totalIssuedQuantity + orderShipment.quantity
+            totalIssuedQuantity +=  orderShipment.quantity
         }
     } else {
         // This is here for backward compatibility only: ItemIssuances are no more created for purchase orders
         List allItemIssuances = from("ItemIssuance").where(orderId: orderItem.orderId, orderItemSeqId: orderItem.orderItemSeqId).queryList()
         for (GenericValue itemIssuance : allItemIssuances) {
-            totalIssuedQuantity = totalIssuedQuantity + itemIssuance.quantity
+            totalIssuedQuantity += itemIssuance.quantity
         }
     }
     result.totalIssuedQuantity = totalIssuedQuantity
