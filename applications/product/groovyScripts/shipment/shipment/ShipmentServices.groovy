@@ -345,7 +345,7 @@ def setShipmentSettingsFromPrimaryOrder() {
         }
     }
     // set the facility if we are from a store with a single facility
-    if ((!shipment.originFacilityId) && (shipment.shipmentTypeId == "SALES_SHIPMENt") && (orderHeader.productStoreId)) {
+    if ((!shipment.originFacilityId) && (shipment.shipmentTypeId == "SALES_SHIPMENT") && (orderHeader.productStoreId)) {
         GenericValue productStore = from("ProductStore").where(productStoreId: orderHeader.productStoreId).queryOne()
         if (productStore.oneInventoryFacility == "Y") {
             shipment.originFacilityId = productStore.inventoryFacilityId
@@ -386,7 +386,7 @@ def setShipmentSettingsFromPrimaryOrder() {
         limitOrderRoles = EntityUtil.filterByAnd(orderRoles, limitRoleMap)
         if (limitOrderRoles) {
             limitOrderRole = limitOrderRoles.get(0)
-            shipment.partyIdFrom = limitOrderRole.partyId
+            shipment.partyIdTo = limitOrderRole.partyId
         }
         limitRoleMap = [:]
         limitOrderRoles = []
@@ -398,7 +398,7 @@ def setShipmentSettingsFromPrimaryOrder() {
         limitOrderRoles = EntityUtil.filterByAnd(orderRoles, limitRoleMap)
         if (limitOrderRoles) {
             limitOrderRole = limitOrderRoles.get(0)
-            shipment.partyIdFrom = limitOrderRole.partyId
+            shipment.partyIdTo = limitOrderRole.partyId
         }
         limitRoleMap = [:]
         limitOrderRoles = []
@@ -487,7 +487,6 @@ def setShipmentSettingsFromPrimaryOrder() {
         BigDecimal shippingAmount = OrderReadHelper.getAllOrderItemsAdjustmentsTotal(orderItems, orderAdjustments, false, false, true)
         shippingAmount = shippingAmount.add(OrderReadHelper.calcOrderAdjustments(orderHeaderAdjustments, orderSubTotal, false, false, true))
         //org.apache.ofbiz.base.util.Debug.log("shippingAmmount=" + shippingAmount)
-        shipment.estimatedShipCost = shippingAmount
         shipment.put("estimatedShipCost", shippingAmount)
     }
     // create a ShipmentRouteSegment with originFacilityId (if set on Shipment), destContactMechId,
@@ -672,7 +671,7 @@ def splitShipmentItemByQuantity() {
     Map serviceResult = run service: "createShipmentItem", with: inputMap
     String newShipmentItemSeqId = serviceResult.shipmentItemSeqId
     // reduce the originalShipmentItem.quantity
-    originalShipmentItem.quantity = originalShipmentItem.quantity - parameters.newItemQuantity
+    originalShipmentItem.quantity -= parameters.newItemQuantity
     // update the original ShipmentItem
     Map updateOriginalShipmentItemMap = [:]
     updateOriginalShipmentItemMap << originalShipmentItem
@@ -688,7 +687,7 @@ def splitShipmentItemByQuantity() {
                 // there is enough in this OrderShipment record, so just adjust it and move on
                 Map updateOrderShipmentMap = [:]
                 updateOrderShipmentMap << itemOrderShipment
-                updateOrderShipmentMap.quantity = updateOrderShipmentMap.quantity - orderShipmentQuantityLeft
+                updateOrderShipmentMap.quantity = itemOrderShipment.quantity - orderShipmentQuantityLeft
                 run service: "updateOrderShipment", with: updateOrderShipmentMap
 
                 Map createOrderShipmentMap = [orderId: itemOrderShipment.orderId, orderItemSeqId: itemOrderShipment.orderItemSeqId, shipmentId: itemOrderShipment.shipmentId, shipmentItemSeqId: newShipmentItemSeqId, quantity: orderShipmentQuantityLeft]
@@ -703,7 +702,7 @@ def splitShipmentItemByQuantity() {
                 Map createOrderShipmentMap = [orderId: itemOrderShipment.orderId, orderItemSeqId: itemOrderShipment.orderItemSeqId, shipmentId: itemOrderShipment.shipmentId, shipmentItemSeqId: newShipmentItemSeqId, quantity: itemOrderShipment.quantity]
                 run service: "createOrderShipment", with: createOrderShipmentMap
 
-                orderShipmentQuantityLeft = orderShipmentQuantityLeft - itemOrderShipment.quantity
+                orderShipmentQuantityLeft -= itemOrderShipment.quantity
             }
         }
     }
@@ -796,7 +795,7 @@ def addShipmentContentToPackage() {
         newEntity.shipmentPackageSeqId = serviceResult.shipmentPackageSeqId
     } else {
         // add the quantities and store it
-        shipmentPackageContent.quantity = shipmentPackageContent.quantity + parameters.quantity
+        shipmentPackageContent.quantity += parameters.quantity
         Map updateSPCMap = [:]
         updateSPCMap << shipmentPackageContent
         run service: "updateShipmentPackageContent", with: updateSPCMap
@@ -1022,13 +1021,14 @@ def quickReceivePurchaseOrder() {
     Map serviceResultCSFFASG = createShipmentForFacilityAndShipGroup(orderHeader, serviceResult.orderItemListByShGrpMap, serviceResult.orderItemShipGroupList, serviceResult.orderItemAndShipGroupAssocList, null, null, parameters.facilityId, null, null)
     logInfo("Finished quickReceivePurchaseOrder for orderId ${parameters.orderId} and destination facilityId ${parameters.facilityId} shipment created ${serviceResultCSFFASG.shipmentIds}")
     result.shipmentIds = serviceResultCSFFASG.shipmentIds
+    return result
 }
 
 /**
  * Sub-method used by quickShip methods to get a list of OrderItemAndShipGroupAssoc and a Map of shipGroupId -> OrderItemAndShipGroupAssoc
  * @return
  */
-def getOrderItemShipGroupLists(GenericValue orderHeader) { // TODO ausfürhlich testen
+def getOrderItemShipGroupLists(GenericValue orderHeader) {
     Map result = success()
     // lookup all the approved items, doing by item because the item must be approved before shipping
     List orderItemAndShipGroupAssocList = from("OrderItemAndShipGroupAssoc").where(orderId: orderHeader.orderId, statusId: "ITEM_APPROVED").queryList()
@@ -1043,7 +1043,6 @@ def getOrderItemShipGroupLists(GenericValue orderHeader) { // TODO ausfürhlich 
     // This Map is actually used only for sales orders' shipments right now.
     List orderItemListByShGrpMap = []
     for (GenericValue orderItemAndShipGroupAssoc : orderItemAndShipGroupAssocList) {
-        // TODO Test
         orderItemListByShGrpMap << orderItemAndShipGroupAssoc
     }
     result.orderItemListByShGrpMap = orderItemListByShGrpMap
@@ -1070,9 +1069,7 @@ def createShipmentForFacilityAndShipGroup(GenericValue orderHeader, List orderIt
         List perShipGroupItemList = orderItemListByShGrpMap
         // make sure we have something to ship
         if (!perShipGroupItemList) {
-            List argListNames = [
-                orderItemShipGroup.shipGroupSeqId
-            ]
+            List argListNames = [orderItemShipGroup.shipGroupSeqId]
             String successMessage = UtilProperties.getMessage("ProductUiLabels", "FacilityShipmentNoItemsAvailableToShip", argListNames, locale)
         } else {
             // create the shipment for this facility and ship group combination
@@ -1247,10 +1244,11 @@ def issueSerializedInvToShipmentPackageAndSetTracking() {
     shipItemContext.shipmentItemSeqId = itemIssuance.shipmentItemSeqId
     shipItemContext.quantity = itemIssuance.quantity
     Map serviceResultASCTP = run service: "addShipmentContentToPackage", with: shipItemContext
-    Map packageMap = [{parameters.trackingNum}: serviceResultASCTP.shipmentPackageSeqId]
+    Map packageMap = ["${parameters.trackingNum}": serviceResultASCTP.shipmentPackageSeqId]
     Map routeSegLookup = [shipmentPackageSeqId: serviceResultASCTP.shipmentPackageSeqId]
     if (routeSegLookup.shipmentPackageSeqId) {
         routeSegLookup.shipmentId = itemIssuance.shipmentId
+        // quick ship orders should only have one route segment
         routeSegLookup.shipmentRouteSegmentId = "0001"
         GenericValue packageRouteSegment = from("ShipmentPackageRouteSeg").where(routeSegLookup).queryOne()
         if (packageRouteSegment) {
@@ -1490,7 +1488,7 @@ def getQuantityForShipment() {
         if (!orderShipment.quantity) {
             orderShipment.quantity = (BigDecimal) 0
         }
-        plannedQuantity = plannedQuantity + orderShipment.quantity
+        plannedQuantity += orderShipment.quantity
     }
     existingOrderShipments = from("ItemIssuance").where(orderShipmentLookup).queryList()
     for (GenericValue itemIssuance : existingOrderShipments) {
