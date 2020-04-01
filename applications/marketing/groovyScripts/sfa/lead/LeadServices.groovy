@@ -31,7 +31,7 @@ def createLead() {
     String leadContactPartyId
     String partyGroupPartyId
     // Check if Person or PartyGroup name is supplied
-    if (((!parameters.firstName) || (parameters.lastName)) && (parameters.groupName)) {
+    if (((!parameters.firstName) || (!parameters.lastName)) && (!parameters.groupName)) {
         String errorMessage = UtilProperties.getMessage("MarketingUiLabels", "SfaFirstNameLastNameAndCompanyNameMissingError", locale)
         logError(errorMessage)
         return error(errorMessage)
@@ -74,7 +74,7 @@ def createLead() {
             Map partyGroupCtx = [:]
             List<String> messages = []
             // TODO need to convert from MapProcessor
-            SimpleMapProcessor.runSimpleMapProcessor('component://party/minilang/party/PartyMapProcs.xml', 'partyGroup', parameters, partyGroupCtx, messages, context.loacle, loader)
+            SimpleMapProcessor.runSimpleMapProcessor('component://party/minilang/party/PartyMapProcs.xml', 'partyGroup', parameters, partyGroupCtx, messages, context.loacle)
             if (messages) return error(StringUtil.join(messages, ","))
             Map serviceResultCPG = run service: "createPartyGroup", with: partyGroupCtx
             if (!ServiceUtil.isSuccess(serviceResultCPG)) {
@@ -144,7 +144,7 @@ def convertLeadToContact() {
         deletePartyRelationship.thruDate = nowTimestamp
         run service: "updatePartyRelationship", with: deletePartyRelationship
         partyRelationship = null
-        Map deletePartyRelationship = [:]
+        deletePartyRelationship = [:]
     }
     // Expire relation between lead company and its owner
     partyRelationship = from("PartyRelationship")
@@ -157,7 +157,7 @@ def convertLeadToContact() {
         deletePartyRelationship.thruDate = nowTimestamp
         run service: "updatePartyRelationship", with: deletePartyRelationship
         partyRelationship = null
-        Map deletePartyRelationship = [:]
+        deletePartyRelationship = [:]
     }
     Map partyRoleCtx = [partyId: partyGroupId, roleTypeId: "ACCOUNT"]
     run service: "ensurePartyRole", with: partyRoleCtx

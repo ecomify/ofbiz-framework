@@ -94,8 +94,9 @@ under the License.
         <auto-attributes entity-name="PartyRole" mode="IN" include="nonpk" optional="true"/>
         <auto-attributes entity-name="PostalAddress" mode="IN" optional="true"/>
         <auto-attributes entity-name="TelecomNumber" mode="IN" optional="true"/>
-         <attribute name="emailAddress" type="String" mode="IN" optional="true"/>
-        <attribute name="partyId" mode="OUT" type="String" optional="false"></attribute>
+        <attribute name="roleTypeId" mode="IN" type="String"/>
+        <attribute name="emailAddress" type="String" mode="IN" optional="true"/>
+        <attribute name="partyId" mode="OUT" type="String" optional="false"/>
     </service>
     <service name="updatePerson" engine="java" default-entity-name="Person"
             location="org.apache.ofbiz.party.party.PartyServices" invoke="updatePerson" auth="true">
