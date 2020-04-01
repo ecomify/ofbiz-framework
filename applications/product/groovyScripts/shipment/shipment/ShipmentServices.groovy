@@ -28,8 +28,6 @@ import org.apache.ofbiz.product.product.ProductWorker
 import org.apache.ofbiz.service.ServiceUtil
 
 
-
-
 /**
  * Create Shipment
  * @return
@@ -134,9 +132,9 @@ def updateShipment() {
     }
     // Check the pickup and delivery dates for changes and update the corresponding WorkEfforts
     if (((parameters.estimatedShipDate) && (parameters.estimatedShipDate != lookedUpValue.estimatedShipDate))
-        || ((parameters.originFacilityId) && (parameters.originFacilityId != lookedUpValue.originFacilityId))
-        || ((parameters.statusId) && (parameters.statusId != lookedUpValue.statusId)
-            && ((parameters.statusId == "SHIPMENT_CANCELLED") || (parameters.statusId == "SHIPMENT_PACKED") || (parameters.statusId == "SHIPMENT_SHIPPED")))) {
+    || ((parameters.originFacilityId) && (parameters.originFacilityId != lookedUpValue.originFacilityId))
+    || ((parameters.statusId) && (parameters.statusId != lookedUpValue.statusId)
+    && ((parameters.statusId == "SHIPMENT_CANCELLED") || (parameters.statusId == "SHIPMENT_PACKED") || (parameters.statusId == "SHIPMENT_SHIPPED")))) {
         GenericValue estShipWe = from("WorkEffort").where(workEffortId: lookedUpValue.estimatedShipWorkEffId).queryOne()
         if (estShipWe) {
             estShipWe.estimatedStartDate = parameters.estimatedShipDate
