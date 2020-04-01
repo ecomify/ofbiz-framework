@@ -640,24 +640,6 @@ def balanceItemIssuancesForShipment() {
 // ShipmentItem services
 
 /**
- * Delete ShipmentItem
- * @return
- */
-def deleteShipmentItem() { // DELETE IS AUTO
-    //  If there is any Shipment Package Content available for this Shipment Item then it cannot be deleted as it require Shipment Package content to be deleted first
-    List shipmentPackageContents = from("ShipmentPackageContent").where(shipmentId: parameters.shipmentId, shipmentItemSeqId: parameters.shipmentItemSeqId).queryList()
-    if (shipmentPackageContents) {
-        String errorMessage = UtilProperties.getMessage("ProductErrorUiLables", "ProductErrorShipmentItemCannotBeDeleted", locale)
-        logError(errorMessage)
-        return error(errorMessage)
-    } else {
-        GenericValue lookedUpValue = from("ShipmentItem").where(parameters).queryOne()
-        lookedUpValue.remove()
-    }
-    return success()
-}
-
-/**
  * splitShipmentItemByQuantity
  * @return
  */
