@@ -17,6 +17,7 @@
  * under the License.
  */
 
+import java.math.RoundingMode
 import java.sql.Timestamp
 
 import org.apache.ofbiz.base.util.UtilDateTime
@@ -390,8 +391,8 @@ def updateIssuanceShipmentAndPoOnReceiveInventory() {
         GenericValue orderItemShipGroupAssoc = from("OrderItemShipGroupAssoc")
                 .where(orderId: orderItem.orderId, orderItemSeqId: orderItem.orderItemSeqId)
                 .queryFirst()
-        BigDecimal quantityVariance = (receivedQuantity - orderItem.quantity).setScale(2, BigDecimal.ROUND_HALF_UP)
-        BigDecimal oisgaQuantity = (orderItemShipGroupAssoc.quantity + quantityVariance).setScale(2, BigDecimal.ROUND_HALF_UP)
+        BigDecimal quantityVariance = (receivedQuantity - orderItem.quantity).setScale(2, RoundingMode.HALF_UP)
+        BigDecimal oisgaQuantity = (orderItemShipGroupAssoc.quantity + quantityVariance).setScale(2, RoundingMode.HALF_UP)
         orderItemShipGroupAssoc.quantity = oisgaQuantity
         orderItem.quantity = receivedQuantity
         orderItemShipGroupAssoc.store()
