@@ -42,7 +42,6 @@ def createLead() {
     if (parameters.firstName && parameters.lastName) {
         parameters.roleTypeId = "LEAD"
 
-        // TODO call-simpleMethod
         Map serviceResult = run service: "createPersonRoleAndContactMechs", with: parameters
         if (!ServiceUtil.isSuccess(serviceResult)) {
             return serviceResult
@@ -62,7 +61,6 @@ def createLead() {
         if (!leadContactPartyId) {
             parameters.roleTypeId = "ACCOUNT_LEAD"
             // In case we have any contact mech data then associate with party group
-            // TODO call-simple-Method
             Map serviceResultCPGRACM = run service: "createPartyGroupRoleAndContactMechs", with: parameters
             if (!ServiceUtil.isSuccess(serviceResultCPGRACM)) {
                 return serviceResultCPGRACM
@@ -74,7 +72,7 @@ def createLead() {
             Map partyGroupCtx = [:]
             List<String> messages = []
             // TODO need to convert from MapProcessor
-            SimpleMapProcessor.runSimpleMapProcessor('component://party/minilang/party/PartyMapProcs.xml', 'partyGroup', parameters, partyGroupCtx, messages, context.loacle)
+            SimpleMapProcessor.runSimpleMapProcessor('component://party/minilang/party/PartyMapProcs.xml', 'partyGroup', parameters, partyGroupCtx, messages, context.locale)
             if (messages) return error(StringUtil.join(messages, ","))
             Map serviceResultCPG = run service: "createPartyGroup", with: partyGroupCtx
             if (!ServiceUtil.isSuccess(serviceResultCPG)) {
@@ -82,7 +80,10 @@ def createLead() {
             }
             partyGroupPartyId = serviceResultCPG.partyId
             Map createPartyRoleCtx = [partyId: partyGroupPartyId, roleTypeId: "ACCOUNT_LEAD"]
-            run service: "createPartyRole", with: createPartyRoleCtx
+            Map serviceResultCPR = run service: "createPartyRole", with: createPartyRoleCtx
+            if (!ServiceUtil.isSuccess(serviceResultCPR)) {
+                return serviceResultCPR
+            }
         }
         Map partyRelationshipCtx = [:]
         if (leadContactPartyId) {
@@ -183,23 +184,3 @@ def convertLeadToContact() {
     result.successMessage = "Lead ${partyGroupId} ${partyId}  succesfully converted to Account/Contact"
     return result
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
