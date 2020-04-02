@@ -61,27 +61,11 @@ def createShipmentReceipt() {
 }
 
 /**
- * Create a ShipmentReceipt Role
- * @return
- */
-def createShipmentReceiptRole() {
-    // TODO converted to entity-auto -> test
-}
-
-/**
- * Remove a ShipmentReceipt Role
- * @return
- */
-def removeShipmentReceiptRole() {
-    // TODO converted to entity-auto -> test
-}
-
-/**
  * Receive Inventory in new Inventory Item(s)
  * @return success, inventoryItemId, successMessageList
  */
 def receiveInventoryProduct () {
-    /**
+    /*
      * NOTES
      * 
      * - for serialized items with a serial number passed in: the quantityAccepted _should_ always be 1
