@@ -242,8 +242,8 @@ under the License.
     </service>
 
     <!-- Product Price Services -->
-    <service name="createProductPrice" default-entity-name="ProductPrice" engine="simple"
-                location="component://product/minilang/product/price/PriceServices.xml" invoke="createProductPrice" auth="true">
+    <service name="createProductPrice" default-entity-name="ProductPrice" engine="groovy"
+                location="component://product/groovyScripts/product/price/PriceServices.groovy" invoke="createProductPrice" auth="true">
         <description>
             Create a Product Price.
 
@@ -295,8 +295,8 @@ under the License.
     </service>
 
     <!-- called by ECAs on ProductPrice service call events -->
-    <service name="saveProductPriceChange" default-entity-name="ProductPrice" engine="simple"
-            location="component://product/minilang/product/price/PriceServices.xml" invoke="saveProductPriceChange" auth="true">
+    <service name="saveProductPriceChange" default-entity-name="ProductPrice" engine="groovy"
+            location="component://product/groovyScripts/product/price/PriceServices.groovy" invoke="saveProductPriceChange" auth="true">
         <description>Save History of a ProductPrice Change</description>
         <permission-service service-name="productPriceGenericPermission" main-action="CREATE"/>
         <auto-attributes include="pk" mode="IN" optional="false"/>
@@ -1245,6 +1245,12 @@ under the License.
         location="component://product/groovyScripts/product/category/CategoryServices.groovy" invoke="checkCategoryPermissionWithViewPurchaseAllow">
         <implements service="permissionInterface"/>
         <attribute type="String" mode="IN" name="productCategoryId" optional="true"/>
+    </service>
+    <service name="checkProductRelatedPermission" engine="groovy"
+        location="component://product/groovyScripts/product/product/ProductServices.groovy" invoke="checkProductRelatedPermissionCall">
+        <attribute name="callingMethodName" mode="IN" type="String"/>
+        <attribute name="checkAction" mode="IN" type="String"/>
+        <attribute name="productId" mode="IN" type="String"/>
     </service>
     <!-- Product Attribute Services -->
     <service name="createProductAttribute" default-entity-name="ProductAttribute" engine="entity-auto" invoke="create" auth="true">
