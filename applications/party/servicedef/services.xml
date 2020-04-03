@@ -90,13 +90,37 @@ under the License.
     
     
     
-    <service name="createPartyGroupRoleAndContactMechs" engine="simple" default-entity-name="PartyGroupRoleAndContactMechs"
-            location="component://party/minilang/party/PartySimpleMethods.xml" invoke="createPartyGroupRoleAndContactMechs">
+    <service name="createPartyGroupRoleAndContactMechs" engine="groovy" default-entity-name="PartyGroupRoleAndContactMechs"
+            location="component://party/groovyScripts/party/PartySimpleMethods.groovy" invoke="createPartyGroupRoleAndContactMechs">
         <description>Create Party Group Role and Contact Mechs</description>
-        <attribute name="groupName" type="String" mode="IN" optional="true"/>
-        <attribute name="roleTypeId" type="String" mode="IN" optional="true"/>
-        <attribute name="createPartyRoleCtx.partyId" type="String" mode="OUT" optional="false"/>
+        <attribute name="groupName" type="String" mode="IN" optional="false"/>
+        <attribute name="address1" type="String" mode="IN" optional="true"/>
+        <attribute name="contactNumber" type="String" mode="IN" optional="true"/>
+        <attribute name="emailAddress" type="String" mode="IN" optional="true"/>
+        <attribute name="postalAddContactMechPurpTypeId" type="String" mode="IN" optional="true"/>
+        <attribute name="phoneContactMechPurpTypeId" type="String" mode="IN" optional="true"/>
+        <attribute name="emailContactMechPurpTypeId" type="String" mode="IN" optional="true"/>
+        <attribute name="partyId" type="String" mode="OUT" optional="false"/>
     </service>
+    
+    
+    <service name="createPartyContactMechs" engine="simple" default-entity-name="PartyGroupRoleAndContactMechs"
+            location="component://party/minilang/party/PartySimpleMethods.xml" invoke="createPartyContactMechs">
+        <description>Create Party Group Role and Contact Mechs</description>
+        <attribute name="postalAddContactMechPurpTypeId" type="String" mode="IN" optional="true"/>
+        <attribute name="contactNumber" type="String" mode="IN" optional="true"/>
+        <attribute name="phoneContactMechPurpTypeId" type="String" mode="IN" optional="true"/>
+        <attribute name="emailAddress" type="String" mode="IN" optional="true"/>
+        <attribute name="emailContactMechPurpTypeId" type="String" mode="IN" optional="true"/>
+    </service>
+    
+    
+    
+    
+    
+    
+    
+    
     
     
     
