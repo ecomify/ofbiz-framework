@@ -28,6 +28,7 @@ def createAccount() {
     
     Map serviceResult = run service:"createPartyGroupRoleAndContactMechs", with:parameters
     String partyId = serviceResult.partyId
+    result.partyId = partyId
 
     Map ensurePartyRoleCtx = [partyId: userLogin.partyId, roleTypeId: "OWNER"]
     Map serviceResultEPR = run service: "ensurePartyRole", with: ensurePartyRoleCtx

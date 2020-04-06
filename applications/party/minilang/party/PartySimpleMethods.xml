@@ -179,6 +179,7 @@ under the License.
         <call-service service-name="createPartyGroup" in-map-name="partyGroupContext">
             <result-to-field result-name="partyId" field="partyId"/>
         </call-service>
+        <field-to-result result-name="partyId" field="partyId"/>
         <check-errors/>
         <if-not-empty field="parameters.roleTypeId">
             <set field="createPartyRoleCtx.partyId" from-field="partyId"/>

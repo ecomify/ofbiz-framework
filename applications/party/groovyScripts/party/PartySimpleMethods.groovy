@@ -64,7 +64,7 @@ def createPartyGroupRoleAndContactMechs() {
     result.partyId = serviceResult.partyId
     
     if(parameters.roleTypeId) {
-       Map createPartyRoleCtx = [partyId:partyId, roleTypeId: parameters.roleTypeId]
+       Map createPartyRoleCtx = [partyId:serviceResult.partyId, roleTypeId: parameters.roleTypeId]
        Map serviceResultCPR = run service:"createPartyRole", with: createPartyRoleCtx
        if (!ServiceUtil.isSuccess(serviceResultCPR)) {
            return serviceResultCPR
@@ -77,7 +77,7 @@ def createPartyGroupRoleAndContactMechs() {
         emailAddress:parameters.emailAddress,
         emailContactMechPurpTypeId: parameters.emailContactMechPurpTypeId]
     
-    Map serviceResultCPCM = run service:"createPartyContactMechs", with: inputMap
+    Map serviceResultCPCM = run service:"createPartyContactMechs"
     
     result.messages = messages
     return result
