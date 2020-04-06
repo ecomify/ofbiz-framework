@@ -77,7 +77,7 @@ def createPartyGroupRoleAndContactMechs() {
         emailAddress:parameters.emailAddress,
         emailContactMechPurpTypeId: parameters.emailContactMechPurpTypeId]
     
-    Map serviceResultCPCM = run service:"createPartyContactMechs"
+    Map serviceResultCPCM = run service:"createPartyContactMechs", with: inputMap
     
     result.messages = messages
     return result
