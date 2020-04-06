@@ -105,7 +105,7 @@ def inlineHandlePriceWithTaxIncluded() {
     // handle price with tax included related fields (priceWithTax, taxAmount, taxPercentage, taxAuthPartyId, taxAuthGeoId)
     if (parameters.taxAuthPartyId && parameters.taxAuthGeoId) {
         parameters.priceWithTax = parameters.price
-        
+
         // if taxPercentage not passed in look it up based on taxAuthGeoId and taxAuthPartyId
         if (!parameters.taxPercentage) {
             // we only have basic data to constrain by here, so assume that if it is a VAT tax setup it should be pretty simple
@@ -115,30 +115,31 @@ def inlineHandlePriceWithTaxIncluded() {
                 EntityCondition.makeCondition([
                     EntityCondition.makeCondition("taxAuthorityRateTypeId", "SALES_TAX"),
                     EntityCondition.makeCondition("taxAuthorityRateTypeId", "VAT_TAX")
-                    ], EntityOperator.OR)
-                ])
+                ], EntityOperator.OR)
+            ])
             GenericValue taxAuthorityRateProduct = from("TaxAuthorityRateProduct").where(condition).filterByDate().queryFirst()
             parameters.taxPercentage = taxAuthorityRateProduct?.taxPercentage
-            if (!parameters.taxPercentage) {
-                String errorMessage = UtilProperties.getMessage("ProductUiLabels", "ProductPriceTaxPercentageNotFound", locale)
-                logError(errorMessage)
-                return error(errorMessage)
-            }
-            // in short the formula is: taxAmount = priceWithTax - (priceWithTax/(1+taxPercentage/100))
-            BigDecimal taxAmount = parameters.priceWithTax - (parameters.priceWithTax/(1 + parameters.taxPercentage/100))
-            parameters.taxAmount = taxAmount.setScale(3, RoundingMode.HALF_UP)
-            
-            BigDecimal priceWithoutTax = parameters.priceWithTax - parameters.taxAmount
-            parameters.priceWithoutTax = priceWithoutTax.setScale(3, RoundingMode.HALF_UP)
-            
-            if (parameters.taxInPrice == "Y") {
-                // the price passed in has tax included, and we want to store it with tax included
-                parameters.price = parameters.priceWithTax
-            } else {
-                // the price passed in has tax included, but we want to store it without tax included
-                parameters.price = parameters.priceWithoutTax
-            }
         }
+        if (!parameters.taxPercentage) {
+            String errorMessage = UtilProperties.getMessage("ProductUiLabels", "ProductPriceTaxPercentageNotFound", locale)
+            logError(errorMessage)
+            return error(errorMessage)
+        }
+        // in short the formula is: taxAmount = priceWithTax - (priceWithTax/(1+taxPercentage/100))
+        BigDecimal taxAmount = parameters.priceWithTax - (parameters.priceWithTax/(1 + parameters.taxPercentage/100))
+        parameters.taxAmount = taxAmount.setScale(3, RoundingMode.HALF_UP)
+
+        BigDecimal priceWithoutTax = parameters.priceWithTax - parameters.taxAmount
+        parameters.priceWithoutTax = priceWithoutTax.setScale(3, RoundingMode.HALF_UP)
+
+        if (parameters.taxInPrice == "Y") {
+            // the price passed in has tax included, and we want to store it with tax included
+            parameters.price = parameters.priceWithTax
+        } else {
+            // the price passed in has tax included, but we want to store it without tax included
+            parameters.price = parameters.priceWithoutTax
+        }
+
     }
     return success()
 }
@@ -219,33 +220,36 @@ def getAssociatedPriceRulesConds() {
         return success()
     }
     if (parameters.inputParamEnumId == "PRIP_PRODUCT_ID") {
-        List condValues = from("Product").where(parameters).queryList()
+        List condValues = from("Product").queryList()
         // May prove more useful rather than an entity-and in custom cases
         for (GenericValue condValue : condValues) {
-            String option = "${condValue.internalName}: ${condValue.productId}"
+            String option = (condValue.internalName ? "${condValue.internalName}: " : ": ") + (condValue.productId ? "${condValue.productId}" : "")
             productPriceRulesCondValues << option
         }
     }
     if (parameters.inputParamEnumId == "PRIP_PROD_CAT_ID") {
-        List condValues = from("ProductCategory").where(parameters).queryList()
+        List condValues = from("ProductCategory").queryList()
         // May prove more useful rather than an entity-and in custom cases
         for (GenericValue condValue : condValues) {
-            String option = "${condValue.categoryName} ${condValue.description} ${groovy: condValue?.longDescription?.substring(0,10)} [${condValue.productCategoryId}]: ${condValue.productCategoryId}"
+            String option = (condValue.categoryName ? "${condValue.categoryName} " : " ") + (condValue.description ? "${condValue.description} " : " ") +
+                            (condValue.longDescription ? condValue.longDescription.substring(0,10) : "") + (condValue.productCategoryId ? " [${condValue.productCategoryId}]: " : " []: ") +
+                            (condValue.productCategoryId ? "${condValue.productCategoryId}" : "")
             productPriceRulesCondValues << option
         }
     }
     if (parameters.inputParamEnumId == "PRIP_PROD_FEAT_ID") {
-        List condValues = from("ProductFeatureType").where(parameters).queryList()
-        // May prove more useful rather than an entity-and in custom cases
+        List condValues = from("ProductFeatureType").queryList()
+        // May prove more useful rather than an entity-and in custom casesdito
         for (GenericValue condValue : condValues) {
-            String option = "${condValue.description}: ${condValue.productFeatureTypeId}"
+            String option = (condValue.description ? "${condValue.description} " : " ") + (condValue.productFeatureTypeId ? " ${condValue.productFeatureTypeId}" : "")
             productPriceRulesCondValues << option
         }
     }
     if ((parameters.inputParamEnumId == "PRIP_PARTY_ID") || (parameters.inputParamEnumId == "PRIP_PARTY_GRP_MEM")) {
-        List condValues = from("PartyNameView").where(parameters).queryList()
+        List condValues = from("PartyNameView").queryList()
         for (GenericValue condValue : condValues) {
-            String option = "${condValue.firstName} ${condValue.lastName}${condValue.groupName}: ${condValue.partyId}"
+            String option = (condValue.firstName ? "${condValue.firstName} " : " ") + (condValue.lastName ? "${condValue.lastName}" : "") +
+                            (condValue.groupName ? "${condValue.groupName}: " : ": ") + (condValue.partyId ? "${condValue.partyId}" : "")
             productPriceRulesCondValues << option
         }
     }
@@ -253,43 +257,43 @@ def getAssociatedPriceRulesConds() {
         List condValues = from("PartyNameView").where(parameters).queryList()
         // May prove more useful rather than an entity-and in custom cases
         for (GenericValue condValue : condValues) {
-            String option = "${condValue.description}: ${condValue.partyClassificationGroupId}"
+            String option = (condValue.description ? "${condValue.description}: " : ": ") + (condValue.partyClassificationGroupId ? "${condValue.partyClassificationGroupId}" : "")
             productPriceRulesCondValues << option
         }
     }
     if (parameters.inputParamEnumId == "PRIP_ROLE_TYPE") {
-        List condValues = from("RoleType").where(parameters).queryList()
+        List condValues = from("RoleType").queryList()
         // May prove more useful rather than an entity-and in custom cases
         for (GenericValue condValue : condValues) {
-            String option = "${condValue.description}: ${condValue.roleTypeId}"
+            String option = (condValue.description ? "${condValue.description}: " : ": ") + (condValue.roleTypeId ? "${condValue.roleTypeId}" : "")
             productPriceRulesCondValues << option
         }
     }
     if (parameters.inputParamEnumId == "PRIP_WEBSITE_ID") {
         List condValues = from("WebSite").where(parameters).queryList()
         for (GenericValue condValue : condValues) {
-            String option = "${condValue.siteName}: ${condValue.webSiteId}"
+            String option = (condValue.siteName ? "${condValue.siteName}: " : ": ") + (condValue.webSiteId ? "${condValue.webSiteId}" : "")
             productPriceRulesCondValues << option
         }
     }
     if (parameters.inputParamEnumId == "PRIP_PROD_SGRP_ID") {
-        List condValues = from("ProductStoreGroup").where(parameters).queryList()
+        List condValues = from("ProductStoreGroup").queryList()
         for (GenericValue condValue : condValues) {
-            String option = "${condValue.productStoreGroupName} (${condValue.description}): ${condValue.productStoreGroupId}"
+            String option = (condValue.productStoreGroupName ? "${condValue.productStoreGroupName} " : " ") + (condValue.description ? "(${condValue.description}): " : "(): ") + (condValue.productStoreGroupId ? "${condValue.productStoreGroupId}" : "")
             productPriceRulesCondValues << option
         }
     }
     if (parameters.inputParamEnumId == "PRIP_PROD_CLG_ID") {
-        List condValues = from("ProdCatalog").where(parameters).queryList()
+        List condValues = from("ProdCatalog").queryList()
         for (GenericValue condValue : condValues) {
-            String option = "${condValue.catalogName}: ${condValue.prodCatalogId}"
+            String option = (condValue.catalogName ? "${condValue.catalogName}: " : ": ") + (condValue.prodCatalogId ? "${condValue.prodCatalogId}" : "")
             productPriceRulesCondValues << option
         }
     }
     if (parameters.inputParamEnumId == "PRIP_CURRENCY_UOMID") {
-        List condValues = from("Uom").where(parameters).queryList()
+        List condValues = from("Uom").where(uomTypeId: "CURRENCY_MEASURE").queryList()
         for (GenericValue condValue : condValues) {
-            String option = "${condValue.description}: ${condValue.uomId}"
+            String option = (condValue.description ? "${condValue.description}: " : ": ") + (condValue.uomId ? "${condValue.uomId}" : "")
             productPriceRulesCondValues << option
         }
     }
