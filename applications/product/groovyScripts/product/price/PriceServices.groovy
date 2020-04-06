@@ -65,7 +65,7 @@ def createProductPrice() {
  */
 def updateProductPrice() {
     Map result = success()
-    if (!security.hasEntityPermission("CATALOG_PRICE_MAINT", action, userLogin)) {
+    if (!security.hasPermission("CATALOG_PRICE_MAINT", userLogin)) {
         return error(UtilProperties.getMessage("ProductUiLabels", "ProductPriceMaintPermissionError", locale))
     }
     inlineHandlePriceWithTaxIncluded()
@@ -87,11 +87,7 @@ def updateProductPrice() {
  */
 def deleteProductPrice() {
     Map result = success()
-    Map res = checkProductRelatedPermission("deleteProductPrice", "DELETE")
-    if (!ServiceUtil.isSuccess(res)) {
-        return res
-    }
-    if (!security.hasEntityPermission("CATALOG_PRICE_MAINT", action, userLogin)) {
+    if (!security.hasPermission("CATALOG_PRICE_MAINT", userLogin)) {
         return error(UtilProperties.getMessage("ProductUiLabels", "ProductPriceMaintPermissionError", locale))
     }
     GenericValue lookedUpValue = from("ProductPrice").where(parameters).queryOne()
@@ -176,7 +172,7 @@ def createProductPriceCond() {
     if (!security.hasEntityPermission("CATALOG", "_CREATE", userLogin)) {
         return error(UtilProperties.getMessage("ProductUiLabels", "ProductCatalogCreatePermissionError", locale))
     }
-    if (!security.hasEntityPermission("CATALOG_PRICE_MAINT", action, userLogin)) {
+    if (!security.hasPermission("CATALOG_PRICE_MAINT", userLogin)) {
         return error(UtilProperties.getMessage("ProductUiLabels", "ProductPriceMaintPermissionError", locale))
     }
     if (parameters.condValueInput) {
@@ -197,7 +193,7 @@ def updateProductPriceCond() {
     if (!security.hasEntityPermission("CATALOG", "_UPDATE", userLogin)) {
         return error(UtilProperties.getMessage("ProductUiLabels", "ProductCatalogUpdatePermissionError", locale))
     }
-    if (!security.hasEntityPermission("CATALOG_PRICE_MAINT", action, userLogin)) {
+    if (!security.hasPermission("CATALOG_PRICE_MAINT", userLogin)) {
         return error(UtilProperties.getMessage("ProductUiLabels", "ProductPriceMaintPermissionError", locale))
     }
     if (parameters.inputParamEnumId == "PRIP_QUANTITY") {

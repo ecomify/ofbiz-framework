@@ -269,8 +269,8 @@ under the License.
         <override name="fromDate" mode="INOUT" optional="true"/>
         <override name="price" optional="false"/>
     </service>
-    <service name="updateProductPrice" default-entity-name="ProductPrice" engine="simple"
-                location="component://product/minilang/product/price/PriceServices.xml" invoke="updateProductPrice" auth="true">
+    <service name="updateProductPrice" default-entity-name="ProductPrice" engine="groovy"
+                location="component://product/groovyScripts/product/price/PriceServices.groovy" invoke="updateProductPrice" auth="true">
         <description>Update an ProductPrice</description>
         <permission-service service-name="checkProductRelatedPermission" main-action="UPDATE"/>
         <auto-attributes include="pk" mode="IN" optional="false"/>
@@ -286,8 +286,8 @@ under the License.
         <attribute name="oldPrice" type="BigDecimal" mode="OUT" optional="false"/>
         <override name="price" optional="false"/>
     </service>
-    <service name="deleteProductPrice" default-entity-name="ProductPrice" engine="simple"
-                location="component://product/minilang/product/price/PriceServices.xml" invoke="deleteProductPrice" auth="true">
+    <service name="deleteProductPrice" default-entity-name="ProductPrice" engine="groovy"
+                location="component://product/groovyScripts/product/price/PriceServices.groovy" invoke="deleteProductPrice" auth="true">
         <description>Delete an ProductPrice</description>
         <permission-service service-name="checkProductRelatedPermission" main-action="DELETE"/>
         <auto-attributes include="pk" mode="IN" optional="false"/>
