@@ -22,6 +22,7 @@ import org.apache.ofbiz.base.util.UtilProperties
 import org.apache.ofbiz.base.util.UtilValidate
 import org.apache.ofbiz.minilang.SimpleMapProcessor
 import org.apache.ofbiz.service.ServiceUtil
+import org.apache.ofbiz.base.util.StringUtil
 
 
 /**
@@ -30,21 +31,28 @@ import org.apache.ofbiz.service.ServiceUtil
  */
 def createPartyGroupRoleAndContactMechs() {
     Map result = success()
+    List successMessage = []
     List<String> messages = []
     Map partyGroupContext = [:]
     // TODO need to convert from MapProcessor
     SimpleMapProcessor.runSimpleMapProcessor('component://party/minilang/party/PartyMapProcs.xml', 'partyGroup', parameters, partyGroupContext, messages, context.locale)
+    // Check errors
+    if (messages) return error(StringUtil.join(messages, ','))
 
     if (parameters.address1) {
         Map postalAddressContext = [:]
         // TODO need to convert from MapProcessor
-        SimpleMapProcessor.runSimpleMapProcessor('component://party/minilang/party/PartyMapProcs.xml', 'partyGroup', parameters, postalAddressContext, messages, context.locale)
+        SimpleMapProcessor.runSimpleMapProcessor('component://party/minilang/contact/PartyContactMechMapProcs.xml', 'postalAddress', parameters, postalAddressContext, messages, context.locale)
+        // Check errors
+        if (messages) return error(StringUtil.join(messages, ','))
     }
 
     if (parameters.contactNumber) {
-        Map telecomNumber = [:]
+        Map telecomNumberContext = [:]
         // TODO need to convert from MapProcessor
-        SimpleMapProcessor.runSimpleMapProcessor('component://party/minilang/party/PartyMapProcs.xml', 'partyGroup', parameters, telecomNumber, messages, context.locale)
+        SimpleMapProcessor.runSimpleMapProcessor('component://party/minilang/contact/PartyContactMechMapProcs.xml', 'telecomNumber', parameters, telecomNumberContext, messages, context.locale)
+        // Check errors
+        if (messages) return error(StringUtil.join(messages, ','))
     }
 
     if (parameters.emailAddress) {
@@ -55,20 +63,21 @@ def createPartyGroupRoleAndContactMechs() {
             emailAddressContext.emailAddress = parameters.emailAddress
         }
     }
-    
+
     partyGroupContext.partyTypeId = "PARTY_GROUP"
     Map serviceResult = run service:"createPartyGroup", with: partyGroupContext
     if (!ServiceUtil.isSuccess(serviceResult)) {
         return serviceResult
     }
     result.partyId = serviceResult.partyId
-    
+
     if(parameters.roleTypeId) {
-       Map createPartyRoleCtx = [partyId:serviceResult.partyId, roleTypeId: parameters.roleTypeId]
-       Map serviceResultCPR = run service:"createPartyRole", with: createPartyRoleCtx
-       if (!ServiceUtil.isSuccess(serviceResultCPR)) {
-           return serviceResultCPR
-       }
+        Map createPartyRoleCtx = [partyId:serviceResult.partyId, roleTypeId: parameters.roleTypeId]
+        Map serviceResultCPR = run service:"createPartyRole", with: createPartyRoleCtx
+        if (!ServiceUtil.isSuccess(serviceResultCPR)) {
+            return serviceResultCPR
+        }
+        successMessage << serviceResultCPR.successMessage
     }
     Map inputMap = [
         postalAddContactMechPurpTypeId: parameters.postalAddContactMechPurpTypeId,
@@ -76,9 +85,9 @@ def createPartyGroupRoleAndContactMechs() {
         phoneContactMechPurpTypeId: parameters.phoneContactMechPurpTypeId,
         emailAddress:parameters.emailAddress,
         emailContactMechPurpTypeId: parameters.emailContactMechPurpTypeId]
-    
+
     Map serviceResultCPCM = run service:"createPartyContactMechs", with: inputMap
     
-    result.messages = messages
+    result.successMessage = successMessage
     return result
 }
