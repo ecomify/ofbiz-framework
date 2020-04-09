@@ -1,21 +1,21 @@
 /*
-* Licensed to the Apache Software Foundation (ASF) under one
-* or more contributor license agreements.  See the NOTICE file
-* distributed with this work for additional information
-* regarding copyright ownership.  The ASF licenses this file
-* to you under the Apache License, Version 2.0 (the
-* "License"); you may not use this file except in compliance
-* with the License.  You may obtain a copy of the License at
-*
-* http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing,
-* software distributed under the License is distributed on an
-* "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-* KIND, either express or implied.  See the License for the
-* specific language governing permissions and limitations
-* under the License.
-*/
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
 
 
 import java.math.RoundingMode
@@ -42,9 +42,9 @@ def createProductPrice() {
         return error(UtilProperties.getMessage("ProductUiLabels", "ProductPriceMaintPermissionError", locale))
     }
     inlineHandlePriceWithTaxIncluded()
-    
+
     GenericValue newEntity = makeValue("ProductPrice", parameters)
-    
+
     Timestamp nowTimestamp = UtilDateTime.nowTimestamp()
     if (!newEntity.fromDate) {
         newEntity.fromDate = nowTimestamp
@@ -55,7 +55,7 @@ def createProductPrice() {
     newEntity.lastModifiedByUserLogin = userLogin.userLoginId
     newEntity.createdByUserLogin = userLogin.userLoginId
     newEntity.create()
-    
+
     return result
 }
 
@@ -69,7 +69,7 @@ def updateProductPrice() {
         return error(UtilProperties.getMessage("ProductUiLabels", "ProductPriceMaintPermissionError", locale))
     }
     inlineHandlePriceWithTaxIncluded()
-    
+
     GenericValue lookedUpValue = from("ProductPrice").where(parameters).queryOne()
     // grab the old price value before setting nonpk parameter fields
     result.oldPrice = lookedUpValue.price
@@ -77,7 +77,7 @@ def updateProductPrice() {
     lookedUpValue.lastModifiedDate = UtilDateTime.nowTimestamp()
     lookedUpValue.lastModifiedByUserLogin = userLogin.userLoginId
     lookedUpValue.store()
-    
+
     return result
 }
 
@@ -151,7 +151,7 @@ def inlineHandlePriceWithTaxIncluded() {
  * @return
  */
 def saveProductPriceChange() {
-    // Note that this is kept pretty simple: if a price is specific but no oldPrice, then it is generally a create, 
+    // Note that this is kept pretty simple: if a price is specific but no oldPrice, then it is generally a create,
     // if both are specified it is generally an update, if only the oldPrice is specified it is generally a delete
     GenericValue newEntity = makeValue("ProductPriceChange")
     newEntity.setNonPKFields(parameters)
@@ -232,14 +232,14 @@ def getAssociatedPriceRulesConds() {
         // May prove more useful rather than an entity-and in custom cases
         for (GenericValue condValue : condValues) {
             String option = (condValue.categoryName ? "${condValue.categoryName} " : " ") + (condValue.description ? "${condValue.description} " : " ") +
-                            (condValue.longDescription ? condValue.longDescription.substring(0,10) : "") + (condValue.productCategoryId ? " [${condValue.productCategoryId}]: " : " []: ") +
-                            (condValue.productCategoryId ? "${condValue.productCategoryId}" : "")
+                    (condValue.longDescription ? condValue.longDescription.substring(0,10) : "") + (condValue.productCategoryId ? " [${condValue.productCategoryId}]: " : " []: ") +
+                    (condValue.productCategoryId ? "${condValue.productCategoryId}" : "")
             productPriceRulesCondValues << option
         }
     }
     if (parameters.inputParamEnumId == "PRIP_PROD_FEAT_ID") {
         List condValues = from("ProductFeatureType").queryList()
-        // May prove more useful rather than an entity-and in custom casesdito
+        // May prove more useful rather than an entity-and in custom cases
         for (GenericValue condValue : condValues) {
             String option = (condValue.description ? "${condValue.description} " : " ") + (condValue.productFeatureTypeId ? " ${condValue.productFeatureTypeId}" : "")
             productPriceRulesCondValues << option
@@ -249,12 +249,12 @@ def getAssociatedPriceRulesConds() {
         List condValues = from("PartyNameView").queryList()
         for (GenericValue condValue : condValues) {
             String option = (condValue.firstName ? "${condValue.firstName} " : " ") + (condValue.lastName ? "${condValue.lastName}" : "") +
-                            (condValue.groupName ? "${condValue.groupName}: " : ": ") + (condValue.partyId ? "${condValue.partyId}" : "")
+                    (condValue.groupName ? "${condValue.groupName}: " : ": ") + (condValue.partyId ? "${condValue.partyId}" : "")
             productPriceRulesCondValues << option
         }
     }
     if (parameters.inputParamEnumId == "PRIP_PARTY_CLASS") {
-        List condValues = from("PartyNameView").where(parameters).queryList()
+        List condValues = from("PartyClassificationGroup").where(parameters).queryList()
         // May prove more useful rather than an entity-and in custom cases
         for (GenericValue condValue : condValues) {
             String option = (condValue.description ? "${condValue.description}: " : ": ") + (condValue.partyClassificationGroupId ? "${condValue.partyClassificationGroupId}" : "")
@@ -270,7 +270,7 @@ def getAssociatedPriceRulesConds() {
         }
     }
     if (parameters.inputParamEnumId == "PRIP_WEBSITE_ID") {
-        List condValues = from("WebSite").where(parameters).queryList()
+        List condValues = from("WebSite").queryList()
         for (GenericValue condValue : condValues) {
             String option = (condValue.siteName ? "${condValue.siteName}: " : ": ") + (condValue.webSiteId ? "${condValue.webSiteId}" : "")
             productPriceRulesCondValues << option
@@ -304,38 +304,3 @@ def getAssociatedPriceRulesConds() {
     result.productPriceRulesCondValues = productPriceRulesCondValues
     return result
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
