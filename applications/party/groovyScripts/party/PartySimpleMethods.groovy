@@ -31,7 +31,7 @@ import org.apache.ofbiz.base.util.StringUtil
  */
 def createPartyGroupRoleAndContactMechs() {
     Map result = success()
-    List successMessage = []
+    String successMessage
     List<String> messages = []
     Map partyGroupContext = [:]
     // TODO need to convert from MapProcessor
@@ -77,7 +77,7 @@ def createPartyGroupRoleAndContactMechs() {
         if (!ServiceUtil.isSuccess(serviceResultCPR)) {
             return serviceResultCPR
         }
-        successMessage << serviceResultCPR.successMessage
+        successMessage = serviceResultCPR.successMessage
     }
     Map inputMap = [
         postalAddContactMechPurpTypeId: parameters.postalAddContactMechPurpTypeId,
