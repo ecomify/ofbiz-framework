@@ -80,7 +80,7 @@ def issueImmediatelyFulfilledOrderItem() {
     }
     // kind of like the inventory reservation routine (with a few variations...), find InventoryItems to issue from, but instead of doing the reservation just create an issuance and an inventory item detail for the change
     if (orderItem.productId) {
-        Timestamp nowtimestamp = UtilDateTime.nowTimestamp()
+        Timestamp nowTimestamp = UtilDateTime.nowTimestamp()
         // NOTE: the inventory will be issued from the OrderHeader.originFacilityId
         GenericValue orderHeader
         if (!parameters.orderHeader) {
@@ -189,7 +189,7 @@ def issueImmediateForInventoryItemInline(GenericValue inventoryItem) {
             if (((!inventoryItem.statusId) || (inventoryItem.statusId == "INV_AVAILABLE"))
             && (inventoryItem.availableToPromiseTotal)
             && (inventoryItem.availableToPromiseTotal > (BigDecimal) 0)) {
-                if (parameters.quantityNotIssued > inventoryItem.availableToPromisetotal) {
+                if (parameters.quantityNotIssued > inventoryItem.availableToPromiseTotal) {
                     parameters.deductAmount = inventoryItem.availableToPromiseTotal
                 } else {
                     parameters.deductAmount = parameters.quantityNotIssued
@@ -207,7 +207,6 @@ def issueImmediateForInventoryItemInline(GenericValue inventoryItem) {
                 createDetailMap.quantityOnHandDiff = quantityOnHandDiff.setScale(6)
                 run service: "createInventoryItemDetail", with: createDetailMap
 
-                // TODO verify calculation
                 parameters.quantityNotIssued -= parameters.deductAmount
 
                 // keep track of the last non-serialized inventory item for use if inventory is not sufficient for amount already issued
