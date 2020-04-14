@@ -24,6 +24,7 @@ import org.apache.ofbiz.minilang.SimpleMapProcessor
 import org.apache.ofbiz.service.ServiceUtil
 import org.apache.ofbiz.base.util.StringUtil
 
+// Simple method to create a party group, its role and basic contact mechs
 
 /**
  * Creates a party group, role and contactMechs
@@ -72,7 +73,7 @@ def createPartyGroupRoleAndContactMechs() {
     result.partyId = serviceResult.partyId
 
     if(parameters.roleTypeId) {
-        Map createPartyRoleCtx = [partyId:serviceResult.partyId, roleTypeId: parameters.roleTypeId]
+        Map createPartyRoleCtx = [partyId: serviceResult.partyId, roleTypeId: parameters.roleTypeId]
         Map serviceResultCPR = run service:"createPartyRole", with: createPartyRoleCtx
         if (!ServiceUtil.isSuccess(serviceResultCPR)) {
             return serviceResultCPR
@@ -83,11 +84,11 @@ def createPartyGroupRoleAndContactMechs() {
         postalAddContactMechPurpTypeId: parameters.postalAddContactMechPurpTypeId,
         contactNumber: parameters.contactNumber,
         phoneContactMechPurpTypeId: parameters.phoneContactMechPurpTypeId,
-        emailAddress:parameters.emailAddress,
+        emailAddress: parameters.emailAddress,
         emailContactMechPurpTypeId: parameters.emailContactMechPurpTypeId]
 
-    Map serviceResultCPCM = run service:"createPartyContactMechs", with: inputMap
-    
+    run service:"createPartyContactMechs", with: inputMap
+
     result.successMessage = successMessage
     return result
 }
