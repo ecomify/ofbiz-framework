@@ -254,7 +254,7 @@ def getAssociatedPriceRulesConds() {
         }
     }
     if (parameters.inputParamEnumId == "PRIP_PARTY_CLASS") {
-        List condValues = from("PartyClassificationGroup").where(parameters).queryList()
+        List condValues = from("PartyClassificationGroup").queryList()
         // May prove more useful rather than an entity-and in custom cases
         for (GenericValue condValue : condValues) {
             String option = (condValue.description ? "${condValue.description}: " : ": ") + (condValue.partyClassificationGroupId ? "${condValue.partyClassificationGroupId}" : "")
@@ -298,7 +298,7 @@ def getAssociatedPriceRulesConds() {
         }
     }
     if (!productPriceRulesCondValues) {
-        String noOptions = UtilProperties.getMessage("CommonUiLables", "ComonNoOptions", locale)
+        String noOptions = UtilProperties.getMessage("CommonUiLabels", "CommonNoOptions", locale)
         productPriceRulesCondValues << noOptions
     }
     result.productPriceRulesCondValues = productPriceRulesCondValues
