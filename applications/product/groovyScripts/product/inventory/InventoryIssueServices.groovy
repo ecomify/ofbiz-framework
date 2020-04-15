@@ -201,8 +201,9 @@ def issueImmediateForInventoryItemInline(GenericValue inventoryItem) {
 
                 // instead of updating InventoryItem, add an InventoryItemDetail
                 Map createDetailMap = [inventoryItemId: inventoryItem.inventoryItemId, orderId: parameters.orderId, orderItemSeqId: parameters.orderItemSeqId, itemIssuanceId: itemIssuanceId]
+                // update availableToPromiseDiff AND quantityOnHandDiff since this is an issuance
                 BigDecimal availableToPromiseDiff = parameters.deductAmount * -1
-                createDetailMap.availableToPromisediff = availableToPromiseDiff.setScale(6)
+                createDetailMap.availableToPromiseDiff = availableToPromiseDiff.setScale(6)
                 BigDecimal quantityOnHandDiff = parameters.deductAmount * -1
                 createDetailMap.quantityOnHandDiff = quantityOnHandDiff.setScale(6)
                 run service: "createInventoryItemDetail", with: createDetailMap
