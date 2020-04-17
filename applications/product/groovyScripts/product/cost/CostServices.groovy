@@ -17,6 +17,8 @@
  * under the License.
  */
 
+import java.math.RoundingMode
+
 import org.apache.ofbiz.base.util.UtilDateTime
 import org.apache.ofbiz.base.util.UtilProperties
 import org.apache.ofbiz.entity.GenericValue
@@ -31,7 +33,19 @@ import org.apache.ofbiz.service.ServiceUtil
  * @return
  */
 def cancelCostComponents() {
-    Map costsAndMap = [costComponentId: parameters.costComponentId, productId: parameters.productId, costUomId: parameters.costUomId, costComponentTypeId: parameters.costComponentTypeId]
+    Map costsAndMap = [:]
+    if (parameters.costComponentId) {
+        costsAndMap.costComponentId = parameters.costComponentId
+    }
+    if (parameters.productId) {
+        costsAndMap.productId = parameters.productId
+    }
+    if (parameters.costUomId) {
+        costsAndMap.costUomId = parameters.costUomId
+    }
+    if (parameters.costComponentTypeId) {
+        costsAndMap.costComponentTypeId = parameters.costComponentTypeId
+    }
     List existingCosts = from("CostComponent").where(costsAndMap).filterByDate().queryList()
     for (GenericValue existingCost : existingCosts) {
         existingCost.thruDate = UtilDateTime.nowTimestamp()
@@ -47,7 +61,16 @@ def cancelCostComponents() {
 def recreateCostComponent() {
     Map result = success()
     // The existing costs of the same type are expired
-    Map costsAndMap = [productId: parameters.productId, costUomId: parameters.costUomId, costComponentTypeId: parameters.costComponentTypeId]
+    Map costsAndMap = [:]
+    if (parameters.productId) {
+        costsAndMap.productId = parameters.productId
+    }
+    if (parameters.costUomId) {
+        costsAndMap.costUomId = parameters.costUomId
+    }
+    if (parameters.costComponentTypeId) {
+        costsAndMap.costComponentTypeId = parameters.costComponentTypeId
+    }
     List existingCosts = from("CostComponent").where(costsAndMap).filterByDate().queryList()
     for (GenericValue existingCost : existingCosts) {
         existingCost.thruDate = UtilDateTime.nowTimestamp()
@@ -71,18 +94,16 @@ def recreateCostComponent() {
  * Gets the product's costs (from CostComponent or ProductPrice)
  * @return
  */
+// TODO check for error
 def getProductCost() {
     Map result = success()
     Map inputMap
-    EntityCondition condition = EntityCondition.makeCondition([
-        EntityCondition.makeCondition(
+    String inputString = "${parameters.costComponentTypePrefix}_%"
+    EntityCondition condition = EntityCondition.makeCondition(
         EntityCondition.makeCondition("productId", parameters.productId),
-        EntityCondition.makeCondition("costUomId", parameters.currencyUomId)),
-        EntityCondition.makeCondition([
-            "costComponentTypeId",
-            "${parameters.costComponentTypePrefix}_%"
-        ], EntityOperator.LIKE)
-    ])
+        EntityCondition.makeCondition("costUomId", parameters.currencyUomId),
+        EntityCondition.makeCondition("costComponentTypeId", EntityOperator.LIKE , inputString)
+    )
     List costComponents = from("CostComponent").where(condition).filterByDate().queryList()
     BigDecimal productCost = (BigDecimal) 0
     for (GenericValue costComponent : costComponents) {
@@ -185,10 +206,10 @@ def getTaskCost() {
         setupCosts = EntityUtil.filterByDate(setupCosts)
         // <filter-list-by-and list-name="costs" map-name="costsAndMap"/>
         setupCost = setupCosts.get(0)
-        costsAndMap.fixedAssetstdCostTypeId = "USAGE_COST"
+        costsAndMap.fixedAssetStdCostTypeId = "USAGE_COST"
         List usageCosts = delegator.getRelated("FixedAssetStdCost", costsAndMap, null, fixedAsset, false)
         usageCosts = EntityUtil.filterByDate(usageCosts)
-        GenericValue usageCost = usageCosts.get(0)
+        usageCost = usageCosts.get(0)
     }
     // TODO check calculation
     BigDecimal taskCost = (estimatedTaskTime * (usageCost ? usageCost.amount : 1)) + (setupTime * (setupCost ? setupCost.amount : 1))
@@ -203,7 +224,7 @@ def getTaskCost() {
     weccs = EntityUtil.filterByDate(weccs)
     for (GenericValue wecc : weccs) {
         GenericValue costComponentCalc = delegator.getRelatedOne("CostComponentCalc", wecc, false)
-        GenericValue customMethod = delegator.getRelatedOne("CustomMethod", costcomponentCalc, false)
+        GenericValue customMethod = delegator.getRelatedOne("CustomMethod", costComponentCalc, false)
         if (!customMethod) {
             if (costComponentCalc.perMilliSecond) {
                 if (costComponentCalc.perMilliSecond != (BigDecimal) 0) {
@@ -232,7 +253,7 @@ def getTaskCost() {
  */
 def calculateAllProductsCosts() {
     // filter-by-date="true"
-    List products = from("Product").where(parameters).orderBy("-billOfMaterialLevel").select("productId").queryList()
+    List products = from("Product").orderBy("-billOfMaterialLevel").select("productId").queryList()
     Map inMap = [currencyUomId: parameters.currencyUomId, costComponentTypePrefix: parameters.costComponentTypePrefix]
     for (GenericValue product : products) {
         inMap.productId = product.productId
@@ -245,20 +266,21 @@ def calculateAllProductsCosts() {
  * Calculates the product's cost
  * @return
  */
+// TODO Test
 def calculateProductCosts() {
     Map result = success()
     Map totalCostByType = [:]
     BigDecimal totalProductCost = (BigDecimal) 0
     BigDecimal totalTaskCost = (BigDecimal) 0
-    BigDecimal totalOtherTaskCost = (BigDeciaml) 0
+    BigDecimal totalOtherTaskCost = (BigDecimal) 0
     // the existing costs are expired
-    Map cancelMap = [costComponentTypeId: "${parameters.costComponentTypePrefix}_ROUTE_COST", productId: parameters.productId, costUomId: parameters.currencyUomId]
+    Map cancelMap = [costComponentTypeId: (String) "${parameters.costComponentTypePrefix}_ROUTE_COST", productId: parameters.productId, costUomId: parameters.currencyUomId]
     run service: "cancelCostComponents", with: cancelMap
-    cancelMap.costComponentTypeId = "${parameters.costComponentTypePrefix}_MAT_COST"
+    cancelMap.costComponentTypeId = (String) "${parameters.costComponentTypePrefix}_MAT_COST"
     run service: "cancelCostComponents", with: cancelMap
     // calculate the total materials' cost
     Map callSvcMap = [productId: parameters.productId]
-    Map serviceResult = run service: "getmanufacturingComponents", with: callSvcMap
+    Map serviceResult = run service: "getManufacturingComponents", with: callSvcMap
     List componentsMap = serviceResult.componentsMap
     if (componentsMap) {
         for (Map componentMap : componentsMap) {
@@ -321,7 +343,7 @@ def calculateProductCosts() {
     List productCostComponentCalcs = from("ProductCostComponentCalc").where(productId: parameters.productId).filterByDate().orderBy("sequenceNum").queryList()
     for (GenericValue productCostComponentCalc : productCostComponentCalcs) {
         GenericValue costComponentCalc = delegator.getRelatedOne("CostComponentCalc", productCostComponentCalc, false)
-        GenericValue customMethod = delegator.getRelatedOne("CustomMehtod", costComponentCalc, false)
+        GenericValue customMethod = delegator.getRelatedOne("CustomMethod", costComponentCalc, false)
         if (!customMethod) {
             // TODO: not supported for CostComponentCalc entries directly associated to a product 
             logWarning("Unable to create cost component for cost component calc with id [${costComponentCalc.costComponentCalcId}] because customMethod is not set")
@@ -346,18 +368,18 @@ def calculateProductCosts() {
  */
 def calculateProductAverageCost() {
     Map result = success()
-    EntityCondition condition = EntityCondition.makeCondition([
-        EntityCondition.makeCondition(["productId", parameters.productId]),
-        EntityCondition.makeCondition(["unitCost", null], EntityOperator.NOT_EQUAL)
-        ])
+    EntityCondition condition = EntityCondition.makeCondition(
+        EntityCondition.makeCondition("productId", parameters.productId),
+        EntityCondition.makeCondition("unitCost", EntityOperator.NOT_EQUAL, null)
+        )
     if (parameters.facilityId) {
         condition = EntityCondition.makeCondition(condition, EntityCondition.makeCondition("facilityId", parameters.facilityId))
     }
     if (parameters.ownerPartyId) {
         condition = EntityCondition.makeCondition(condition, EntityCondition.makeCondition("ownerPartyId", parameters.ownerPartyId))
     }
-    Set selectFields = new Set("quantityOnHandTotal", "unitCost", "currencyUomId")
-    List inventoryItems = from("InventoryItem").where(condition).select(selectFields).queryList()
+    List selectList = ["quantityOnHandTotal", "unitCost", "currencyUomId"]
+    List inventoryItems = from("InventoryItem").where(condition).select("quantityOnHandTotal", "unitCost", "currencyUomId").queryList()
     BigDecimal totalQuantityOnHand = (BigDecimal) 0
     BigDecimal totalInventoryCost = (BigDecimal) 0
     BigDecimal absValOfTotalQOH = (BigDecimal) 0
@@ -390,10 +412,10 @@ def calculateProductAverageCost() {
     if (absValOfTotalQOH != (BigDecimal) 0) {
        productAverageCost = absValOfTotalInvCost / absValOfTotalQOH
     }
-    result.totalQuantityOnHand = totalQuantityOnHand
+    result.totalQuantityOnHand = totalQuantityOnHand.setScale(2, RoundingMode.HALF_EVEN)
     if (!differentCurrencies) {
-        result.totalInventoryCost = totalInventoryCost
-        result.productAverageCost = productAverageCost
+        result.totalInventoryCost = totalInventoryCost.setScale(2, RoundingMode.HALF_EVEN)
+        result.productAverageCost = productAverageCost.setScale(2, RoundingMode.HALF_EVEN)
         result.currencyUomId = currencyUomId
     }
     return result
@@ -440,7 +462,7 @@ def updateProductAverageCostOnReceiveInventory() {
         BigDecimal averageCost = ((productAverageCost.averageCost * oldProductQuantity) + (inventoryItem.unitCost * parameters.quantityAccepted))/(quantityOnHandTotal)
         int roundingDecimal = UtilProperties.getPropertyAsInteger("arithmetic", "finaccout.decimals", 2)
         def roundingMode = UtilProperties.getPropertyValue("arithmetic", "finaccount.roundingSimpleMethod", "HalfUp")
-        // TODO check roundingMode
+        // TODO Dennis fragen
         averageCost = averageCost.setScale(roundingDecimal, roundingMode)
         productAverageCostMap.averageCost = averageCost
         productAverageCostMap.fromDate = UtilDateTime.nowTimestamp()
@@ -490,6 +512,6 @@ def productCostPercentageFormula() {
     // set field="productCostAdjustment" value="${parameters.baseCost * costComponentCalc.fixedCost}" type="BigDecimal"/
     BigDecimal productCostAdjustment = costComponentCalc.fixedCost * parameters.baseCost
     productCostAdjustment = productCostAdjustment.setScale(6)
-    result.productCostAdjusmtent = productCostAdjustment
+    result.productCostAdjustment = productCostAdjustment
     return result
 }

@@ -94,6 +94,7 @@ under the License.
         <if-compare field="productCost" operator="equals" value="0" type="BigDecimal">
             <set field="orderByList[]" value="+supplierPrefOrderId"/>
             <set field="orderByList[]" value="+lastPrice"/>
+            <log message="########################### ${orderByList}" level="error"/>
             <clear-field field="costsAndMap"/>
             <set from-field="parameters.productId" field="costsAndMap.productId"/>
             <set from-field="parameters.currencyUomId" field="costsAndMap.currencyUomId"/>
@@ -239,6 +240,7 @@ under the License.
             <select-field field-name="productId"/>
             <order-by field-name="-billOfMaterialLevel"/>
         </entity-condition>
+        <log message="####################### ${products}" level="error"/>
         <set from-field="parameters.currencyUomId" field="inMap.currencyUomId"/>
         <set from-field="parameters.costComponentTypePrefix" field="inMap.costComponentTypePrefix"/>
         <iterate list="products" entry="product">
@@ -556,9 +558,13 @@ under the License.
             <set field="productAverageCostMap.averageCost" value="${((productAverageCost.averageCost * oldProductQuantity) + (inventoryItem.unitCost * parameters.quantityAccepted))/(quantityOnHandTotal)}" type="BigDecimal"/>
             <property-to-field resource="arithmetic" property="finaccount.decimals" field="roundingDecimals" default="2"/>
             <property-to-field resource="arithmetic" property="finaccount.roundingSimpleMethod" field="roundingMode" default="HalfUp"/>
+            <log message="################################# ${roundingDecimals}" level="error"/>
+            <log message="################################# ${roundingMode}" level="error"/>
+            <log message="################################# ${productAverageCostMap.averageCost}" level="error"/>
             <calculate field="productAverageCostMap.averageCost" type="BigDecimal" decimal-scale="${roundingDecimals}" rounding-mode="${roundingMode}">
                 <calcop operator="get" field="productAverageCostMap.averageCost"/>
             </calculate>
+            <log message="################################# ${productAverageCostMap.averageCost}" level="error"/>
 
             <now-timestamp field="productAverageCostMap.fromDate"/>
         </else>
