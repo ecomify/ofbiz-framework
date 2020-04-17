@@ -94,7 +94,6 @@ def recreateCostComponent() {
  * Gets the product's costs (from CostComponent or ProductPrice)
  * @return
  */
-// TODO check for error
 def getProductCost() {
     Map result = success()
     Map inputMap
@@ -147,7 +146,6 @@ def getProductCost() {
                 if (priceCost.lastPrice) {
                     // we try to convert the lastPrice to the desired currency
                     inputMap = [originalValue: priceCost.lastPrice, uomId: priceCost.currencyUomId, uomIdTo: parameters.currencyUomId]
-                    // TODO check require-new-transactin und break-on-error
                     Map serviceResultCU
                     try {
                         serviceResultCU = dispatcher.runSync("convertUom", inputMap, 7200, true)
@@ -211,8 +209,7 @@ def getTaskCost() {
         usageCosts = EntityUtil.filterByDate(usageCosts)
         usageCost = usageCosts.get(0)
     }
-    // TODO check calculation
-    BigDecimal taskCost = (estimatedTaskTime * (usageCost ? usageCost.amount : 1)) + (setupTime * (setupCost ? setupCost.amount : 1))
+    BigDecimal taskCost = (estimatedTaskTime * (usageCost ? usageCost.amount : 0)) + (setupTime * (setupCost ? setupCost.amount : 0))
     taskCost = taskCost.setScale(6)
     
     // Time is converted from milliseconds to hours
@@ -266,7 +263,6 @@ def calculateAllProductsCosts() {
  * Calculates the product's cost
  * @return
  */
-// TODO Test
 def calculateProductCosts() {
     Map result = success()
     Map totalCostByType = [:]
@@ -326,11 +322,11 @@ def calculateProductCosts() {
     
     // The CostComponent records are created.
     if (totalTaskCost > (BigDecimal) 0) {
-        callSvcMap = [costComponentTypeId: "${parameters.costComponentTypePrefix}_ROUTE_COST", productId: parameters.productId, costUomId: parameters.currencyUomId, cost: totalTaskCost]
+        callSvcMap = [costComponentTypeId: (String) "${parameters.costComponentTypePrefix}_ROUTE_COST", productId: parameters.productId, costUomId: parameters.currencyUomId, cost: totalTaskCost]
         run service: "recreateCostComponent", with: callSvcMap
     }
     if (totalProductCost > (BigDecimal) 0) {
-        callSvcMap = [costComponentTypeId: "${parameters.costComponentTypePrefix}_MAT_COST", productId: parameters.productId, costUomId: currencyUomId, cost: totalProductCost]
+        callSvcMap = [costComponentTypeId: (String) "${parameters.costComponentTypePrefix}_MAT_COST", productId: parameters.productId, costUomId: parameters.currencyUomId, cost: totalProductCost]
         run service: "recreateCostComponent", with: callSvcMap
     }
     for (Map.Entry entry : totalCostByType.entrySet()) {
@@ -348,10 +344,10 @@ def calculateProductCosts() {
             // TODO: not supported for CostComponentCalc entries directly associated to a product 
             logWarning("Unable to create cost component for cost component calc with id [${costComponentCalc.costComponentCalcId}] because customMethod is not set")
         } else {
-            Map customMethodParameters = [productCostComponentCalc: productCostComponentCalc, costComponentCalc: costComponentCalc, currencyUomId: parameters.currencyUomId, costComponentPrefix: parameters.costComponentPrefix, baseCost: totalCost]
+            Map customMethodParameters = [productCostComponentCalc: productCostComponentCalc, costComponentCalc: costComponentCalc, currencyUomId: parameters.currencyUomId, costComponentTypePrefix: parameters.costComponentTypePrefix, baseCost: totalCost]
             Map serviceResultCM = run service: "${customMethod.customMethodName}", with: customMethodParameters
             BigDecimal productCostAdjustment = serviceResultCM.productCostAdjustment
-            callSvcMap = [costComponentTypeId: "${parameters.costComponentTypePrefix}_${productCostComponentCalc.costComponentTypeId}", productId: productCostComponentCalc.productId, costUomId: parameters.currencyUomId, cost: productCostAdjustment]
+            callSvcMap = [costComponentTypeId: (String) "${parameters.costComponentTypePrefix}_${productCostComponentCalc.costComponentTypeId}", productId: productCostComponentCalc.productId, costUomId: parameters.currencyUomId, cost: productCostAdjustment]
             run service: "recreateCostComponent", with: callSvcMap
             // set field="totalCost" value="${totalCost + productCostAdjustment}" type="BigDecimal"/
             totalCost += productCostAdjustment
@@ -463,7 +459,7 @@ def updateProductAverageCostOnReceiveInventory() {
         int roundingDecimal = UtilProperties.getPropertyAsInteger("arithmetic", "finaccout.decimals", 2)
         def roundingMode = UtilProperties.getPropertyValue("arithmetic", "finaccount.roundingSimpleMethod", "HalfUp")
         // TODO Dennis fragen
-        averageCost = averageCost.setScale(roundingDecimal, roundingMode)
+        averageCost = averageCost.setScale(roundingDecimal, RoundingMode.HALF_UP)
         productAverageCostMap.averageCost = averageCost
         productAverageCostMap.fromDate = UtilDateTime.nowTimestamp()
     }
