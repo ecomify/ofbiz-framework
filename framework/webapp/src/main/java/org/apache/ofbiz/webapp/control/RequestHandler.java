@@ -43,6 +43,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import javax.ws.rs.core.MultivaluedHashMap;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.cxf.jaxrs.model.URITemplate;
 import org.apache.ofbiz.base.location.FlexibleLocation;
 import org.apache.ofbiz.base.util.Debug;
@@ -146,7 +147,7 @@ public class RequestHandler {
             String overrideViewUri = getOverrideViewUri(path);
             if (requestMapMap.containsKey(requestUri)
                     // Ensure that overridden view exists.
-                    && (overrideViewUri == null || viewMapMap.containsKey(overrideViewUri) 
+                    && (overrideViewUri == null || viewMapMap.containsKey(overrideViewUri)
                     || ("SOAPService".equals(requestUri) && "wsdl".equalsIgnoreCase(req.getQueryString())))){
                 rmaps = requestMapMap.get(requestUri);
                 req.setAttribute("overriddenView", overrideViewUri);
@@ -495,7 +496,7 @@ public class RequestHandler {
                                         
                     if (requestMap.event.metrics != null) {
                         requestMap.event.metrics.recordServiceRate(1, System.currentTimeMillis() - startTime);
-                    }                    
+                    }
 
                     // save the server hit for the request event
                     if (this.trackStats(request)) {
@@ -832,7 +833,11 @@ public class RequestHandler {
         if (pathInfo.get(0).indexOf('?') > -1) {
             return pathInfo.get(0).substring(0, pathInfo.get(0).indexOf('?'));
         } else {
-            return pathInfo.get(0);
+            if (1 < StringUtils.countMatches(path, "/")) {
+                return pathInfo.get(0) + "/" + pathInfo.get(1);
+            } else {
+                return pathInfo.get(0);
+            }
         }
     }
 
@@ -865,7 +870,7 @@ public class RequestHandler {
             statusCode = Integer.valueOf(statusCodeString);
         } catch (NumberFormatException e) {
             statusCode = 303;
-        } 
+        }
         while (attributeNameEnum.hasMoreElements()) {
             String name = attributeNameEnum.nextElement();
             Object obj = req.getAttribute(name);
@@ -878,6 +883,10 @@ public class RequestHandler {
             }
         }
         if (reqAttrMap.size() > 0) {
+            // fileItems is not serializable.
+            // It contains a temporary DiskFileItem with a null value than can't be detected by UtilMisc::makeMapSerializable
+            // So it must be removed from reqAttrMap. See OFBIZ-11534
+            reqAttrMap.remove("fileItems");
             byte[] reqAttrMapBytes = UtilObject.getBytes(reqAttrMap);
             if (reqAttrMapBytes != null) {
                 req.getSession().setAttribute("_REQ_ATTR_MAP_", StringUtil.toHexString(reqAttrMapBytes));
@@ -885,7 +894,7 @@ public class RequestHandler {
         }
 
         // send the redirect
-        try {            
+        try {
             resp.setStatus(statusCode);
             resp.setHeader("Location", url);
             resp.setHeader("Connection", "close");
@@ -1219,7 +1228,7 @@ public class RequestHandler {
         Collection<ConfigXMLReader.Event> get() throws WebAppConfigurationException;
     }
 
-    private void runEvents(HttpServletRequest req, HttpServletResponse res, 
+    private void runEvents(HttpServletRequest req, HttpServletResponse res,
             EventCollectionProducer prod, String trigger) {
         try {
             for (ConfigXMLReader.Event event: prod.get()) {
@@ -1312,7 +1321,7 @@ public class RequestHandler {
         Delegator delegator = (Delegator) request.getAttribute("delegator");
         boolean showSessionIdInLog = EntityUtilProperties.propertyValueEqualsIgnoreCase("requestHandler", "show-sessionId-in-log", "Y", delegator);
         if (showSessionIdInLog) {
-            return " sessionId=" + UtilHttp.getSessionId(request); 
+            return " sessionId=" + UtilHttp.getSessionId(request);
         }
         return " Hidden sessionId by default.";
     }

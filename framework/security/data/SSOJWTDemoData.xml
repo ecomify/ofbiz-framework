@@ -1,4 +1,5 @@
-////
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
 distributed with this work for additional information
@@ -15,10 +16,10 @@ software distributed under the License is distributed on an
 KIND, either express or implied.  See the License for the
 specific language governing permissions and limitations
 under the License.
-////
+-->
 
-= Security
-
-include::_include/sy-password-and-JWT.adoc[leveloffset=+1]
-include::_include/sy-impersonation.adoc[leveloffset=+1]
-include::_include/sy-CSRF-defense.adoc[leveloffset=+1]
+<entity-engine-xml>
+    <SystemProperty systemResourceId="security" systemPropertyId="security.internal.sso.enabled" systemPropertyValue="false"/>
+    <SystemProperty systemResourceId="security" systemPropertyId="security.token.key" systemPropertyValue="security.token.key"/>
+    <SystemProperty systemResourceId="security" systemPropertyId="SameSiteCookieAttribute" systemPropertyValue="strict"/>
+</entity-engine-xml>
