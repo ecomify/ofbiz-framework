@@ -23,6 +23,7 @@ import org.apache.ofbiz.minilang.SimpleMapProcessor
 import org.apache.ofbiz.order.shoppingcart.CheckOutHelper
 import org.apache.ofbiz.order.shoppingcart.ShoppingCart
 import org.apache.ofbiz.order.shoppingcart.ShoppingCart.CartPaymentInfo
+import org.apache.ofbiz.service.ServiceUtil
 
 
 /**
@@ -141,6 +142,7 @@ def createUpdateBillingAddressAndPaymentMethod() {
     Map billToAddressCtx = parameters
     billToAddressCtx.userLogin = userLogin
     Map serviceResultCUBA = run service: "createUpdateBillingAddress", with: billToAddressCtx
+    if (ServiceUtil.isError(serviceResultCUBA)) return serviceResultCUBA
     parameters.billToContactMechId = serviceResultCUBA.contactMechId
     result.contactMechId = serviceResultCUBA.contactMechId
     if (parameters.billToContactMechId) {
@@ -154,6 +156,7 @@ def createUpdateBillingAddressAndPaymentMethod() {
     createUpdatePartyTelecomNumberCtx.contactMechPurposeTypeId = "PHONE_BILLING"
     createUpdatePartyTelecomNumberCtx.contactMechId = parameters.billToPhoneContactMechId
     Map serviceResultCUPTN = run service: "createUpdatePartyTelecomNumber", with: createUpdatePartyTelecomNumberCtx
+    if (ServiceUtil.isError(serviceResultCUPTN)) return serviceResultCUPTN
     String billToPhoneContactMechId = serviceResultCUPTN.contactMechId
     result.billToPhoneContactMechId = serviceResultCUPTN.contactMechId
     if (billToPhoneContactMechId) {
@@ -164,6 +167,7 @@ def createUpdateBillingAddressAndPaymentMethod() {
     creditCartCtx.contactMechId = parameters.billToContactMechId
     creditCartCtx.userLogin = userLogin
     Map serviceResultCUCC = run service: "createUpdateCreditCard", with: creditCartCtx
+    if (ServiceUtil.isError(serviceResultCUCC)) return serviceResultCUCC
     String paymentMethodId = serviceResultCUCC.paymentMethodId
     result.paymentMethodId = serviceResultCUCC.paymentMethodId
     // Set Payment Method
