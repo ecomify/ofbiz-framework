@@ -1080,8 +1080,8 @@
     </service>
 
     <!-- blog services -->
-    <service name="createBlogEntry" engine="simple" auth="true"
-        location="component://content/minilang/blog/BlogServices.xml" invoke="createBlogEntry">
+    <service name="createBlogEntry" engine="groovy" auth="true"
+        location="component://content/groovyScripts/blog/BlogServices.groovy" invoke="createBlogEntry">
         <description>Creates content records for a blog entry</description>
         <required-permissions join-type="AND">
             <check-permission permission="CONTENTMGR" action="_CREATE"/>
@@ -1100,8 +1100,8 @@
         <attribute name="articleData" type="String" mode="IN" optional="true" allow-html="safe"/>
         <attribute name="summaryData" type="String" mode="IN" optional="true" allow-html="safe"/>
     </service>
-    <service name="updateBlogEntry" engine="simple" auth="true"
-        location="component://content/minilang/blog/BlogServices.xml" invoke="updateBlogEntry">
+    <service name="updateBlogEntry" engine="groovy" auth="true"
+        location="component://content/groovyScripts/blog/BlogServices.groovy" invoke="updateBlogEntry">
         <description>Updates content records for a blog entry</description>
         <required-permissions join-type="AND">
             <check-permission permission="CONTENTMGR" action="_UPDATE"/>
@@ -1124,8 +1124,8 @@
         <attribute name="articleData" type="String" mode="IN" optional="true" allow-html="safe"/>
         <attribute name="summaryData" type="String" mode="IN" optional="true" allow-html="safe"/>
     </service>
-    <service name="getBlogEntry" engine="simple" auth="true"
-        location="component://content/minilang/blog/BlogServices.xml" invoke="getBlogEntry">
+    <service name="getBlogEntry" engine="groovy" auth="true"
+        location="component://content/groovyScripts/blog/BlogServices.groovy" invoke="getBlogEntry">
         <description>Retrieves content records for a blog entry</description>
         <attribute name="blogContentId" type="String" mode="INOUT" optional="false">
             <type-validate>
@@ -1142,8 +1142,10 @@
         <attribute name="imageContentId" type="String" mode="OUT" optional="true"/>
         <attribute name="articleContentId" type="String" mode="OUT" optional="true"/>
         <attribute name="summaryContentId" type="String" mode="OUT" optional="true"/>
+        <attribute name="articleText" type="GenericValue" mode="OUT" optional="true"/>
+        <attribute name="imageContent" type="GenericValue" mode="OUT" optional="true"/>
     </service>
-    <service name="getOwnedOrPublishedBlogEntries" engine="simple" location="component://content/minilang/blog/BlogServices.xml" invoke="getOwnedOrPublishedBlogEntries"
+    <service name="getOwnedOrPublishedBlogEntries" engine="groovy" location="component://content/groovyScripts/blog/BlogServices.groovy" invoke="getOwnedOrPublishedBlogEntries"
          auth="true"  transaction-timeout="7200">
         <attribute type="String" mode="IN" name="contentId" optional="false">
             <type-validate>

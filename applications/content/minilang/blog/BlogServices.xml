@@ -123,6 +123,9 @@
     <simple-method method-name="updateBlogEntry" short-description="Update a existing Blog Entry">
         <set field="showNoResult" value="Y"/>
         <call-simple-method method-name="getBlogEntry"/>
+        <log message="######### articleText ${articleText}" level="warning"/>
+        <log message="########## summaryData ${summaryData}" level="warning"/>
+        <log message="########### imageContent ${imageContent}" level="warning"/>
         <if>
             <condition>
                 <or>
