@@ -308,7 +308,7 @@ def calculateProductCosts() {
         totalTaskCost = totalTaskCost.setScale(6)
         for (Map.Entry entry : costsByType.entrySet()) {
             if (totalCostsByType."${entry.key}") {
-                totalCostsByType."${entry.key}" += entry.value
+                totalCostsByType."${entry.key}" = entry.value + totalCostByType."${entry.key}"
             } else {
                 totalCostsByType."${entry.key}" = entry.value
             }
@@ -457,9 +457,8 @@ def updateProductAverageCostOnReceiveInventory() {
         BigDecimal oldProductQuantity = quantityOnHandTotal - parameters.quantityAccepted
         BigDecimal averageCost = ((productAverageCost.averageCost * oldProductQuantity) + (inventoryItem.unitCost * parameters.quantityAccepted))/(quantityOnHandTotal)
         int roundingDecimal = UtilProperties.getPropertyAsInteger("arithmetic", "finaccout.decimals", 2)
-        def roundingMode = UtilProperties.getPropertyValue("arithmetic", "finaccount.roundingSimpleMethod", "HalfUp")
-        // TODO Dennis fragen
-        averageCost = averageCost.setScale(roundingDecimal, RoundingMode.HALF_UP)
+        String roundingMode = UtilProperties.getPropertyValue("arithmetic", "finaccount.roundingGroovyMethod", "HALF_UP")
+        averageCost = averageCost.setScale(roundingDecimal, RoundingMode."${roundingMode}")
         productAverageCostMap.averageCost = averageCost
         productAverageCostMap.fromDate = UtilDateTime.nowTimestamp()
     }
