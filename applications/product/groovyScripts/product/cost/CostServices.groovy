@@ -99,10 +99,10 @@ def getProductCost() {
     Map inputMap
     String inputString = "${parameters.costComponentTypePrefix}_%"
     EntityCondition condition = EntityCondition.makeCondition(
-        EntityCondition.makeCondition("productId", parameters.productId),
-        EntityCondition.makeCondition("costUomId", parameters.currencyUomId),
-        EntityCondition.makeCondition("costComponentTypeId", EntityOperator.LIKE , inputString)
-    )
+            EntityCondition.makeCondition("productId", parameters.productId),
+            EntityCondition.makeCondition("costUomId", parameters.currencyUomId),
+            EntityCondition.makeCondition("costComponentTypeId", EntityOperator.LIKE , inputString)
+            )
     List costComponents = from("CostComponent").where(condition).filterByDate().queryList()
     BigDecimal productCost = (BigDecimal) 0
     for (GenericValue costComponent : costComponents) {
@@ -211,11 +211,11 @@ def getTaskCost() {
     }
     BigDecimal taskCost = (estimatedTaskTime * (usageCost ? usageCost.amount : 0)) + (setupTime * (setupCost ? setupCost.amount : 0))
     taskCost = taskCost.setScale(6)
-    
+
     // Time is converted from milliseconds to hours
     taskCost /= 3600000
     taskCost = taskCost.setScale(6)
-    
+
     // Now compute the costs derived from CostComponentCalc records associated with the task
     List weccs = delegator.getRelated("WorkEffortCostCalc", null, null, task, false)
     weccs = EntityUtil.filterByDate(weccs)
@@ -265,7 +265,7 @@ def calculateAllProductsCosts() {
  */
 def calculateProductCosts() {
     Map result = success()
-    Map totalCostByType = [:]
+    Map totalCostsByType = [:]
     BigDecimal totalProductCost = (BigDecimal) 0
     BigDecimal totalTaskCost = (BigDecimal) 0
     BigDecimal totalOtherTaskCost = (BigDecimal) 0
@@ -307,19 +307,19 @@ def calculateProductCosts() {
         totalTaskCost += taskCost
         totalTaskCost = totalTaskCost.setScale(6)
         for (Map.Entry entry : costsByType.entrySet()) {
-            if (totalCostByType."${entry.key}") {
-                totalCostByType."${entry.key}" = entry.value + totalCostByType."${entry.key}"
+            if (totalCostsByType."${entry.key}") {
+                totalCostsByType."${entry.key}" += entry.value
             } else {
-                totalCostByType."${entry.key}" = entry.value
+                totalCostsByType."${entry.key}" = entry.value
             }
             totalOtherTaskCost += entry.value
             totalOtherTaskCost = totalOtherTaskCost.setScale(6)
-            totalCostByType."${entry.key}" = (totalCostByType."${entry.key}").setScale(6)
+            totalCostsByType."${entry.key}" = (totalCostsByType."${entry.key}").setScale(6)
         }
     }
     BigDecimal totalCost = totalTaskCost + totalProductCost + totalOtherTaskCost
     totalCost = totalCost.setScale(6)
-    
+
     // The CostComponent records are created.
     if (totalTaskCost > (BigDecimal) 0) {
         callSvcMap = [costComponentTypeId: (String) "${parameters.costComponentTypePrefix}_ROUTE_COST", productId: parameters.productId, costUomId: parameters.currencyUomId, cost: totalTaskCost]
@@ -329,7 +329,7 @@ def calculateProductCosts() {
         callSvcMap = [costComponentTypeId: (String) "${parameters.costComponentTypePrefix}_MAT_COST", productId: parameters.productId, costUomId: parameters.currencyUomId, cost: totalProductCost]
         run service: "recreateCostComponent", with: callSvcMap
     }
-    for (Map.Entry entry : totalCostByType.entrySet()) {
+    for (Map.Entry entry : totalCostsByType.entrySet()) {
         String costType = entry.getKey()
         BigDecimal totalCostAmount = entry.getValue()
         callSvcMap = [costComponentTypeId: "${parameters.costComponentTypePrefix}_${costType}", productId: parameters.productId, costUomId: parameters.currencyUomId, cost: totalCostAmount]
@@ -341,7 +341,7 @@ def calculateProductCosts() {
         GenericValue costComponentCalc = delegator.getRelatedOne("CostComponentCalc", productCostComponentCalc, false)
         GenericValue customMethod = delegator.getRelatedOne("CustomMethod", costComponentCalc, false)
         if (!customMethod) {
-            // TODO: not supported for CostComponentCalc entries directly associated to a product 
+            // TODO: not supported for CostComponentCalc entries directly associated to a product
             logWarning("Unable to create cost component for cost component calc with id [${costComponentCalc.costComponentCalcId}] because customMethod is not set")
         } else {
             Map customMethodParameters = [productCostComponentCalc: productCostComponentCalc, costComponentCalc: costComponentCalc, currencyUomId: parameters.currencyUomId, costComponentTypePrefix: parameters.costComponentTypePrefix, baseCost: totalCost]
@@ -365,16 +365,16 @@ def calculateProductCosts() {
 def calculateProductAverageCost() {
     Map result = success()
     EntityCondition condition = EntityCondition.makeCondition(
-        EntityCondition.makeCondition("productId", parameters.productId),
-        EntityCondition.makeCondition("unitCost", EntityOperator.NOT_EQUAL, null)
-        )
+            EntityCondition.makeCondition("productId", parameters.productId),
+            EntityCondition.makeCondition("unitCost", EntityOperator.NOT_EQUAL, null)
+            )
     if (parameters.facilityId) {
         condition = EntityCondition.makeCondition(condition, EntityCondition.makeCondition("facilityId", parameters.facilityId))
     }
     if (parameters.ownerPartyId) {
         condition = EntityCondition.makeCondition(condition, EntityCondition.makeCondition("ownerPartyId", parameters.ownerPartyId))
     }
-    List selectList = ["quantityOnHandTotal", "unitCost", "currencyUomId"]
+
     List inventoryItems = from("InventoryItem").where(condition).select("quantityOnHandTotal", "unitCost", "currencyUomId").queryList()
     BigDecimal totalQuantityOnHand = (BigDecimal) 0
     BigDecimal totalInventoryCost = (BigDecimal) 0
@@ -390,7 +390,7 @@ def calculateProductAverageCost() {
         if (!differentCurrencies) {
             if (currencyUomId == inventoryItem.currencyUomId) {
                 totalInventoryCost += (inventoryItem.unitCost * inventoryItem.quantityOnHandTotal)
-                
+
                 // calculation of absolute values of QOH and total inventory cost
                 if (inventoryItem.quantityOnHandTotal < (BigDecimal) 0) {
                     absValOfTotalQOH = absValOfTotalQOH - inventoryItem.quantityOnHandTotal
@@ -406,7 +406,7 @@ def calculateProductAverageCost() {
     }
     BigDecimal productAverageCost = (BigDecimal) 0
     if (absValOfTotalQOH != (BigDecimal) 0) {
-       productAverageCost = absValOfTotalInvCost / absValOfTotalQOH
+        productAverageCost = absValOfTotalInvCost / absValOfTotalQOH
     }
     result.totalQuantityOnHand = totalQuantityOnHand.setScale(2, RoundingMode.HALF_EVEN)
     if (!differentCurrencies) {
@@ -450,7 +450,7 @@ def updateProductAverageCostOnReceiveInventory() {
         updateProductAverageCostMap << productAverageCost
         updateProductAverageCostMap.thurDate = UtilDateTime.nowTimestamp()
         run service: "updateProductAverageCost", with: updateProductAverageCostMap
-        
+
         Map serviceInMap = [productId: parameters.productId, facilityId: parameters.facilityId]
         Map serviceResultGIABF = run service: "getInventoryAvailableByFacility", with: serviceInMap
         BigDecimal quantityOnHandTotal = serviceResultGIABF.quantityOnHandTotal
@@ -481,9 +481,9 @@ def getProductAverageCost() {
     if (partyAccountingPreference.cogsMethodId == "COGS_AVG_COST") {
         // TODO: handle productAverageCostTypeId for WEIGHTED_AVG_COST and MOVING_AVG_COST
         productAverageCost = from("ProductAverageCost")
-            .where(productAverageCostTypeId: "SIMPLE_AVG_COST", organizationPartyId: inventoryItem.ownerPartyId, productId: inventoryItem.productId, facilityId: inventoryItem.facilityId)
-            .filterByDate()
-            .queryFirst()
+                .where(productAverageCostTypeId: "SIMPLE_AVG_COST", organizationPartyId: inventoryItem.ownerPartyId, productId: inventoryItem.productId, facilityId: inventoryItem.facilityId)
+                .filterByDate()
+                .queryFirst()
     }
     if (productAverageCost) {
         unitCost = productAverageCost.averageCost
