@@ -29,7 +29,7 @@ import org.apache.ofbiz.order.shoppingcart.ShoppingCart.CartPaymentInfo
  * Create/Update Customer, Shipping Address and other contact details.
  * @return
  */
-def createUpdatecustomerAndShippingAddress() {
+def createUpdateCustomerAndShippingAddress() {
     Map result = success()
 
     List<String> messages = []
@@ -75,7 +75,7 @@ def createUpdatecustomerAndShippingAddress() {
     createUpdatePartyTelecomNumberCtx.userLogin = userLogin
     createUpdatePartyTelecomNumberCtx.partyId = partyId
     createUpdatePartyTelecomNumberCtx.roleTypeId = "CUSTOMER"
-    createUpdatePartyTelecomNumberCtx.contachtMechPurposeTypeId = "PHONE_SHIPPING"
+    createUpdatePartyTelecomNumberCtx.contactMechPurposeTypeId = "PHONE_SHIPPING"
     createUpdatePartyTelecomNumberCtx.contactMechId = parameters.shipToPhoneContactMechId
     Map serviceResultCUPTN = run service: "createUpdatePartyTelecomNumber", with: createUpdatePartyTelecomNumberCtx
     String shipToPhoneContactMechId = serviceResultCUPTN.contactMechId
@@ -193,24 +193,3 @@ def setAnonUserLogin() {
     shoppingCart.setUserLogin(userLogin, dispatcher)
     return success()
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
