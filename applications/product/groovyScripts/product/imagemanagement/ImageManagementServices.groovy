@@ -137,7 +137,7 @@ def UploadProductImages() {
  * Remove Content From Product and Image File
  * @return
  */
-def removeProductContentAndImage() {
+def removeProductContentAndImageFile() {
     Map removeContent
     List checkDefaultImage = from("ProductContent").where(productId: parameters.productId, contentId: parameters.contentId, productContentTypeId: "DEFAULT_IMAGE").queryList()
     if (!checkDefaultImage) {
@@ -181,7 +181,7 @@ def removeProductContentForImageManagement() {
     GenericValue content = from("Content").where(contentId: parameters.contentId).queryOne()
     Map removeContentPKMap = [contentId: parameters.contentId]
     run service: "removeContent", with: removeContentPKMap
-    
+
     String dataResourceId = content.dataResourceId
     List dataResourceRoles = from("DataResourceRole").where(dataResourceId: dataResourceId).queryList()
     if (dataResourceRoles) {
@@ -190,7 +190,7 @@ def removeProductContentForImageManagement() {
     GenericValue dataResource = from("DataResource").where(dataResourceId: dataResourceId).queryOne()
     Map removeImageFile = [productId: parameters.productId, contentId: parameters.contentId, objectInfo: dataResource.objectInfo, dataResourceName: dataResource.dataResourceName]
     run service: "removeImageFileForImageManagement", with: removeImageFile
-    
+
     Map removeDataResourcePKMap = [dataResourceId: dataResourceId]
     run service: "removeDataResource", with: removeDataResourcePKMap
     return success()
@@ -227,7 +227,7 @@ def setImageDetail() {
 def updateStatusImageManagement() {
     Timestamp nowTimestamp = UtilDateTime.nowTimestamp()
     String checkStatusVal = parameters.checkStatusId
-    List statusId = StringUtil.split(checkStatusVal, "&quot;/&quot;")
+    List statusId = StringUtil.split(checkStatusVal, "/")
     if (statusId) {
         parameters.checkStatusId = statusId.get(0)
     }
@@ -262,7 +262,7 @@ def updateStatusImageManagement() {
                     GenericValue content = from("Content").where(parameters).queryOne()
                     content.statusId = "IM_APPROVED"
                     content.store()
-                    
+
                     GenericValue productContent = from("ProductContent").where(contentId: parameters.contentId, productContentTypeId: "IMAGE").queryFirst()
                     productContent.purchaseFromDate = nowTimestamp
                     productContent.store()
@@ -272,11 +272,11 @@ def updateStatusImageManagement() {
                         GenericValue content = from("Content").where(parameters).queryOne()
                         content.statusId = "IM_APPROVED"
                         content.store()
-                        
+
                         GenericValue productContent = from("ProductContent").where(contentId: parameters.contentId, productContentTypeId: "IMAGE").queryFirst()
                         productContent.purchaseFromDate = nowTimestamp
                         productContent.store()
-                        
+
                         List checkApproveList = from("ContentApproval").where(contentId: parameters.contentId, roleTypeId: "IMAGEAPPROVER").queryList()
                         for (GenericValue checkApprove : checkApproveList) {
                             checkApprove.approvalStatusId = "IM_APPROVED"
@@ -288,11 +288,11 @@ def updateStatusImageManagement() {
                 GenericValue content = from("Content").where(parameters).queryOne()
                 content.statusId = "IM_APPROVED"
                 content.store()
-                
+
                 GenericValue productContent = from("ProductContent").where(contentId: parameters.contentId, productContentTypeId: "IMAGE").queryFirst()
                 productContent.purchaseFromDate = nowTimestamp
                 productContent.store()
-                
+
                 List checkApproveList = from("ContentApproval").where(contentId: parameters.contentId, roleTypeId: "IMAGEAPPROVER").queryList()
                 for (GenericValue checkApprove : checkApproveList) {
                     checkApprove.approvalStatusId = "IM_APPROVED"
@@ -325,7 +325,7 @@ def addRejectedReasonImageManagement() {
         content.description = "Other"
     }
     content.store()
-    GenericValue productContent = from("ProductContent").where(contentId: parameters.contentId, productContentTypeId: "IMAGE")
+    GenericValue productContent = from("ProductContent").where(contentId: parameters.contentId, productContentTypeId: "IMAGE").queryFirst()
     productContent.thruDate = nowTimestamp
     productContent.store()
     return success()
@@ -371,15 +371,15 @@ def resizeImages() {
         }
     }
     if (parameters.resizeOption == "createNewThumbnail") {
-         Map removeImageBySizeMap = [productId: parameters.productId, mapKey: parameters.size]
-         run service: "removeImageBySize", with: removeImageBySizeMap
-         
-         List productContentAndInfos = from("ProductContentAndInfo").where(productId: parameters.productId, productContentTypeId: "IMAGE").queryList()
-         // <field-map field-name="statusId" value="IM_APPROVED"/>
-         for (GenericValue productContentAndInfo : productContentAndInfos) {
-             Map createNewImageThumbnailMap = [productId: productContentAndInfo.productId, contentId: productContentAndInfo.contentId, dataResourceName: productContentAndInfo.drDataResourceName, drObjectInfo: productContentAndInfo.drObjectInfo, sizeWidth: parameters.size]
-             run service: "createNewImageThumbnail", with: createNewImageThumbnailMap
-         }
+        Map removeImageBySizeMap = [productId: parameters.productId, mapKey: parameters.size]
+        run service: "removeImageBySize", with: removeImageBySizeMap
+
+        List productContentAndInfos = from("ProductContentAndInfo").where(productId: parameters.productId, productContentTypeId: "IMAGE").queryList()
+        // <field-map field-name="statusId" value="IM_APPROVED"/>
+        for (GenericValue productContentAndInfo : productContentAndInfos) {
+            Map createNewImageThumbnailMap = [productId: productContentAndInfo.productId, contentId: productContentAndInfo.contentId, dataResourceName: productContentAndInfo.drDataResourceName, drObjectInfo: productContentAndInfo.drObjectInfo, sizeWidth: parameters.size]
+            run service: "createNewImageThumbnail", with: createNewImageThumbnailMap
+        }
     }
     return success()
 }
