@@ -17,6 +17,8 @@ specific language governing permissions and limitations
 under the License.
 -->
 
+<script src="/common/js/jquery/plugins/jsTree/jquery.jstree.js" type="application/javascript" data-import="head"></script>
+
 <script type="application/javascript">
 <#-- some labels are not unescaped in the JSON object so we have to do this manualy -->
 function unescapeHtmlText(text) {
@@ -61,18 +63,18 @@ var rawdata = [
         "plugins" : [ "themes", "json_data","ui" ,"cookies", "types", "crrm", "contextmenu"],
             "json_data" : {
                 "data" : rawdata,
-                          "ajax" : { "url" : "<@ofbizUrl>getHRChild</@ofbizUrl>", "type" : "POST",
-                          "data" : function (n) {
-                            return { 
+                "ajax" : { "url" : "<@ofbizUrl>getHRChild</@ofbizUrl>", "type" : "POST",
+                    "data" : function (n) {
+                            return {
                                 "partyId" : n.attr ? n.attr("id").replace("node_","") : 1 ,
                                 "additionParam" : "','category" ,
                                 "hrefString" : "viewprofile?partyId=" ,
                                 "onclickFunction" : "callDocument"
-                        }; 
+                        };
                     },
-                              success : function(data) {
-                                  return data.hrTree;
-                              }
+                    success : function(data) {
+                        return data.hrTree;
+                    }
                 }
             },
             "types" : {
@@ -92,7 +94,7 @@ var rawdata = [
   }
   
   function callDocument(id,type) {
-    window.location = "viewprofile?partyId=" + id;
+    window.location = "viewprofile?partyId=" + id + "&<@csrfTokenPair>viewprofile</@csrfTokenPair>";
   }
   
   function callEmplDocument(id,type) {

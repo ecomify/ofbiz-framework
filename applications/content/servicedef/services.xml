@@ -40,33 +40,6 @@
         <attribute mode="OUT" name="resultData" optional="true" type="java.util.Map"/>
     </service>
 
-    <service name="getSubContentWithPermCheck" engine="simple"  auth="true"
-            location="component://content/minilang/content/ContentServices.xml" invoke="getSubContentWithPermCheck">
-        <description>Get Content and resource information</description>
-        <permission-service service-name="genericContentPermission" main-action="VIEW"/>
-        <attribute mode="IN" name="contentId" optional="false" type="String">
-            <type-validate>
-                <fail-property resource="ContentErrorUiLabels" property="ContentRequiredFieldMissingContentId"/>
-            </type-validate>
-        </attribute>
-        <attribute mode="IN" name="contentAssocTypeId" optional="true" type="String"/>
-        <attribute mode="IN" name="mapKey" optional="true" type="String"/>
-        <attribute mode="IN" name="mainAction" optional="true" type="String"/>
-        <attribute mode="IN" name="contentOperationId" optional="true" type="String"/>
-        <attribute mode="IN" name="useCache" optional="true" type="Boolean"/>
-        <attribute mode="IN" name="filterByDate" optional="true" type="Boolean"/>
-        <attribute mode="OUT" name="subContentList" optional="true" type="java.util.List"/>
-    </service>
-
-    <service name="getSubSubContentWithPermCheck" engine="simple"  auth="true"
-            location="component://content/minilang/content/ContentServices.xml" invoke="getSubSubContentWithPermCheck">
-        <description>Get Content associated with Content</description>
-        <implements service="getSubContentWithPermCheck"/>
-        <attribute mode="IN" name="subContentAssocTypeId" optional="true" type="String"/>
-        <attribute mode="IN" name="subMapKey" optional="true" type="String"/>
-        <attribute mode="OUT" name="subSubContentList" optional="true" type="java.util.List"/>
-    </service>
-
     <service name="getContentAndDataResource" engine="simple" default-entity-name="Content" auth="true"
             location="component://content/minilang/content/ContentServices.xml" invoke="getContentAndDataResource">
         <description>Get Content and resource information</description>
@@ -160,7 +133,7 @@
         <attribute name="htmlBody" type="String" mode="IN" optional="true" allow-html="any"/>
         <override name="contentId" mode="INOUT"/>
     </service>
-    <service name="updateEmailContent" engine="simple" location="component://content/minilang/content/ContentServices.xml" invoke="updateEmailContent">
+    <service name="updateEmailContent" engine="groovy" location="component://content/groovyScripts/content/ContentServices.groovy" invoke="updateEmailContent">
         <permission-service service-name="contentManagerPermission" main-action="UPDATE"/>
         <attribute name="subjectDataResourceId" type="String" mode="IN" optional="true"/>
         <attribute name="subject" type="String" mode="IN" optional="true"/>
@@ -170,7 +143,7 @@
         <attribute name="htmlBody" type="String" mode="IN" optional="true" allow-html="any"/>
     </service>
 
-    <service name="createDownloadContent" engine="simple" location="component://content/minilang/content/ContentServices.xml" invoke="createDownloadContent">
+    <service name="createDownloadContent" engine="simple" location="component://content/groovyScripts/content/ContentServices.groovy" invoke="createDownloadContent">
         <permission-service service-name="contentManagerPermission" main-action="CREATE"/>
         <auto-attributes mode="IN" entity-name="Content" optional="true"/>
         <attribute name="file" type="String" mode="IN" optional="false">
@@ -180,7 +153,7 @@
         </attribute>
         <override name="contentId" mode="INOUT"/>
     </service>
-    <service name="updateDownloadContent" engine="simple" location="component://content/minilang/content/ContentServices.xml" invoke="updateDownloadContent">
+    <service name="updateDownloadContent" engine="simple" location="component://content/groovyScripts/content/ContentServices.groovy" invoke="updateDownloadContent">
         <permission-service service-name="contentManagerPermission" main-action="UPDATE"/>
         <attribute name="fileDataResourceId" type="String" mode="IN" optional="true"/>
         <attribute name="file" type="String" mode="IN" optional="true"/>
@@ -475,8 +448,8 @@
         <attribute mode="IN" name="fromDate" optional="true" type="Timestamp"/>
     </service>
 
-    <service name="createArticleContent" engine="simple" transaction-timeout="300" auth="true"
-            location="component://content/minilang/content/ContentServices.xml" invoke="createArticleContent">
+    <service name="createArticleContent" engine="groovy" transaction-timeout="300" auth="true"
+            location="component://content/groovyScripts/content/ContentServices.groovy" invoke="createArticleContent">
         <description>Creates content records for a blog entry</description>
         <required-permissions join-type="AND">
             <check-permission permission="CONTENTMGR" action="_CREATE"/>
@@ -553,17 +526,6 @@
         <attribute mode="IN" name="mimeTypeId" optional="true" type="String"/>
         <attribute mode="IN" name="subContentDataResourceView" optional="true" type="org.apache.ofbiz.entity.GenericValue"/>
         <attribute mode="OUT" name="textData" optional="true" type="String"/>
-    </service>
-    <service name="createTopic"
-        auth="true" engine="simple" invoke="createTopic"
-        location="component://content/minilang/content/ContentServices.xml" >
-        <description>Create a TOPIC type Content </description>
-        <attribute mode="IN" name="newTopicId" optional="false" type="String">
-            <type-validate>
-                <fail-property resource="ContentErrorUiLabels" property="ContentRequiredFieldMissingNewTopicId"/>
-            </type-validate>
-        </attribute>
-        <attribute mode="IN" name="newTopicDescription" optional="true" type="String"/>
     </service>
 
     <service name="updateSiteRoles" auth="true" engine="java"
@@ -1198,8 +1160,8 @@
         <attribute name="dataResourceId" type="String" mode="IN" optional="true"/>
     </service>
 
-    <service name="createContentAlternativeUrl" engine="simple"
-            location="component://content/minilang/content/ContentServices.xml" invoke="createContentAlternativeUrl" auth="true" transaction-timeout="7200">
+    <service name="createContentAlternativeUrl" engine="groovy"
+            location="component://content/groovyScripts/content/ContentServices.groovy" invoke="createContentAlternativeUrl" auth="true" transaction-timeout="7200">
         <description>Create Content Alternative URL</description>
         <attribute name="contentId" mode="IN" type="String" optional="true"></attribute>
         <attribute name="contentCreated" mode="OUT" type="String" optional="true"></attribute>

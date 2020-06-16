@@ -18,7 +18,6 @@ under the License.
 -->
 
 <script type="application/javascript">
-//<![CDATA[
 function togglePaymentId(master) {
     var payments = jQuery("#paymentBatchForm :checkbox[name='paymentIds']");
 
@@ -116,8 +115,6 @@ function setServiceName(selection) {
     }
 
 }
-//]]>
-
 </script>
 <div class="screenlet">
     <div class="screenlet-body">
@@ -128,7 +125,7 @@ function setServiceName(selection) {
                     <span class="label">${uiLabelMap.AccountingRunningTotal} :</span>
                     <span class="label" id="showPaymentRunningTotal"></span>
                 </div>
-                <div class="align-float">
+                <div class="align-text">
                     <select name="serviceName" id="serviceName" onchange="javascript:setServiceName(this);">
                         <option value="">${uiLabelMap.AccountingSelectAction}</option>
                         <option value="<@ofbizUrl>createPaymentBatch</@ofbizUrl>" id="processBatchPayment">${uiLabelMap.AccountingCreateBatch}</option>
@@ -154,7 +151,7 @@ function setServiceName(selection) {
                     <input type="hidden" name='thruDate' value="${thruDate!}" />
                 </div>
                 </div>
-                <div id="createPaymentBatch" style="display: none;" class="align-float">
+                <div id="createPaymentBatch" style="display: none;" class="text">
                     <label for="paymentGroupName">${uiLabelMap.AccountingPaymentGroupName}</label>
                     <input type="text" size='25' id="paymentGroupName" name='paymentGroupName' />
                     <#if finAccounts?has_content>

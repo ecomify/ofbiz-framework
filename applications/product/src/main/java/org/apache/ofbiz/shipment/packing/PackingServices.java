@@ -33,8 +33,8 @@ import org.apache.ofbiz.service.ServiceUtil;
 
 public class PackingServices {
 
-    public static final String module = PackingServices.class.getName();
-    public static final String resource = "ProductUiLabels";
+    private static final String MODULE = PackingServices.class.getName();
+    private static final String RESOURCE = "ProductUiLabels";
 
     public static Map<String, Object> addPackLine(DispatchContext dctx, Map<String, ? extends Object> context) {
         PackingSession session = (PackingSession) context.get("packingSession");
@@ -57,17 +57,17 @@ public class PackingServices {
             quantity = BigDecimal.ONE;
         }
 
-        Debug.logInfo("OrderId [" + orderId + "] ship group [" + shipGroupSeqId + "] Pack input [" + productId + "] @ [" + quantity + "] packageSeq [" + packageSeq + "] weight [" + weight +"]", module);
+        Debug.logInfo("OrderId [" + orderId + "] ship group [" + shipGroupSeqId + "] Pack input [" + productId + "] @ [" + quantity + "] packageSeq [" + packageSeq + "] weight [" + weight +"]", MODULE);
 
         if (weight == null) {
-            Debug.logWarning("OrderId [" + orderId + "] ship group [" + shipGroupSeqId + "] product [" + productId + "] being packed without a weight, assuming 0", module);
+            Debug.logWarning("OrderId [" + orderId + "] ship group [" + shipGroupSeqId + "] product [" + productId + "] being packed without a weight, assuming 0", MODULE);
             weight = BigDecimal.ZERO;
         }
 
         try {
             session.addOrIncreaseLine(orderId, null, shipGroupSeqId, productId, quantity, packageSeq, weight, false);
         } catch (GeneralException e) {
-            Debug.logError(e, module);
+            Debug.logError(e, MODULE);
             return ServiceUtil.returnError(e.getMessage());
         }
 
@@ -130,7 +130,7 @@ public class PackingServices {
                 String qtyStr = qtyInfo.get(rowKey);
                 String wgtStr = wgtInfo.get(rowKey);
 
-                Debug.logInfo("Item: " + orderItemSeqId + " / Product: " + prdStr + " / Quantity: " + qtyStr + " /  Package: " + pkgStr + " / Weight: " + wgtStr, module);
+                Debug.logInfo("Item: " + orderItemSeqId + " / Product: " + prdStr + " / Quantity: " + qtyStr + " /  Package: " + pkgStr + " / Weight: " + wgtStr, MODULE);
 
                 // array place holders
                 String[] quantities;
@@ -147,7 +147,7 @@ public class PackingServices {
 
                 // check to make sure there is at least one package
                 if (packages.length == 0) {
-                    return ServiceUtil.returnError(UtilProperties.getMessage(resource, 
+                    return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE,
                             "ProductPackBulkNoPackagesDefined", locale));
                 }
 
@@ -158,7 +158,7 @@ public class PackingServices {
                         quantities[p] = qtyInfo.get(rowKey + ":" + packages[p]);
                     }
                     if (quantities.length != packages.length) {
-                        return ServiceUtil.returnError(UtilProperties.getMessage(resource, 
+                        return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE,
                                 "ProductPackBulkPackagesAndQuantitiesDoNotMatch", locale));
                     }
                 } else {
@@ -197,7 +197,7 @@ public class PackingServices {
                             session.addOrIncreaseLine(orderId, orderItemSeqId, shipGroupSeqId, prdStr, quantity, packageSeq+numPackage, weightSeq, updateQuantity);
                         }
                     } catch (GeneralException e) {
-                        Debug.logError(e, module);
+                        Debug.logError(e, MODULE);
                         return ServiceUtil.returnError(e.getMessage());
                     }
                 }
@@ -240,7 +240,7 @@ public class PackingServices {
         if (line != null) {
             session.clearLine(line);
         } else {
-            return ServiceUtil.returnError(UtilProperties.getMessage(resource, 
+            return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE,
                     "ProductPackLineNotFound", locale));
         }
 
@@ -302,16 +302,16 @@ public class PackingServices {
         try {
             shipmentId = session.complete(force);
         } catch (GeneralException e) {
-            Debug.logError(e, module);
+            Debug.logError(e, MODULE);
             return ServiceUtil.returnError(e.getMessage(), e.getMessageList());
         }
 
         Map<String, Object> resp;
         if ("EMPTY".equals(shipmentId)) {
-            resp = ServiceUtil.returnError(UtilProperties.getMessage(resource, 
+            resp = ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE,
                     "ProductPackCompleteNoItems", locale));
         } else {
-            resp = ServiceUtil.returnSuccess(UtilProperties.getMessage(resource, 
+            resp = ServiceUtil.returnSuccess(UtilProperties.getMessage(RESOURCE,
                     "ProductPackComplete", UtilMisc.toMap("shipmentId", shipmentId), locale));
         }
 

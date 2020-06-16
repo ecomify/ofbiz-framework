@@ -39,7 +39,8 @@ public final class SafeObjectInputStream extends ObjectInputStream {
     private static final String[] DEFAULT_WHITELIST_PATTERN = {
             "byte\\[\\]", "foo", "SerializationInjector",
             "\\[Z", "\\[B", "\\[S", "\\[I", "\\[J", "\\[F", "\\[D", "\\[C",
-            "java..*", "sun.util.calendar..*", "org.apache.ofbiz..*" };
+            "java..*", "sun.util.calendar..*", "org.apache.ofbiz..*",
+            "org.codehaus.groovy.runtime.GStringImpl", "groovy.lang.GString"};
 
     /** The regular expression used to match serialized types. */
     private final Pattern whitelistPattern;
@@ -52,7 +53,7 @@ public final class SafeObjectInputStream extends ObjectInputStream {
      */
     public SafeObjectInputStream(InputStream in) throws IOException {
         super(in);
-        String safeObjectsProp = getPropertyValue("SafeObjectInputStream", "ListOfSafeObjectsForInputStream");
+        String safeObjectsProp = getPropertyValue("SafeObjectInputStream", "ListOfSafeObjectsForInputStream", "");
         String[] whitelist = safeObjectsProp.isEmpty() ? DEFAULT_WHITELIST_PATTERN : safeObjectsProp.split(",");
         whitelistPattern = Arrays.stream(whitelist)
                 .map(String::trim)
@@ -63,6 +64,10 @@ public final class SafeObjectInputStream extends ObjectInputStream {
     @Override
     protected Class<?> resolveClass(ObjectStreamClass classDesc) throws IOException, ClassNotFoundException {
         if (!whitelistPattern.matcher(classDesc.getName()).find()) {
+            // DiskFileItem, FileItemHeadersImpl are not serializable.
+            if (classDesc.getName().contains("org.apache.commons.fileupload")) {
+                return null;
+            }
             Debug.logWarning("***Incompatible class***: "
                     + classDesc.getName()
                     + ". Please see OFBIZ-10837.  Report to dev ML if you use OFBiz without changes. "

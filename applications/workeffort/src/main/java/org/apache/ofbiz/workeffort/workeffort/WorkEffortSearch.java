@@ -77,8 +77,8 @@ import org.apache.ofbiz.entity.util.EntityUtil;
  */
 public class WorkEffortSearch {
 
-    public static final String module = WorkEffortSearch.class.getName();
-    public static final String resource = "WorkEffortUiLabels";
+    private static final String MODULE = WorkEffortSearch.class.getName();
+    private static final String RESOURCE = "WorkEffortUiLabels";
 
     public static ArrayList<String> searchWorkEfforts(List<? extends WorkEffortSearchConstraint> workEffortSearchConstraintList, ResultSortOrder resultSortOrder, Delegator delegator, String visitId) {
         WorkEffortSearchContext workEffortSearchContext = new WorkEffortSearchContext(delegator, visitId);
@@ -128,7 +128,7 @@ public class WorkEffortSearch {
                 getAllSubWorkEffortIds(subWorkEffortId, workEffortIdSet, delegator, nowTimestamp);
             }
         } catch (GenericEntityException e) {
-            Debug.logError(e, "Error finding sub-categories for workEffort search", module);
+            Debug.logError(e, "Error finding sub-categories for workEffort search", MODULE);
         }
     }
 
@@ -198,7 +198,7 @@ public class WorkEffortSearch {
                 this.saveSearchResultInfo((long) workEffortIds.size(), totalSeconds);
                 return workEffortIds;
             } catch (GenericEntityException e) {
-                Debug.logError(e, module);
+                Debug.logError(e, MODULE);
                 return null;
             }
         }
@@ -232,7 +232,7 @@ public class WorkEffortSearch {
 
             boolean doingBothAndOr = (keywordFixedOrSetAndList.size() > 1) || (keywordFixedOrSetAndList.size() > 0 && andKeywordFixedSet.size() > 0);
 
-            Debug.logInfo("Finished initial setup of keywords, doingBothAndOr=" + doingBothAndOr + ", andKeywordFixedSet=" + andKeywordFixedSet + "\n keywordFixedOrSetAndList=" + keywordFixedOrSetAndList, module);
+            Debug.logInfo("Finished initial setup of keywords, doingBothAndOr=" + doingBothAndOr + ", andKeywordFixedSet=" + andKeywordFixedSet + "\n keywordFixedOrSetAndList=" + keywordFixedOrSetAndList, MODULE);
 
             ComplexAlias relevancyComplexAlias = new ComplexAlias("+");
             if (andKeywordFixedSet.size() > 0) {
@@ -320,7 +320,7 @@ public class WorkEffortSearch {
                         .maxRows(maxRows)
                         .queryIterator();
             } catch (GenericEntityException e) {
-                Debug.logError(e, "Error in workEffort search", module);
+                Debug.logError(e, "Error in workEffort search", MODULE);
                 return null;
             }
 
@@ -330,7 +330,7 @@ public class WorkEffortSearch {
         public ArrayList<String> makeWorkEffortIdList(EntityListIterator eli) {
             ArrayList<String> workEffortIds = new ArrayList<>(maxResults == null ? 100 : maxResults);
             if (eli == null) {
-                Debug.logWarning("The eli is null, returning zero results", module);
+                Debug.logWarning("The eli is null, returning zero results", MODULE);
                 return workEffortIds;
             }
 
@@ -344,7 +344,7 @@ public class WorkEffortSearch {
                 }
                 if (resultOffset != null && resultOffset > 1) {
                     if (Debug.infoOn()) {
-                        Debug.logInfo("Before relative, current index=" + eli.currentIndex(), module);
+                        Debug.logInfo("Before relative, current index=" + eli.currentIndex(), MODULE);
                     }
                     hasResults = eli.relative(resultOffset - 1);
                     initialResult = null;
@@ -402,10 +402,10 @@ public class WorkEffortSearch {
                     this.totalResults = total;
                 }
 
-                Debug.logInfo("Got search values, numRetreived=" + numRetreived + ", totalResults=" + totalResults + ", maxResults=" + maxResults + ", resultOffset=" + resultOffset + ", duplicatesFound(in the current results)=" + duplicatesFound, module);
+                Debug.logInfo("Got search values, numRetreived=" + numRetreived + ", totalResults=" + totalResults + ", maxResults=" + maxResults + ", resultOffset=" + resultOffset + ", duplicatesFound(in the current results)=" + duplicatesFound, MODULE);
 
             } catch (GenericEntityException e) {
-                Debug.logError(e, "Error getting results from the workEffort search query", module);
+                Debug.logError(e, "Error getting results from the workEffort search query", MODULE);
             }
             return workEffortIds;
         }
@@ -444,11 +444,11 @@ public class WorkEffortSearch {
                     TransactionUtil.commit(beganTransaction);
                 } catch (GenericEntityException e1) {
                     String errMsg = "Error saving workEffort search result info/stats";
-                    Debug.logError(e1, errMsg, module);
+                    Debug.logError(e1, errMsg, MODULE);
                     TransactionUtil.rollback(beganTransaction, errMsg, e1);
                 }
             } catch (GenericTransactionException e) {
-                Debug.logError(e, "Error saving workEffort search result info/stats", module);
+                Debug.logError(e, "Error saving workEffort search result info/stats", MODULE);
             }
         }
     }
@@ -556,11 +556,11 @@ public class WorkEffortSearch {
                 workEffort = EntityQuery.use(delegator).from("WorkEffort").where("workEffortId", this.workEffortId).cache().queryOne();
                 workEffortAssocType = EntityQuery.use(delegator).from("WorkEffortAssocType").where("workEffortAssocTypeId", this.workEffortAssocTypeId).cache().queryOne();
             } catch (GenericEntityException e) {
-                Debug.logError(e, "Error looking up WorkEffortAssocConstraint pretty print info: " + e.toString(), module);
+                Debug.logError(e, "Error looking up WorkEffortAssocConstraint pretty print info: " + e.toString(), MODULE);
             }
 
             StringBuilder ppBuf = new StringBuilder();
-            ppBuf.append(UtilProperties.getMessage(resource, "WorkEffortAssoc", locale) + ": ");
+            ppBuf.append(UtilProperties.getMessage(RESOURCE, "WorkEffortAssoc", locale) + ": ");
             if (workEffort != null) {
                 ppBuf.append(workEffort.getString("workEffortName"));
             }
@@ -580,7 +580,7 @@ public class WorkEffortSearch {
                 }
             }
             if (this.includeSubWorkEfforts) {
-                ppBuf.append(" (").append(UtilProperties.getMessage(resource, "WorkEffortIncludeAllSubWorkEfforts", locale)).append(")");
+                ppBuf.append(" (").append(UtilProperties.getMessage(RESOURCE, "WorkEffortIncludeAllSubWorkEfforts", locale)).append(")");
             }
             return ppBuf.toString();
         }
@@ -656,8 +656,8 @@ public class WorkEffortSearch {
         @Override
         public String prettyPrintConstraint(Delegator delegator, boolean detailed, Locale locale) {
             StringBuilder ppBuf = new StringBuilder();
-            ppBuf.append(UtilProperties.getMessage(resource, "WorkEffortReviews", locale) + ": \"");
-            ppBuf.append(this.reviewTextString).append("\", ").append(UtilProperties.getMessage(resource, "WorkEffortKeywordWhere", locale)).append(" ");
+            ppBuf.append(UtilProperties.getMessage(RESOURCE, "WorkEffortReviews", locale) + ": \"");
+            ppBuf.append(this.reviewTextString).append("\", ").append(UtilProperties.getMessage(RESOURCE, "WorkEffortKeywordWhere", locale)).append(" ");
             return ppBuf.toString();
         }
 
@@ -736,7 +736,7 @@ public class WorkEffortSearch {
                 partyNameView = EntityQuery.use(delegator).from("PartyNameView").where("partyId", partyId).cache().queryOne();
                 roleType = EntityQuery.use(delegator).from("RoleType").where("roleTypeId", roleTypeId).cache().queryOne();
             } catch (GenericEntityException e) {
-                Debug.logError(e, "Error finding PartyAssignmentConstraint information for constraint pretty print", module);
+                Debug.logError(e, "Error finding PartyAssignmentConstraint information for constraint pretty print", MODULE);
             }
             StringBuilder ppBuf = new StringBuilder();
             ppBuf.append("WorkEffort Assignment: ");
@@ -873,7 +873,7 @@ public class WorkEffortSearch {
                     }
                 }
             } catch (GenericEntityException e) {
-                Debug.logError(e, "Error finding ProductSetConstraint information for constraint pretty print", module);
+                Debug.logError(e, "Error finding ProductSetConstraint information for constraint pretty print", MODULE);
             }
 
             return infoOut.toString();
@@ -992,9 +992,9 @@ public class WorkEffortSearch {
         @Override
         public String prettyPrintConstraint(Delegator delegator, boolean detailed, Locale locale) {
             StringBuilder ppBuf = new StringBuilder();
-            ppBuf.append(UtilProperties.getMessage(resource, "WorkEffortKeywords", locale)).append(": \"");
-            ppBuf.append(this.keywordsString).append("\", ").append(UtilProperties.getMessage(resource, "WorkEffortKeywordWhere", locale)).append(" ");
-            ppBuf.append(isAnd ? UtilProperties.getMessage(resource, "WorkEffortKeywordAllWordsMatch", locale) : UtilProperties.getMessage(resource, "WorkEffortKeywordAnyWordMatches", locale));
+            ppBuf.append(UtilProperties.getMessage(RESOURCE, "WorkEffortKeywords", locale)).append(": \"");
+            ppBuf.append(this.keywordsString).append("\", ").append(UtilProperties.getMessage(RESOURCE, "WorkEffortKeywordWhere", locale)).append(" ");
+            ppBuf.append(isAnd ? UtilProperties.getMessage(RESOURCE, "WorkEffortKeywordAllWordsMatch", locale) : UtilProperties.getMessage(RESOURCE, "WorkEffortKeywordAnyWordMatches", locale));
             return ppBuf.toString();
         }
 
@@ -1094,8 +1094,8 @@ public class WorkEffortSearch {
         @Override
         public String prettyPrintConstraint(Delegator delegator, boolean detailed, Locale locale) {
             StringBuilder ppBuf = new StringBuilder();
-            ppBuf.append(UtilProperties.getMessage(resource, "WorkEffortLastModified", locale)).append(": \"");
-            ppBuf.append(fromDate).append("-").append(thruDate).append("\", ").append(UtilProperties.getMessage(resource, "WorkEffortLastModified", locale)).append(" ");
+            ppBuf.append(UtilProperties.getMessage(RESOURCE, "WorkEffortLastModified", locale)).append(": \"");
+            ppBuf.append(fromDate).append("-").append(thruDate).append("\", ").append(UtilProperties.getMessage(RESOURCE, "WorkEffortLastModified", locale)).append(" ");
             return ppBuf.toString();
         }
 
@@ -1175,7 +1175,7 @@ public class WorkEffortSearch {
 
         @Override
         public String prettyPrintSortOrder(boolean detailed, Locale locale) {
-            return UtilProperties.getMessage(resource, "WorkEffortKeywordRelevancy", locale);
+            return UtilProperties.getMessage(RESOURCE, "WorkEffortKeywordRelevancy", locale);
         }
 
         @Override
@@ -1222,13 +1222,13 @@ public class WorkEffortSearch {
         @Override
         public String prettyPrintSortOrder(boolean detailed, Locale locale) {
             if ("workEffortName".equals(this.fieldName)) {
-                return UtilProperties.getMessage(resource, "WorkEffortName", locale);
+                return UtilProperties.getMessage(RESOURCE, "WorkEffortName", locale);
             } else if ("totalQuantityOrdered".equals(this.fieldName)) {
-                return UtilProperties.getMessage(resource, "WorkEffortPopularityByOrders", locale);
+                return UtilProperties.getMessage(RESOURCE, "WorkEffortPopularityByOrders", locale);
             } else if ("totalTimesViewed".equals(this.fieldName)) {
-                return UtilProperties.getMessage(resource, "WorkEffortPopularityByViews", locale);
+                return UtilProperties.getMessage(RESOURCE, "WorkEffortPopularityByViews", locale);
             } else if ("averageCustomerRating".equals(this.fieldName)) {
-                return UtilProperties.getMessage(resource, "WorkEffortCustomerRating", locale);
+                return UtilProperties.getMessage(RESOURCE, "WorkEffortCustomerRating", locale);
             }
             return this.fieldName;
         }
