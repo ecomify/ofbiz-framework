@@ -83,16 +83,6 @@ def updateShoppingList() {
 }
 
 /**
- * Remove a ShoppingList
- * @return
- */
-def removeShoppingList() {
-    GenericValue shoppingList = from("ShoppingList").where(parameters).queryOne()
-    shoppingList.remove()
-    return success()
-}
-
-/**
  * Create a ShoppingList Item
  * @return
  */
@@ -269,7 +259,7 @@ def checkShoppingListItemSecurity() {
     Map result = success()
     Boolean hasPermission = false
     GenericValue shoppingList = from("ShoppingList").where(parameters).queryOne()
-    if (shoppingList.partyId && userLogin.partyId != shoppingList.partyId && !security.hasEntityPermission("PARTYMGR", "_${permissionAction}", parameters.userLogin)) {
+    if (shoppingList?.partyId && userLogin.partyId != shoppingList?.partyId && !security.hasEntityPermission("PARTYMGR", "_${permissionAction}", parameters.userLogin)) {
         Map errorLog = [:]
         errorLog = [parentMethodName: parameters.parentMethodName]
         errorLog.permissionAction = parameters.permissionAction
@@ -292,7 +282,7 @@ def addSuggestionsToShoppingList() {
     String shoppingListId
     // first check the ProductStore.enableAutoSuggestionList indicator
     GenericValue orderHeader = from("OrderHeader").where(parameters).queryOne()
-    if (!orderHeader.productStoreId) {
+    if (!(orderHeader.productStoreId)) {
         return result
     }
     GenericValue productStore = from("ProductStore").where(productStoreId: orderHeader.productStoreId).queryOne()
