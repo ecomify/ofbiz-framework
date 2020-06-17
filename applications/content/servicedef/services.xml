@@ -1106,6 +1106,7 @@
         <attribute name="summaryContentId" type="String" mode="OUT" optional="true"/>
         <attribute name="articleText" type="GenericValue" mode="OUT" optional="true"/>
         <attribute name="imageContent" type="GenericValue" mode="OUT" optional="true"/>
+        <attribute name="summaryText" type="GenericValue" mode="OUT" optional="true"/>
     </service>
     <service name="getOwnedOrPublishedBlogEntries" engine="groovy" location="component://content/groovyScripts/blog/BlogServices.groovy" invoke="getOwnedOrPublishedBlogEntries"
          auth="true"  transaction-timeout="7200">

@@ -24,6 +24,7 @@ import java.sql.Timestamp
 import org.apache.ofbiz.base.util.UtilDateTime
 import org.apache.ofbiz.base.util.UtilProperties
 import org.apache.ofbiz.entity.GenericValue
+import org.apache.ofbiz.entity.util.EntityUtil
 
 /**
  * Create a new Blog Entry
@@ -58,6 +59,7 @@ def createBlogEntry() {
         dataTemplateTypeId: "SCREEN_COMBINED",
         mapKey: "MAIN"
     ]
+    // TODO check if entries are set as null in DB und wenn ja nur mit Abfrage der Map hinzufügen
     Map serviceResult = run service:"createContent", with: createMain
     String contentId = serviceResult.contentId
 
@@ -82,6 +84,7 @@ def createBlogEntry() {
             _uploadedFile_fileName: parameters._uploadedFile_fileName,
             _uploadedFile_contentType: parameters._uploadedFile_contentType,
         ]
+        // TODO siehe oben
         Map serviceResultCCFUF = run service:"createContentFromUploadedFile", with: createImage
         String imageContentId = serviceResultCCFUF.contentId
     }
@@ -102,6 +105,7 @@ def createBlogEntry() {
             partyId: userLogin.partyId,
             mapKey: "ARTICLE"
         ]
+        // TODO siehe oben
         logInfo("calling createTextContent with map: ${createText}")
         Map serviceResultCTC = run service:"createTextContent", with: createText
         String textContentId = serviceResultCTC.contentId
@@ -123,6 +127,7 @@ def createBlogEntry() {
                 contentIdFrom: contentIdFrom,
                 partyId: userLogin.partyId
             ]
+            // TODO siehe oben
             run service:"createTextContent", with: createSummary
         }
     }
@@ -141,7 +146,8 @@ def updateBlogEntry() {
     String ownerContentId
     String contentAssocTypeId
     String contentIdFrom
-    String showNoResult = "Y"
+    // removed = "Y", sodass getBlogEntry results liefert
+    String showNoResult
     parameters.showNoResult = showNoResult
 
     Map serviceResult = run service:"getBlogEntry", with: parameters
@@ -157,18 +163,19 @@ def updateBlogEntry() {
     String summaryContentId = serviceResult.summaryContentId
     GenericValue imageContent = serviceResult.imageContent
     GenericValue articleText = serviceResult.articleText
+    GenericValue summaryText = serviceResult.summaryText
 
     if (parameters.contentName != contentName ||
     parameters.description !=  description ||
     parameters.summaryData != summaryData ||
     parameters.templateDataResourceId != templateDataResourceId ||
     parameters.statusId != statusId) {
-        Map updContent = [:]
-        updContent << parameters
+        Map updContent = parameters
         updContent.dataResourceId = parameters.templateDataResourceId
         run service:"updateContent" , with: updContent
         if (parameters.statusId != statusId) {
             if (imageContent) {
+                // TODO status als GV machen id setzten und dann auf imageContent gehen
                 imageContent.status.Id = parameters.statusId
                 imageContent.store()
             }
@@ -192,12 +199,13 @@ def updateBlogEntry() {
             textData: parameters.articleData,
             contentIdFrom: contentIdFrom,
             partyId: userLogin.partyId
+            // TODO siehe oben
         ]
         run service:"createTextContent", with: createText
     }
 
     // update article text
-    if (articleText && parameters.articleData != articleData) {
+    if (articleText && (parameters.articleData != articleData)) {
         articleText.textData = parameters.articleData
         articleText.store()
     }
@@ -220,13 +228,13 @@ def updateBlogEntry() {
             textData: parameters.summaryData,
             contentIdFrom: contentIdFrom,
             partyId: userLogin.partyId
+            // TODO siehe oben
         ]
         run service:"createTextContent", with: createSummary
     }
 
     // update summary text
-    if (summaryData && parameters.summaryData != summaryData) {
-        GenericValue summaryText = new GenericValue()
+    if (summaryData && (parameters.summaryData != summaryData)) {
         summaryText.textData = parameters.summaryData
         summaryText.store()
     }
@@ -254,10 +262,11 @@ def updateBlogEntry() {
             _uploadedFile_fileName: parameters._uploadedFile_fileName,
             _uploadedFile_contentType: parameters._uploadedFile_contentType
         ]
+        // TODO G-String unnötig an dieser Stelle du kannst einfach die Variablen so nehmen
         createImage.contentName = parameters.contentName ?: "${contentName}"
         createImage.description = parameters.description ?: "${description}"
         createImage.statusId = parameters.statusId ?: "${statusId}"
-        run service:"createContentFromUploadedFile", with:createImage
+        run service:"createContentFromUploadedFile", with: createImage
     }
 
     result.contentId = parameters.contentId
@@ -321,6 +330,7 @@ def getBlogEntry() {
     String contentName
     String description
     String statusId
+    // TODO showNoResult kann komplett entfernt werden aus allen Methoden
     String showNoResult = parameters.showNoResult
     String articleData
 
@@ -330,22 +340,21 @@ def getBlogEntry() {
     }
 
     GenericValue content = from("Content").where(parameters).queryOne()
-    List orderBy = ["createdDate"]
-    List assocs = content.getRelated("FromContentAssoc", null, orderBy, false)
+    List rawAssocs = delegator.getRelated("FromContentAssoc", null, null, content, false)
+    List assocs = EntityUtil.filterByDate(rawAssocs)
     for (GenericValue assoc : assocs) {
-        String test = assoc.mapKey
         if (assoc.mapKey == "ARTICLE") {
-            mainContent = assoc.getRelatedOne("ToContent", false)
-            dataResource = mainContent.getRelatedOne("DataResource", false)
-            articleText = dataResource.getRelatedOne("ElectronicText", false)
+            mainContent = delegator.getRelatedOne("ToContent", assoc, false)
+            dataResource = delegator.getRelatedOne("DataResource", mainContent, false)
+            articleText = delegator.getRelatedOne("ElectronicText", dataResource, false)
         }
         if (assoc.mapKey == "SUMMARY") {
-            summaryContent = assoc.getRelatedOne("ToContent", false)
-            dataResource = summaryContent.getRelatedOne("DataResource", false)
-            summaryText = dataResource.getRelatedOne("ElectronicText", false)
+            summaryContent = delegator.getRelatedOne("ToContent", assoc, false)
+            dataResource = delegator.getRelatedOne("DataResource", summaryContent, false)
+            summaryText = delegator.getRelatedOne("ElectronicText", dataResource, false)
         }
-        if (assoc.mapKey == "assoc.mapKey") {
-            imageContent = assoc.getRelatedOne("ToContent", false)
+        if (assoc.mapKey == "IMAGE") {
+            imageContent = delegator.getRelatedOne("ToContent", assoc, false)
             
         }
         if (!showNoResult) {
@@ -364,7 +373,8 @@ def getBlogEntry() {
             result.articleContentId = mainContent?.contentId
             result.summaryContentId = summaryContent?.contentId
             result.blogContentId = parameters?.blogContentId
-            result.articleText = articleText?.textData
+            result.articleText = articleText
+            result.summaryText = summaryText
         } else {
             contentId = content?.contentId
             contentName = content?.contentName
