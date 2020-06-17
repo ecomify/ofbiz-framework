@@ -22,7 +22,7 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -51,7 +51,7 @@ import org.apache.ofbiz.entity.model.DynamicViewEntity;
  */
 public class EntityQuery {
 
-    public static final String module = EntityQuery.class.getName();
+    private static final String MODULE = EntityQuery.class.getName();
 
     private Delegator delegator;
     private String entityName = null;
@@ -63,14 +63,15 @@ public class EntityQuery {
     private Integer resultSetType = EntityFindOptions.TYPE_FORWARD_ONLY;
     private Integer fetchSize = null;
     private Integer maxRows = null;
-    private Boolean distinct = null;
+    private boolean distinct = false;
     private EntityCondition havingEntityCondition = null;
     private boolean filterByDate = false;
     private Timestamp filterByDateMoment;
     private List<String> filterByFieldNames = null;
     private boolean searchPkOnly = false;
     private Map<String, Object> fieldMap = null;
-
+    private Integer offset;
+    private Integer limit;
 
 
     /** Construct an EntityQuery object for use against the specified Delegator
@@ -270,6 +271,24 @@ public class EntityQuery {
         return this;
     }
 
+    public EntityQuery offset(int offset) {
+        this.offset = offset;
+        return this;
+    }
+
+    public Integer getOffset() {
+        return this.offset;
+    }
+
+    public EntityQuery limit(int limit) {
+        this.limit = limit;
+        return this;
+    }
+
+    public Integer getLimit() {
+        return this.limit;
+    }
+
     /** Specifies that the values returned should be filtered to remove duplicate values.
      * 
      * @return this EntityQuery object, to enable chaining
@@ -391,7 +410,7 @@ public class EntityQuery {
      */
     public EntityListIterator queryIterator() throws GenericEntityException {
         if (useCache) {
-            Debug.logWarning("Call to iterator() with cache, ignoring cache", module);
+            Debug.logWarning("Call to iterator() with cache, ignoring cache", MODULE);
         }
         if (dynamicViewEntity == null) {
             return delegator.find(entityName, makeWhereCondition(false), havingEntityCondition, fieldsToSelect, orderBy, makeEntityFindOptions());
@@ -471,9 +490,13 @@ public class EntityQuery {
         if (maxRows != null) {
             findOptions.setMaxRows(maxRows);
         }
-        if (distinct != null) {
-            findOptions.setDistinct(distinct);
+        if (limit != null) {
+            findOptions.setLimit(limit);
         }
+        if (offset != null) {
+            findOptions.setOffset(offset);
+        }
+        findOptions.setDistinct(distinct);
         return findOptions;
     }
 
@@ -520,10 +543,21 @@ public class EntityQuery {
         return EntityCondition.makeCondition(conditions);
     }
 
+    /**
+     * Gets a list of values (no matter which type) for a specified entity field name. 
+     * <p>
+     * The field of the entity is first selected and the cache usage turned off to ensure no values are missing.
+     * @param <T>
+     * @param fieldName
+     * @return list with field values
+     * @throws GenericEntityException
+     */
     public <T> List<T> getFieldList(final String fieldName) throws GenericEntityException {select(fieldName);
+        select(fieldName);
+        cache(false);
         try (EntityListIterator genericValueEli = queryIterator()) {
-            if (Boolean.TRUE.equals(this.distinct)) {
-                Set<T> distinctSet = new HashSet<>();
+            if (this.distinct) {
+                Set<T> distinctSet = new LinkedHashSet<T>();
                 GenericValue value = null;
                 while ((value = genericValueEli.next()) != null) {
                     T fieldValue = UtilGenerics.<T>cast(value.get(fieldName));

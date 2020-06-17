@@ -19,6 +19,9 @@ under the License.
 [[apache-ofbiz]]
 = Apache OFBiz®
 
+image:https://img.shields.io/badge/License-Apache%202.0-blue.svg[link="http://www.apache.org/licenses/LICENSE-2.0"]
+
+
 Welcome to *Apache OFBiz*! A powerful top level Apache software project. OFBiz
 is an Enterprise Resource Planning (ERP) System written in Java and houses a
 large set of libraries, entities, services and features to run all aspects of
@@ -68,6 +71,14 @@ https://medium.com/@javachampions/java-is-still-free-2-0-0-6b9aa8d6d244[To know 
 
 To quickly install and fire-up OFBiz, please follow the below instructions from
 the command line at the OFBiz top level directory (folder).
+
+[[download-the-gradle-wrapper]]
+=== Download the Gradle wrapper:
+
+MS Windows: `init-gradle-wrapper`
+
+Unix-like OS: `./gradle/init-gradle-wrapper`
+
 
 [[prepare-ofbiz]]
 === Prepare OFBiz:

@@ -59,8 +59,8 @@ import com.ibm.icu.util.Calendar;
  */
 public class InventoryServices {
 
-    public final static String module = InventoryServices.class.getName();
-    public static final String resource = "ProductUiLabels";
+    public final static String MODULE = InventoryServices.class.getName();
+    private static final String RESOURCE = "ProductUiLabels";
     public static final MathContext generalRounding = new MathContext(10);
 
     public static Map<String, Object> prepareInventoryTransfer(DispatchContext dctx, Map<String, ? extends Object> context) {
@@ -75,12 +75,12 @@ public class InventoryServices {
         try {
             inventoryItem = EntityQuery.use(delegator).from("InventoryItem").where("inventoryItemId", inventoryItemId).queryOne();
         } catch (GenericEntityException e) {
-            return ServiceUtil.returnError(UtilProperties.getMessage(resource,
+            return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE,
                     "ProductNotFindInventoryItemWithId", locale) + inventoryItemId);
         }
 
         if (inventoryItem == null) {
-            return ServiceUtil.returnError(UtilProperties.getMessage(resource,
+            return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE,
                     "ProductNotFindInventoryItemWithId", locale) + inventoryItemId);
         }
 
@@ -93,7 +93,7 @@ public class InventoryServices {
                 BigDecimal qoh = inventoryItem.getBigDecimal("quantityOnHandTotal");
 
                 if (atp == null) {
-                    return ServiceUtil.returnError(UtilProperties.getMessage(resource,
+                    return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE,
                             "ProductInventoryItemATPNotAvailable",
                             UtilMisc.toMap("inventoryItemId", inventoryItem.getString("inventoryItemId")), locale));
                 }
@@ -103,7 +103,7 @@ public class InventoryServices {
 
                 // first make sure we have enough to cover the request transfer amount
                 if (xferQty.compareTo(atp) > 0) {
-                    return ServiceUtil.returnError(UtilProperties.getMessage(resource,
+                    return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE,
                             "ProductInventoryItemATPIsNotSufficient",
                             UtilMisc.toMap("inventoryItemId", inventoryItem.getString("inventoryItemId"),
                                     "atp", atp, "xferQty", xferQty), locale));
@@ -142,18 +142,18 @@ public class InventoryServices {
                     try {
                         Map<String, Object> resultNew = dctx.getDispatcher().runSync("createInventoryItemDetail", createNewDetailMap);
                         if (ServiceUtil.isError(resultNew)) {
-                            return ServiceUtil.returnError(UtilProperties.getMessage(resource,
+                            return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE,
                                     "ProductInventoryItemDetailCreateProblem",
                                     UtilMisc.toMap("errorString", ""), locale), null, null, resultNew);
                         }
                         Map<String, Object> resultUpdate = dctx.getDispatcher().runSync("createInventoryItemDetail", createUpdateDetailMap);
                         if (ServiceUtil.isError(resultUpdate)) {
-                            return ServiceUtil.returnError(UtilProperties.getMessage(resource,
+                            return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE,
                                     "ProductInventoryItemDetailCreateProblem",
                                     UtilMisc.toMap("errorString", ""), locale), null, null, resultUpdate);
                         }
                     } catch (GenericServiceException e1) {
-                        return ServiceUtil.returnError(UtilProperties.getMessage(resource,
+                        return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE,
                                 "ProductInventoryItemDetailCreateProblem",
                                 UtilMisc.toMap("errorString", e1.getMessage()), locale));
                     }
@@ -162,7 +162,7 @@ public class InventoryServices {
                 }
             } else if ("SERIALIZED_INV_ITEM".equals(inventoryType)) {
                 if (!"INV_AVAILABLE".equals(inventoryItem.getString("statusId"))) {
-                    return ServiceUtil.returnError(UtilProperties.getMessage(resource,
+                    return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE,
                             "ProductSerializedInventoryNotAvailable", locale));
                 }
             }
@@ -181,12 +181,12 @@ public class InventoryServices {
                     try {
                         Map<String, Object> result = dctx.getDispatcher().runSync("createInventoryItemDetail", createDetailMap);
                         if (ServiceUtil.isError(result)) {
-                            return ServiceUtil.returnError(UtilProperties.getMessage(resource,
+                            return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE,
                                     "ProductInventoryItemDetailCreateProblem",
                                     UtilMisc.toMap("errorString", ""), locale), null, null, result);
                         }
                     } catch (GenericServiceException e1) {
-                        return ServiceUtil.returnError(UtilProperties.getMessage(resource,
+                        return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE,
                                 "ProductInventoryItemDetailCreateProblem",
                                 UtilMisc.toMap("errorString", e1.getMessage()), locale));
                     }
@@ -208,7 +208,7 @@ public class InventoryServices {
 
             return results;
         } catch (GenericEntityException e) {
-            return ServiceUtil.returnError(UtilProperties.getMessage(resource,
+            return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE,
                     "ProductInventoryItemStoreProblem",
                     UtilMisc.toMap("errorString", e.getMessage()), locale));
         }
@@ -229,13 +229,13 @@ public class InventoryServices {
             inventoryItem = inventoryTransfer.getRelatedOne("InventoryItem", false);
             destinationFacility = inventoryTransfer.getRelatedOne("ToFacility", false);
         } catch (GenericEntityException e) {
-            return ServiceUtil.returnError(UtilProperties.getMessage(resource,
+            return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE,
                     "ProductInventoryItemLookupProblem",
                     UtilMisc.toMap("errorString", e.getMessage()), locale));
         }
 
         if (inventoryItem == null) {
-            return ServiceUtil.returnError(UtilProperties.getMessage(resource,
+            return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE,
                     "ProductInventoryItemLookupProblem",
                     UtilMisc.toMap("errorString", ""), locale));
         }
@@ -260,19 +260,19 @@ public class InventoryServices {
             try {
                 Map<String, Object> result = dctx.getDispatcher().runSync("createInventoryItemDetail", createDetailMap);
                 if (ServiceUtil.isError(result)) {
-                    return ServiceUtil.returnError(UtilProperties.getMessage(resource,
+                    return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE,
                             "ProductInventoryItemDetailCreateProblem",
                             UtilMisc.toMap("errorString", ""), locale), null, null, result);
                 }
             } catch (GenericServiceException e1) {
-                return ServiceUtil.returnError(UtilProperties.getMessage(resource,
+                return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE,
                         "ProductInventoryItemDetailCreateProblem",
                         UtilMisc.toMap("errorString", e1.getMessage()), locale));
             }
             try {
                 inventoryItem.refresh();
             } catch (GenericEntityException e) {
-                return ServiceUtil.returnError(UtilProperties.getMessage(resource,
+                return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE,
                         "ProductInventoryItemRefreshProblem",
                         UtilMisc.toMap("errorString", e.getMessage()), locale));
             }
@@ -303,12 +303,12 @@ public class InventoryServices {
         try {
             Map<String, Object> result = dctx.getDispatcher().runSync("updateInventoryItem", updateInventoryItemMap);
             if (ServiceUtil.isError(result)) {
-                return ServiceUtil.returnError(UtilProperties.getMessage(resource,
+                return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE,
                         "ProductInventoryItemStoreProblem",
                         UtilMisc.toMap("errorString", ""), locale), null, null, result);
             }
         } catch (GenericServiceException exc) {
-            return ServiceUtil.returnError(UtilProperties.getMessage(resource,
+            return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE,
                     "ProductInventoryItemStoreProblem",
                     UtilMisc.toMap("errorString", exc.getMessage()), locale));
         }
@@ -320,7 +320,7 @@ public class InventoryServices {
         try {
             inventoryTransfer.store();
         } catch (GenericEntityException e) {
-            return ServiceUtil.returnError(UtilProperties.getMessage(resource,
+            return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE,
                     "ProductInventoryItemStoreProblem",
                     UtilMisc.toMap("errorString", e.getMessage()), locale));
         }
@@ -339,19 +339,19 @@ public class InventoryServices {
         try {
             inventoryTransfer = EntityQuery.use(delegator).from("InventoryTransfer").where("inventoryTransferId", inventoryTransferId).queryOne();
             if (UtilValidate.isEmpty(inventoryTransfer)) {
-                return ServiceUtil.returnError(UtilProperties.getMessage(resource,
+                return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE,
                         "ProductInventoryItemTransferNotFound",
                         UtilMisc.toMap("inventoryTransferId", inventoryTransferId), locale));
             }
             inventoryItem = inventoryTransfer.getRelatedOne("InventoryItem", false);
         } catch (GenericEntityException e) {
-            return ServiceUtil.returnError(UtilProperties.getMessage(resource,
+            return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE,
                     "ProductInventoryItemLookupProblem",
                     UtilMisc.toMap("errorString", e.getMessage()), locale));
         }
 
         if (inventoryItem == null) {
-            return ServiceUtil.returnError(UtilProperties.getMessage(resource,
+            return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE,
                     "ProductInventoryItemLookupProblem",
                     UtilMisc.toMap("errorString", ""), locale));
         }
@@ -369,12 +369,12 @@ public class InventoryServices {
             try {
                 Map<String, Object> result = dctx.getDispatcher().runSync("createInventoryItemDetail", createDetailMap);
                 if (ServiceUtil.isError(result)) {
-                    return ServiceUtil.returnError(UtilProperties.getMessage(resource,
+                    return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE,
                             "ProductInventoryItemDetailCreateProblem",
                             UtilMisc.toMap("errorString", ""), locale), null, null, result);
                 }
             } catch (GenericServiceException e1) {
-                return ServiceUtil.returnError(UtilProperties.getMessage(resource,
+                return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE,
                         "ProductInventoryItemDetailCreateProblem",
                         UtilMisc.toMap("errorString", e1.getMessage()), locale));
             }
@@ -384,7 +384,7 @@ public class InventoryServices {
             try {
                 inventoryItem.store();
             } catch (GenericEntityException e) {
-                return ServiceUtil.returnError(UtilProperties.getMessage(resource,
+                return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE,
                         "ProductInventoryItemStoreProblem",
                         UtilMisc.toMap("errorString", e.getMessage()), locale));
             }
@@ -397,7 +397,7 @@ public class InventoryServices {
         try {
             inventoryTransfer.store();
         } catch (GenericEntityException e) {
-            return ServiceUtil.returnError(UtilProperties.getMessage(resource,
+            return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE,
                     "ProductInventoryItemStoreProblem",
                     UtilMisc.toMap("errorString", e.getMessage()), locale));
         }
@@ -419,17 +419,17 @@ public class InventoryServices {
         try {
             inventoryItems = EntityQuery.use(delegator).from("InventoryItem").where(EntityCondition.makeCondition("availableToPromiseTotal", EntityOperator.LESS_THAN, BigDecimal.ZERO)).queryList();
         } catch (GenericEntityException e) {
-            Debug.logError(e, "Trouble getting inventory items", module);
-            return ServiceUtil.returnError(UtilProperties.getMessage(resource,
+            Debug.logError(e, "Trouble getting inventory items", MODULE);
+            return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE,
                     "ProductPriceCannotRetrieveInventoryItem", locale));
         }
 
         if (inventoryItems == null) {
-            Debug.logInfo("No items out of stock; no backorders to worry about", module);
+            Debug.logInfo("No items out of stock; no backorders to worry about", MODULE);
             return ServiceUtil.returnSuccess();
         }
 
-        Debug.logInfo("OOS Inventory Items: " + inventoryItems.size(), module);
+        Debug.logInfo("OOS Inventory Items: " + inventoryItems.size(), MODULE);
 
         for (GenericValue inventoryItem: inventoryItems) {
             // get the incomming shipment information for the item
@@ -443,8 +443,8 @@ public class InventoryServices {
 
                 shipmentAndItems = EntityQuery.use(delegator).from("ShipmentAndItem").where(EntityCondition.makeCondition(exprs, EntityOperator.AND)).orderBy("estimatedArrivalDate").queryList();
             } catch (GenericEntityException e) {
-                Debug.logError(e, "Problem getting ShipmentAndItem records", module);
-                return ServiceUtil.returnError(UtilProperties.getMessage(resource,
+                Debug.logError(e, "Problem getting ShipmentAndItem records", MODULE);
+                return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE,
                         "ProductPriceCannotRetrieveShipmentAndItem", locale));
             }
 
@@ -453,17 +453,17 @@ public class InventoryServices {
             try {
                 reservations = inventoryItem.getRelated("OrderItemShipGrpInvRes", null, UtilMisc.toList("-reservedDatetime"), false);
             } catch (GenericEntityException e) {
-                Debug.logError(e, "Problem getting related reservations", module);
-                return ServiceUtil.returnError(UtilProperties.getMessage(resource,
+                Debug.logError(e, "Problem getting related reservations", MODULE);
+                return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE,
                         "ProductPriceCannotRetrieveRelativeReservation", locale));
             }
 
             if (reservations == null) {
-                Debug.logWarning("No outstanding reservations for this inventory item, why is it negative then?", module);
+                Debug.logWarning("No outstanding reservations for this inventory item, why is it negative then?", MODULE);
                 continue;
             }
 
-            Debug.logInfo("Reservations for item: " + reservations.size(), module);
+            Debug.logInfo("Reservations for item: " + reservations.size(), MODULE);
 
             // available at the time of order
             BigDecimal availableBeforeReserved = inventoryItem.getBigDecimal("availableToPromiseTotal");
@@ -484,7 +484,7 @@ public class InventoryServices {
                     }
                 }
 
-                Debug.logInfo("Promised Date: " + actualPromiseDate, module);
+                Debug.logInfo("Promised Date: " + actualPromiseDate, MODULE);
 
                 // find the next possible ship date
                 Timestamp nextShipDate = null;
@@ -497,7 +497,7 @@ public class InventoryServices {
                     }
                 }
 
-                Debug.logInfo("Next Ship Date: " + nextShipDate, module);
+                Debug.logInfo("Next Ship Date: " + nextShipDate, MODULE);
 
                 // create a modified promise date (promise date - 1 day)
                 Calendar pCal = Calendar.getInstance();
@@ -506,17 +506,17 @@ public class InventoryServices {
                 Timestamp modifiedPromisedDate = new Timestamp(pCal.getTimeInMillis());
                 Timestamp now = UtilDateTime.nowTimestamp();
 
-                Debug.logInfo("Promised Date + 1: " + modifiedPromisedDate, module);
-                Debug.logInfo("Now: " + now, module);
+                Debug.logInfo("Promised Date + 1: " + modifiedPromisedDate, MODULE);
+                Debug.logInfo("Now: " + now, MODULE);
 
                 // check the promised date vs the next ship date
                 if (nextShipDate == null || nextShipDate.after(actualPromiseDate)) {
                     if (nextShipDate == null && modifiedPromisedDate.after(now)) {
                         // do nothing; we are okay to assume it will be shipped on time
-                        Debug.logInfo("No ship date known yet, but promised date hasn't approached, assuming it will be here on time", module);
+                        Debug.logInfo("No ship date known yet, but promised date hasn't approached, assuming it will be here on time", MODULE);
                     } else {
                         // we cannot ship by the promised date; need to notify the customer
-                        Debug.logInfo("We won't ship on time, getting notification info", module);
+                        Debug.logInfo("We won't ship on time, getting notification info", MODULE);
                         Map<String, Timestamp> notifyItems = ordersToUpdate.get(orderId);
                         if (notifyItems == null) {
                             notifyItems = new HashMap<>();
@@ -534,7 +534,7 @@ public class InventoryServices {
                         boolean needToCancel = false;
                         if (nextShipDate == null || nextShipDate.after(farPastPromised)) {
                             // we cannot ship until >30 days after promised; using cancel rule
-                            Debug.logInfo("Ship date is >30 past the promised date", module);
+                            Debug.logInfo("Ship date is >30 past the promised date", MODULE);
                             needToCancel = true;
                         } else if (currentPromiseDate != null && actualPromiseDate.equals(currentPromiseDate)) {
                             // this is the second notification; using cancel rule
@@ -544,7 +544,7 @@ public class InventoryServices {
                         // add the info to the cancel map if we need to schedule a cancel
                         if (needToCancel) {
                             // queue the item to be cancelled
-                            Debug.logInfo("Flagging the item to auto-cancel", module);
+                            Debug.logInfo("Flagging the item to auto-cancel", MODULE);
                             Map<String, Timestamp> cancelItems = ordersToCancel.get(orderId);
                             if (cancelItems == null) {
                                 cancelItems = new HashMap<>();
@@ -558,7 +558,7 @@ public class InventoryServices {
                             reservation.set("currentPromisedDate", nextShipDate);
                             reservation.store();
                         } catch (GenericEntityException e) {
-                            Debug.logError(e, "Problem storing reservation : " + reservation, module);
+                            Debug.logError(e, "Problem storing reservation : " + reservation, MODULE);
                         }
                     }
                 }
@@ -581,7 +581,7 @@ public class InventoryServices {
             try {
                 orderItemShipGroups= EntityQuery.use(delegator).from("OrderItemShipGroup").where("orderId", orderId).queryList();
             } catch (GenericEntityException e) {
-                Debug.logError(e, "Cannot get OrderItemShipGroups from orderId" + orderId, module);
+                Debug.logError(e, "Cannot get OrderItemShipGroups from orderId" + orderId, MODULE);
             }
 
             for (GenericValue orderItemShipGroup: orderItemShipGroups) {
@@ -597,7 +597,7 @@ public class InventoryServices {
                         }
                     }
                 } catch (GenericEntityException e) {
-                    Debug.logError(e, "Problem fetching OrderItemShipGroupAssoc", module);
+                    Debug.logError(e, "Problem fetching OrderItemShipGroupAssoc", MODULE);
                 }
 
 
@@ -626,7 +626,7 @@ public class InventoryServices {
                     Timestamp cancelDate = cancelItems.get(orderItemSeqId);
                     Timestamp currentCancelDate = orderItem.getTimestamp("autoCancelDate");
 
-                    Debug.logInfo("OI: " + orderId + " SEQID: "+ orderItemSeqId + " cancelAll: " + cancelAll + " cancelDate: " + cancelDate, module);
+                    Debug.logInfo("OI: " + orderId + " SEQID: "+ orderItemSeqId + " cancelAll: " + cancelAll + " cancelDate: " + cancelDate, MODULE);
                     if (backOrderedItems.containsKey(orderItemSeqId)) {
                         orderItem.set("estimatedShipDate", shipDate);
 
@@ -649,7 +649,7 @@ public class InventoryServices {
                         try {
                             delegator.storeAll(toBeStored);
                         } catch (GenericEntityException e) {
-                            Debug.logError(e, "Problem storing order items", module);
+                            Debug.logError(e, "Problem storing order items", MODULE);
                         }
                     }
                 }
@@ -663,7 +663,7 @@ public class InventoryServices {
             try {
                 dispatcher.runAsync("sendOrderBackorderNotification", UtilMisc.<String, Object>toMap("orderId", orderId, "userLogin", userLogin));
             } catch (GenericServiceException e) {
-                Debug.logError(e, "Problems sending off the notification", module);
+                Debug.logError(e, "Problems sending off the notification", MODULE);
                 continue;
             }
         }
@@ -696,7 +696,7 @@ public class InventoryServices {
 
                // if there is no quantity for the associated product in ProductAssoc entity, default it to 1.0
                if (assocQuantity == null) {
-                   Debug.logWarning("ProductAssoc from [" + productAssoc.getString("productId") + "] to [" + productAssoc.getString("productIdTo") + "] has no quantity, assuming 1.0", module);
+                   Debug.logWarning("ProductAssoc from [" + productAssoc.getString("productId") + "] to [" + productAssoc.getString("productIdTo") + "] has no quantity, assuming 1.0", MODULE);
                    assocQuantity = BigDecimal.ONE;
                }
 
@@ -711,7 +711,7 @@ public class InventoryServices {
                        resultOutput = dispatcher.runSync("getProductInventoryAvailable", inputMap);
                    }
                } catch (GenericServiceException e) {
-                  Debug.logError(e, "Problems getting inventory available by facility", module);
+                  Debug.logError(e, "Problems getting inventory available by facility", MODULE);
                   return ServiceUtil.returnError(e.getMessage());
                }
 
@@ -731,7 +731,7 @@ public class InventoryServices {
 
                if (Debug.verboseOn()) {
                    Debug.logVerbose("productIdTo = " + productIdTo + " assocQuantity = " + assocQuantity + "current QOH " + currentQuantityOnHandTotal +
-                        "currentATP = " + currentAvailableToPromiseTotal + " minQOH = " + minQuantityOnHandTotal + " minATP = " + minAvailableToPromiseTotal, module);
+                        "currentATP = " + currentAvailableToPromiseTotal + " minQOH = " + minQuantityOnHandTotal + " minATP = " + minAvailableToPromiseTotal, MODULE);
                }
            }
           // the final QOH and ATP quantities are the minimum of all the products
@@ -767,7 +767,7 @@ public class InventoryServices {
                 facilities = EntityQuery.use(delegator).from("Facility").queryList();
             }
         } catch (GenericEntityException e) {
-            return ServiceUtil.returnError(UtilProperties.getMessage(resource,
+            return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE,
                     "ProductErrorFacilityIdNotFound",
                     UtilMisc.toMap("facilityId", facilityId), locale));
         }
@@ -784,8 +784,8 @@ public class InventoryServices {
             try {
                 product = orderItem.getRelatedOne("Product", true);
             } catch (GenericEntityException e) {
-                Debug.logError(e, "Couldn't get product.", module);
-                return ServiceUtil.returnError(UtilProperties.getMessage(resource,
+                Debug.logError(e, "Couldn't get product.", MODULE);
+                return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE,
                         "ProductProductNotFound", locale) + productId);
             }
 
@@ -806,8 +806,8 @@ public class InventoryServices {
                     }
                     invResult = dispatcher.runSync("getInventoryAvailableByFacility", UtilMisc.toMap("productId", productId, "facilityId", facility.getString("facilityId")));
                 } catch (GenericServiceException e) {
-                    Debug.logError(e, "Could not find inventory for facility " + facility.getString("facilityId"), module);
-                    return ServiceUtil.returnError(UtilProperties.getMessage(resource,
+                    Debug.logError(e, "Could not find inventory for facility " + facility.getString("facilityId"), MODULE);
+                    return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE,
                             "ProductInventoryNotAvailableForFacility",
                             UtilMisc.toMap("facilityId", facility.getString("facilityId")), locale));
                 }
@@ -866,7 +866,7 @@ public class InventoryServices {
         try {
             product = EntityQuery.use(delegator).from("Product").where("productId", productId).queryOne();
         } catch (GenericEntityException e) {
-            Debug.logError(e, module);
+            Debug.logError(e, MODULE);
         }
         if (product != null) {
             if (EntityTypeUtil.hasParentType(delegator, "ProductType", "productTypeId", product.getString(
@@ -874,13 +874,13 @@ public class InventoryServices {
                 try {
                     resultOutput = dispatcher.runSync("getMktgPackagesAvailable", contextInput);
                 } catch (GenericServiceException e) {
-                    Debug.logError(e, module);
+                    Debug.logError(e, MODULE);
                 }
             } else {
                 try {
                     resultOutput = dispatcher.runSync("getInventoryAvailableByFacility", contextInput);
                 } catch (GenericServiceException e) {
-                    Debug.logError(e, module);
+                    Debug.logError(e, MODULE);
                 }
             }
             // filter for quantities
@@ -909,7 +909,7 @@ public class InventoryServices {
         try {
             productPrices = EntityQuery.use(delegator).from("ProductPrice").where("productId",productId).orderBy("-fromDate").cache(true).queryList();
         } catch (GenericEntityException e) {
-            Debug.logError(e, module);
+            Debug.logError(e, MODULE);
         }
         //change this for product price
         if(productPrices != null) {
@@ -1003,11 +1003,11 @@ public class InventoryServices {
                     }
                     result.put("usageQuantity", salesUsageQuantity.add(productionUsageQuantity));
                 } catch (GeneralException e) {
-                    Debug.logError(e, module);
+                    Debug.logError(e, MODULE);
                     return ServiceUtil.returnError(e.getMessage());
                 }
             } catch (GeneralException e) {
-                Debug.logError(e, module);
+                Debug.logError(e, MODULE);
                 return ServiceUtil.returnError(e.getMessage());
             }
         }

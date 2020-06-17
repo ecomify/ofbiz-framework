@@ -48,11 +48,11 @@ import org.apache.ofbiz.entity.util.EntityUtil;
  */
 public final class PaymentWorker {
 
-    public static final String module = PaymentWorker.class.getName();
-    private static final int decimals = UtilNumber.getBigDecimalScale("invoice.decimals");
-    private static final RoundingMode rounding = UtilNumber.getRoundingMode("invoice.rounding");
+    private static final String MODULE = PaymentWorker.class.getName();
+    private static final int DECIMALS = UtilNumber.getBigDecimalScale("invoice.decimals");
+    private static final RoundingMode ROUNDING_MODE = UtilNumber.getRoundingMode("invoice.rounding");
 
-    private PaymentWorker() {}
+    private PaymentWorker() { }
 
     // to be able to use in minilanguage where Boolean cannot be used
     public static List<Map<String, GenericValue>> getPartyPaymentMethodValueMaps(Delegator delegator, String partyId) {
@@ -106,7 +106,7 @@ public final class PaymentWorker {
                 }
             }
         } catch (GenericEntityException e) {
-            Debug.logWarning(e, module);
+            Debug.logWarning(e, MODULE);
         }
         return paymentMethodValueMaps;
     }
@@ -149,7 +149,7 @@ public final class PaymentWorker {
                 eftAccount = EntityQuery.use(delegator).from("EftAccount").where("paymentMethodId", paymentMethodId).queryOne();
                 checkAccount = EntityQuery.use(delegator).from("CheckAccount").where("paymentMethodId", paymentMethodId).queryOne();
             } catch (GenericEntityException e) {
-                Debug.logWarning(e, module);
+                Debug.logWarning(e, MODULE);
             }
         }
         if (paymentMethod != null) {
@@ -199,7 +199,7 @@ public final class PaymentWorker {
                     .orderBy("-purposeFromDate").filterByDate("contactFromDate", "contactThruDate", "purposeFromDate", "purposeThruDate")
                     .queryFirst();
         } catch (GenericEntityException e) {
-            Debug.logError(e, "Trouble getting PartyContactWithPurpose view entity list", module);
+            Debug.logError(e, "Trouble getting PartyContactWithPurpose view entity list", MODULE);
         }
 
         // get the address for the primary contact mech
@@ -208,7 +208,7 @@ public final class PaymentWorker {
             try {
                 postalAddress = EntityQuery.use(delegator).from("PostalAddress").where("contactMechId", purpose.getString("contactMechId")).queryOne();
             } catch (GenericEntityException e) {
-                Debug.logError(e, "Trouble getting PostalAddress record for contactMechId: " + purpose.getString("contactMechId"), module);
+                Debug.logError(e, "Trouble getting PostalAddress record for contactMechId: " + purpose.getString("contactMechId"), MODULE);
             }
         }
 
@@ -229,7 +229,7 @@ public final class PaymentWorker {
 
         BigDecimal paymentsTotal = BigDecimal.ZERO;
         for (GenericValue payment : payments) {
-            paymentsTotal = paymentsTotal.add(payment.getBigDecimal("amount")).setScale(decimals, rounding);
+            paymentsTotal = paymentsTotal.add(payment.getBigDecimal("amount")).setScale(DECIMALS, ROUNDING_MODE);
         }
         return paymentsTotal;
     }
@@ -253,7 +253,7 @@ public final class PaymentWorker {
         try {
             payment = EntityQuery.use(delegator).from("Payment").where("paymentId", paymentId).queryOne();
         } catch (GenericEntityException e) {
-            Debug.logError(e, "Problem getting Payment", module);
+            Debug.logError(e, "Problem getting Payment", MODULE);
         }
 
         if (payment == null) {
@@ -283,7 +283,7 @@ public final class PaymentWorker {
                 }
             }
         } catch (GenericEntityException e) {
-            Debug.logError(e, "Problem getting Payment", module);
+            Debug.logError(e, "Problem getting Payment", MODULE);
         }
         return appliedAmount;
     }
@@ -323,27 +323,27 @@ public final class PaymentWorker {
                                amountApplied = amountApplied.multiply(payment.getBigDecimal("amount")).divide(payment.getBigDecimal("actualCurrencyAmount"),new MathContext(100));
                         }
                     }
-                    paymentApplied = paymentApplied.add(amountApplied).setScale(decimals,rounding);
+                    paymentApplied = paymentApplied.add(amountApplied).setScale(DECIMALS, ROUNDING_MODE);
                 }
             }
         } catch (GenericEntityException e) {
-            Debug.logError(e, "Trouble getting entities", module);
+            Debug.logError(e, "Trouble getting entities", MODULE);
         }
         return paymentApplied;
     }
 
     public static BigDecimal getPaymentNotApplied(GenericValue payment) {
         if (payment != null) { 
-            return payment.getBigDecimal("amount").subtract(getPaymentApplied(payment)).setScale(decimals,rounding);
+            return payment.getBigDecimal("amount").subtract(getPaymentApplied(payment)).setScale(DECIMALS, ROUNDING_MODE);
         } 
         return BigDecimal.ZERO;
     }
 
     public static BigDecimal getPaymentNotApplied(GenericValue payment, Boolean actual) {
         if (actual.equals(Boolean.TRUE) && UtilValidate.isNotEmpty(payment.getBigDecimal("actualCurrencyAmount"))) {
-            return payment.getBigDecimal("actualCurrencyAmount").subtract(getPaymentApplied(payment, actual)).setScale(decimals,rounding);
+            return payment.getBigDecimal("actualCurrencyAmount").subtract(getPaymentApplied(payment, actual)).setScale(DECIMALS, ROUNDING_MODE);
         }
-        return payment.getBigDecimal("amount").subtract(getPaymentApplied(payment)).setScale(decimals,rounding);
+        return payment.getBigDecimal("amount").subtract(getPaymentApplied(payment)).setScale(DECIMALS, ROUNDING_MODE);
     }
 
     public static BigDecimal getPaymentNotApplied(Delegator delegator, String paymentId) {
@@ -359,12 +359,12 @@ public final class PaymentWorker {
         try {
             payment = EntityQuery.use(delegator).from("Payment").where("paymentId", paymentId).queryOne();
         } catch (GenericEntityException e) {
-            Debug.logError(e, "Problem getting Payment", module);
+            Debug.logError(e, "Problem getting Payment", MODULE);
         }
 
         if (payment == null) {
             throw new IllegalArgumentException("The paymentId passed does not match an existing payment");
         }
-        return payment.getBigDecimal("amount").subtract(getPaymentApplied(delegator,paymentId, actual)).setScale(decimals,rounding);
+        return payment.getBigDecimal("amount").subtract(getPaymentApplied(delegator,paymentId, actual)).setScale(DECIMALS, ROUNDING_MODE);
     }
 }

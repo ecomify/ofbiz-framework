@@ -124,9 +124,7 @@ under the License.
 </div>
     <#if parameters.hideFields?default("N") != "Y">
         <script type="application/javascript">
-    <!--//
       document.lookupparty.partyId.focus();
-    //-->
         </script>
     </#if>
     <#if partyList??>
@@ -213,7 +211,7 @@ under the License.
                     <td>${partyRow.postalCode!}</td>
                 </#if>
                 <td><#if partyType.description??>${partyType.get("description", locale)}<#else>???</#if></td>
-                <td class="button-col align-float">
+                <td class="button-col align-text">
                     <a href="<@ofbizUrl>EmployeeProfile?partyId=${partyRow.partyId}</@ofbizUrl>">${uiLabelMap.CommonDetails}</a>
                 </td>
             </tr>

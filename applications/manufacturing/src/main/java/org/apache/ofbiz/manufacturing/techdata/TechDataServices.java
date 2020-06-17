@@ -50,8 +50,8 @@ import com.ibm.icu.util.Calendar;
  */
 public class TechDataServices {
 
-    public static final String module = TechDataServices.class.getName();
-    public static final String resource = "ManufacturingUiLabels";
+    private static final String MODULE = TechDataServices.class.getName();
+    private static final String RESOURCE = "ManufacturingUiLabels";
 
     /**
      *
@@ -86,8 +86,8 @@ public class TechDataServices {
                     .orderBy("workEffortName")
                     .queryList();
         } catch (GenericEntityException e) {
-            Debug.logWarning(e, module);
-            return ServiceUtil.returnError(UtilProperties.getMessage(resource, "ManufacturingTechDataWorkEffortNotExist", UtilMisc.toMap("errorString", e.toString()), locale));
+            Debug.logWarning(e, MODULE);
+            return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE, "ManufacturingTechDataWorkEffortNotExist", UtilMisc.toMap("errorString", e.toString()), locale));
         }
         if (listRoutingTask == null) {
             listRoutingTask = new LinkedList<>();
@@ -130,8 +130,8 @@ public class TechDataServices {
                     .orderBy("fromDate")
                     .queryList();
         } catch (GenericEntityException e) {
-            Debug.logWarning(e, module);
-            return ServiceUtil.returnError(UtilProperties.getMessage(resource, "ManufacturingTechDataWorkEffortAssocNotExist", UtilMisc.toMap("errorString", e.toString()), locale));
+            Debug.logWarning(e, MODULE);
+            return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE, "ManufacturingTechDataWorkEffortAssocNotExist", UtilMisc.toMap("errorString", e.toString()), locale));
         }
 
         if (listRoutingTaskAssoc != null) {
@@ -177,14 +177,14 @@ public class TechDataServices {
         try {
             machineGroup = routingTask.getRelatedOne("FixedAsset", true);
         } catch (GenericEntityException e) {
-            Debug.logError("Pb reading FixedAsset associated with routingTask"+e.getMessage(), module);
+            Debug.logError("Pb reading FixedAsset associated with routingTask"+e.getMessage(), MODULE);
         }
         if (machineGroup != null) {
             if (machineGroup.getString("calendarId") != null) {
                 try {
                     techDataCalendar = machineGroup.getRelatedOne("TechDataCalendar", true);
                 } catch (GenericEntityException e) {
-                    Debug.logError("Pb reading TechDataCalendar associated with machineGroup"+e.getMessage(), module);
+                    Debug.logError("Pb reading TechDataCalendar associated with machineGroup"+e.getMessage(), MODULE);
                 }
             } else {
                 try {
@@ -194,7 +194,7 @@ public class TechDataServices {
                         techDataCalendar = machine.getRelatedOne("TechDataCalendar", true);
                     }
                 } catch (GenericEntityException e) {
-                    Debug.logError("Pb reading machine child from machineGroup"+e.getMessage(), module);
+                    Debug.logError("Pb reading machine child from machineGroup"+e.getMessage(), MODULE);
                 }
             }
         }
@@ -203,7 +203,7 @@ public class TechDataServices {
                 Delegator delegator = routingTask.getDelegator();
                 techDataCalendar = EntityQuery.use(delegator).from("TechDataCalendar").where("calendarId", "DEFAULT").queryOne();
             } catch (GenericEntityException e) {
-                Debug.logError("Pb reading TechDataCalendar DEFAULT"+e.getMessage(), module);
+                Debug.logError("Pb reading TechDataCalendar DEFAULT"+e.getMessage(), MODULE);
             }
         }
         return techDataCalendar;
@@ -274,7 +274,7 @@ public class TechDataServices {
         try {
             techDataCalendarWeek = techDataCalendar.getRelatedOne("TechDataCalendarWeek", true);
         } catch (GenericEntityException e) {
-            Debug.logError("Pb reading Calendar Week associated with calendar"+e.getMessage(), module);
+            Debug.logError("Pb reading Calendar Week associated with calendar"+e.getMessage(), MODULE);
             return 0;
         }
         // TODO read TechDataCalendarExcDay to manage execption day
@@ -306,7 +306,7 @@ public class TechDataServices {
         try {
             techDataCalendarWeek = techDataCalendar.getRelatedOne("TechDataCalendarWeek", true);
         } catch (GenericEntityException e) {
-            Debug.logError("Pb reading Calendar Week associated with calendar"+e.getMessage(), module);
+            Debug.logError("Pb reading Calendar Week associated with calendar"+e.getMessage(), MODULE);
             return ServiceUtil.returnError("Pb reading Calendar Week associated with calendar");
         }
         // TODO read TechDataCalendarExcDay to manage execption day
@@ -428,7 +428,7 @@ public class TechDataServices {
         try {
             techDataCalendarWeek = techDataCalendar.getRelatedOne("TechDataCalendarWeek", true);
         } catch (GenericEntityException e) {
-            Debug.logError("Pb reading Calendar Week associated with calendar"+e.getMessage(), module);
+            Debug.logError("Pb reading Calendar Week associated with calendar"+e.getMessage(), MODULE);
             return 0;
         }
         // TODO read TechDataCalendarExcDay to manage execption day
@@ -460,7 +460,7 @@ public class TechDataServices {
         try {
             techDataCalendarWeek = techDataCalendar.getRelatedOne("TechDataCalendarWeek", true);
         } catch (GenericEntityException e) {
-            Debug.logError("Pb reading Calendar Week associated with calendar"+e.getMessage(), module);
+            Debug.logError("Pb reading Calendar Week associated with calendar"+e.getMessage(), MODULE);
             return ServiceUtil.returnError("Pb reading Calendar Week associated with calendar");
         }
         // TODO read TechDataCalendarExcDay to manage execption day

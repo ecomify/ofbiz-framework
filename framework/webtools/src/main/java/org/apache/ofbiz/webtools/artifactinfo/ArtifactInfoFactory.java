@@ -57,11 +57,12 @@ import org.apache.ofbiz.widget.model.FormFactory;
 import org.apache.ofbiz.widget.model.ModelForm;
 import org.apache.ofbiz.widget.model.ModelScreen;
 import org.apache.ofbiz.widget.model.ScreenFactory;
+import org.apache.ofbiz.widget.model.ThemeFactory;
 import org.xml.sax.SAXException;
 
 public class ArtifactInfoFactory {
 
-    public static final String module = ArtifactInfoFactory.class.getName();
+    private static final String MODULE = ArtifactInfoFactory.class.getName();
 
     private static final UtilCache<String, ArtifactInfoFactory> artifactInfoFactoryCache = UtilCache.createUtilCache("ArtifactInfoFactory");
 
@@ -142,7 +143,7 @@ public class ArtifactInfoFactory {
     }
 
     public void prepareAll() throws GeneralException {
-        Debug.logInfo("Loading artifact info objects...", module);
+        Debug.logInfo("Loading artifact info objects...", MODULE);
         List<Future<Void>> futures = new ArrayList<>();
         Set<String> entityNames = this.getEntityModelReader().getEntityNames();
         for (String entityName: entityNames) {
@@ -162,7 +163,7 @@ public class ArtifactInfoFactory {
             futures.add(ExecutionPool.GLOBAL_FORK_JOIN.submit(prepareTaskForComponentAnalysis(componentConfig)));
         }
         ExecutionPool.getAllFutures(futures);
-        Debug.logInfo("Artifact info objects loaded.", module);
+        Debug.logInfo("Artifact info objects loaded.", MODULE);
     }
 
     public ModelReader getEntityModelReader() {
@@ -185,7 +186,8 @@ public class ArtifactInfoFactory {
         return getModelForm(formNameAndLocation.substring(formNameAndLocation.indexOf("#") + 1), formNameAndLocation.substring(0, formNameAndLocation.indexOf("#")));
     }
     public ModelForm getModelForm(String formName, String formLocation) throws ParserConfigurationException, SAXException, IOException {
-        return FormFactory.getFormFromLocation(formLocation, formName, this.entityModelReader, this.dispatchContext);
+        return FormFactory.getFormFromLocation(formLocation, formName, this.entityModelReader,
+                ThemeFactory.getVisualThemeFromId("COMMON"), this.dispatchContext);
     }
 
     public ModelScreen getModelScreen(String screenName, String screenLocation) throws ParserConfigurationException, SAXException, IOException {
@@ -196,7 +198,7 @@ public class ArtifactInfoFactory {
         try {
             return ConfigXMLReader.getControllerConfig(controllerXmlUrl).getRequestMapMap().get(requestUri);
         } catch (WebAppConfigurationException e) {
-            Debug.logError(e, "Exception thrown while parsing controller.xml file: ", module);
+            Debug.logError(e, "Exception thrown while parsing controller.xml file: ", MODULE);
         }
         return null;
     }
@@ -207,7 +209,7 @@ public class ArtifactInfoFactory {
             cc = ConfigXMLReader.getControllerConfig(controllerXmlUrl);
             return cc.getViewMapMap().get(viewUri);
         } catch (WebAppConfigurationException e) {
-            Debug.logError(e, "Exception thrown while parsing controller.xml file: ", module);
+            Debug.logError(e, "Exception thrown while parsing controller.xml file: ", MODULE);
         }
         return null;
     }
@@ -263,7 +265,7 @@ public class ArtifactInfoFactory {
                 this.allScreenInfos.put(curInfo.getUniqueId(), curInfo);
                 curInfo.populateAll();
             } catch (GeneralException e) {
-                Debug.logWarning("Error loading screen [" + screenName + "] from resource [" + screenLocation + "]: " + e.toString(), module);
+                Debug.logWarning("Error loading screen [" + screenName + "] from resource [" + screenLocation + "]: " + e.toString(), MODULE);
                 return null;
             }
         }
@@ -320,9 +322,9 @@ public class ArtifactInfoFactory {
                 return this.getControllerViewArtifactInfo(new URL(artifactLocation), artifactName);
             }
         } catch (GeneralException e) {
-            Debug.logError(e, "Error getting artifact info: " + e.toString(), module);
+            Debug.logError(e, "Error getting artifact info: " + e.toString(), MODULE);
         } catch (MalformedURLException e) {
-            Debug.logError(e, "Error getting artifact info: " + e.toString(), module);
+            Debug.logError(e, "Error getting artifact info: " + e.toString(), MODULE);
         }
         return null;
     }
@@ -386,7 +388,7 @@ public class ArtifactInfoFactory {
             try {
                 getServiceArtifactInfo(serviceName);
             } catch(Exception exc) {
-                Debug.logWarning(exc, "Error processing service: " + serviceName, module);
+                Debug.logWarning(exc, "Error processing service: " + serviceName, MODULE);
             }
             return null;
         };
@@ -402,17 +404,17 @@ public class ArtifactInfoFactory {
             try {
                 screenFiles = FileUtil.findXmlFiles(rootComponentPath, null, "screens", "widget-screen.xsd");
             } catch (IOException ioe) {
-                Debug.logWarning(ioe.getMessage(), module);
+                Debug.logWarning(ioe.getMessage(), MODULE);
             }
             try {
                 formFiles = FileUtil.findXmlFiles(rootComponentPath, null, "forms", "widget-form.xsd");
             } catch (IOException ioe) {
-                Debug.logWarning(ioe.getMessage(), module);
+                Debug.logWarning(ioe.getMessage(), MODULE);
             }
             try {
                 controllerFiles = FileUtil.findXmlFiles(rootComponentPath, null, "site-conf", "site-conf.xsd");
             } catch (IOException ioe) {
-                Debug.logWarning(ioe.getMessage(), module);
+                Debug.logWarning(ioe.getMessage(), MODULE);
             }
             for (File screenFile: screenFiles) {
                 String screenFilePath = screenFile.getAbsolutePath();
@@ -423,7 +425,7 @@ public class ArtifactInfoFactory {
                 try {
                     modelScreenMap = ScreenFactory.getScreensFromLocation(screenLocation);
                 } catch (Exception exc) {
-                    Debug.logWarning(exc.getMessage(), module);
+                    Debug.logWarning(exc.getMessage(), MODULE);
                 }
                 for (String screenName : modelScreenMap.keySet()) {
                     getScreenWidgetArtifactInfo(screenName, screenLocation);
@@ -436,15 +438,16 @@ public class ArtifactInfoFactory {
                 String formLocation = "component://" + componentName + "/" + formFileRelativePath;
                 Map<String, ModelForm> modelFormMap = null;
                 try {
-                    modelFormMap = FormFactory.getFormsFromLocation(formLocation, getEntityModelReader(), getDispatchContext());
+                    modelFormMap = FormFactory.getFormsFromLocation(formLocation, getEntityModelReader(),
+                            ThemeFactory.getVisualThemeFromId("COMMON"), getDispatchContext());
                 } catch (Exception exc) {
-                    Debug.logWarning(exc.getMessage(), module);
+                    Debug.logWarning(exc.getMessage(), MODULE);
                 }
                 for (String formName : modelFormMap.keySet()) {
                     try {
                         getFormWidgetArtifactInfo(formName, formLocation);
                     } catch (GeneralException ge) {
-                        Debug.logWarning(ge.getMessage(), module);
+                        Debug.logWarning(ge.getMessage(), MODULE);
                     }
                 }
             }
@@ -453,7 +456,7 @@ public class ArtifactInfoFactory {
                 try {
                     controllerUrl = controllerFile.toURI().toURL();
                 } catch (MalformedURLException mue) {
-                    Debug.logWarning(mue.getMessage(), module);
+                    Debug.logWarning(mue.getMessage(), MODULE);
                 }
                 if (controllerUrl == null) continue;
                 ControllerConfig cc = ConfigXMLReader.getControllerConfig(controllerUrl);
@@ -461,14 +464,14 @@ public class ArtifactInfoFactory {
                     try {
                         getControllerRequestArtifactInfo(controllerUrl, requestUri);
                     } catch (GeneralException e) {
-                        Debug.logWarning(e.getMessage(), module);
+                        Debug.logWarning(e.getMessage(), MODULE);
                     }
                 }
                 for (String viewUri: cc.getViewMapMap().keySet()) {
                     try {
                         getControllerViewArtifactInfo(controllerUrl, viewUri);
                     } catch (GeneralException e) {
-                        Debug.logWarning(e.getMessage(), module);
+                        Debug.logWarning(e.getMessage(), MODULE);
                     }
                 }
             }

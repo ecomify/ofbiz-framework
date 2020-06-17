@@ -82,10 +82,10 @@ import freemarker.template.TemplateException;
  */
 public class OutputServices {
 
-    public final static String module = OutputServices.class.getName();
+    public final static String MODULE = OutputServices.class.getName();
 
     protected static final FoFormRenderer foFormRenderer = new FoFormRenderer();
-    public static final String resource = "ContentUiLabels";
+    private static final String RESOURCE = "ContentUiLabels";
 
     public static Map<String, Object> sendPrintFromScreen(DispatchContext dctx, Map<String, ? extends Object> serviceContext) {
         Locale locale = (Locale) serviceContext.get("locale");
@@ -145,7 +145,7 @@ public class OutputServices {
             List<Object> docAttributes = UtilGenerics.cast(serviceContext.remove("docAttributes"));
             if (UtilValidate.isNotEmpty(docAttributes)) {
                 for (Object da : docAttributes) {
-                    Debug.logInfo("Adding DocAttribute: " + da, module);
+                    Debug.logInfo("Adding DocAttribute: " + da, MODULE);
                     docAttributeSet.add((DocAttribute) da);
                 }
             }
@@ -164,13 +164,13 @@ public class OutputServices {
                 PrintService[] printServices = PrintServiceLookup.lookupPrintServices(null, printServiceAttributes);
                 if (printServices.length > 0) {
                     printer = printServices[0];
-                    Debug.logInfo("Using printer: " + printer.getName(), module);
+                    Debug.logInfo("Using printer: " + printer.getName(), MODULE);
                     if (!printer.isDocFlavorSupported(psInFormat)) {
-                        return ServiceUtil.returnError(UtilProperties.getMessage(resource, "ContentPrinterNotSupportDocFlavorFormat", UtilMisc.toMap("psInFormat", psInFormat, "printerName", printer.getName()), locale));
+                        return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE, "ContentPrinterNotSupportDocFlavorFormat", UtilMisc.toMap("psInFormat", psInFormat, "printerName", printer.getName()), locale));
                     }
                 }
                 if (printer == null) {
-                    return ServiceUtil.returnError(UtilProperties.getMessage(resource, "ContentPrinterNotFound", UtilMisc.toMap("printerName", printerName), locale));
+                    return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE, "ContentPrinterNotFound", UtilMisc.toMap("printerName", printerName), locale));
                 }
 
             } else {
@@ -178,27 +178,27 @@ public class OutputServices {
                 // if no printer name was supplied, try to get the default printer
                 printer = PrintServiceLookup.lookupDefaultPrintService();
                 if (printer != null) {
-                    Debug.logInfo("No printer name supplied, using default printer: " + printer.getName(), module);
+                    Debug.logInfo("No printer name supplied, using default printer: " + printer.getName(), MODULE);
                 }
             }
 
             if (printer == null) {
-                return ServiceUtil.returnError(UtilProperties.getMessage(resource, "ContentPrinterNotAvailable", locale));
+                return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE, "ContentPrinterNotAvailable", locale));
             }
 
             PrintRequestAttributeSet praset = new HashPrintRequestAttributeSet();
             List<Object> printRequestAttributes = UtilGenerics.cast(serviceContext.remove("printRequestAttributes"));
             if (UtilValidate.isNotEmpty(printRequestAttributes)) {
                 for (Object pra : printRequestAttributes) {
-                    Debug.logInfo("Adding PrintRequestAttribute: " + pra, module);
+                    Debug.logInfo("Adding PrintRequestAttribute: " + pra, MODULE);
                     praset.add((PrintRequestAttribute) pra);
                 }
             }
             DocPrintJob job = printer.createPrintJob();
             job.print(myDoc, praset);
         } catch (PrintException | IOException | TemplateException | GeneralException | SAXException | ParserConfigurationException e) {
-            Debug.logError(e, "Error rendering [" + contentType + "]: " + e.toString(), module);
-            return ServiceUtil.returnError(UtilProperties.getMessage(resource, "ContentRenderingError", UtilMisc.toMap("contentType", contentType, "errorString", e.toString()), locale));
+            Debug.logError(e, "Error rendering [" + contentType + "]: " + e.toString(), MODULE);
+            return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE, "ContentRenderingError", UtilMisc.toMap("contentType", contentType, "errorString", e.toString()), locale));
         }
 
         return ServiceUtil.returnSuccess();
@@ -269,8 +269,8 @@ public class OutputServices {
             fos.close();
 
         } catch (IOException | TemplateException | GeneralException | SAXException | ParserConfigurationException e) {
-            Debug.logError(e, "Error rendering [" + contentType + "]: " + e.toString(), module);
-            return ServiceUtil.returnError(UtilProperties.getMessage(resource, "ContentRenderingError", UtilMisc.toMap("contentType", contentType, "errorString", e.toString()), locale));
+            Debug.logError(e, "Error rendering [" + contentType + "]: " + e.toString(), MODULE);
+            return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE, "ContentRenderingError", UtilMisc.toMap("contentType", contentType, "errorString", e.toString()), locale));
         }
 
         return ServiceUtil.returnSuccess();

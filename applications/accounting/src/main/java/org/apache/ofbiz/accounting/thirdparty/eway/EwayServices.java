@@ -37,8 +37,8 @@ import org.apache.ofbiz.service.ServiceUtil;
 
 public class EwayServices {
 
-    public static final String module = EwayServices.class.getName();
-    public final static String resource = "AccountingUiLabels";
+    private static final String MODULE = EwayServices.class.getName();
+    public final static String RESOURCE = "AccountingUiLabels";
 
     // eway charge (auth w/ capture)
     public static Map<String, Object> ewayCharge(DispatchContext dctx, Map<String, Object> context) {
@@ -121,7 +121,7 @@ public class EwayServices {
         // original charge transaction
         GenericValue chargeTrans = PaymentGatewayServices.getCaptureTransaction(paymentPref);
         if (chargeTrans == null) {
-            return ServiceUtil.returnError(UtilProperties.getMessage(resource, 
+            return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE,
                     "AccountingPaymentTransactionAuthorizationNotFoundCannotRefund", locale));
         }
         
@@ -130,8 +130,8 @@ public class EwayServices {
         try {
             cc = delegator.getRelatedOne("CreditCard", paymentPref, false);
         } catch (GenericEntityException e) {
-            Debug.logError(e, module);
-            return ServiceUtil.returnError(UtilProperties.getMessage(resource, 
+            Debug.logError(e, MODULE);
+            return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE,
                     "AccountingPaymentUnableToGetCCInfo", locale));
         }
         
@@ -186,7 +186,7 @@ public class EwayServices {
         }
 
         if (chargeTrans == null) {
-            return ServiceUtil.returnError(UtilProperties.getMessage(resource, 
+            return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE,
                     "AccountingPaymentTransactionAuthorizationNotFoundCannotRelease", locale));
         }
         
@@ -195,8 +195,8 @@ public class EwayServices {
         try {
             cc = delegator.getRelatedOne("CreditCard", paymentPref, false);
         } catch (GenericEntityException e) {
-            Debug.logError(e, module);
-            return ServiceUtil.returnError(UtilProperties.getMessage(resource, 
+            Debug.logError(e, MODULE);
+            return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE,
                     "AccountingPaymentUnableToGetCCInfo", locale));
         }
         
@@ -265,7 +265,7 @@ public class EwayServices {
     }
     
     private static String getPaymentGatewayConfigValue(Delegator delegator, String cfgId, String cfgParamName,
-            String resource, String resParamName) {
+            String RESOURCE, String resParamName) {
         String returnValue = "";
         if (UtilValidate.isNotEmpty(cfgId)) {
             try {
@@ -278,10 +278,10 @@ public class EwayServices {
                     }
                 }
             } catch (GenericEntityException e) {
-                Debug.logError(e, module);
+                Debug.logError(e, MODULE);
             }
         } else {
-            String value = EntityUtilProperties.getPropertyValue(resource, resParamName, delegator);
+            String value = EntityUtilProperties.getPropertyValue(RESOURCE, resParamName, delegator);
             if (value != null) {
                 returnValue = value.trim();
             }

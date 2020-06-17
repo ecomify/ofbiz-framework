@@ -53,11 +53,11 @@ under the License.
 
 <#macro renderTextField name className alert value textSize maxlength id event action disabled clientAutocomplete ajaxUrl ajaxEnabled mask tabindex readonly placeholder="" delegatorName="default"><@makeBlock className value /></#macro>
 
-<#macro renderTextareaField name className alert cols rows maxlength id readonly value visualEditorEnable language buttons tabindex language=""><@makeBlock className value /></#macro>
+<#macro renderTextareaField name className alert cols rows maxlength id readonly value visualEditorEnable language buttons tabindex language="" disabled=""><@makeBlock className value /></#macro>
 
-<#macro renderDateTimeField name className alert title value size maxlength step timeValues id event action dateType shortDateInput timeDropdownParamName defaultDateTimeString localizedIconTitle timeDropdown timeHourName classString hour1 hour2 timeMinutesName minutes isTwelveHour ampmName amSelected pmSelected compositeType formName mask="" event="" action="" step="" timeValues="" tabindex=""><@makeBlock className value /></#macro>
+<#macro renderDateTimeField name className alert title value size maxlength step timeValues id event action dateType shortDateInput timeDropdownParamName defaultDateTimeString localizedIconTitle timeDropdown timeHourName classString hour1 hour2 timeMinutesName minutes isTwelveHour ampmName amSelected pmSelected compositeType formName mask="" event="" action="" step="" timeValues="" tabindex="" disabled=""><@makeBlock className value /></#macro>
 
-<#macro renderDropDownField name className alert id multiple formName otherFieldName event action size explicitDescription allowEmpty options fieldName otherFieldName otherValue otherFieldSize dDFCurrent ajaxEnabled noCurrentSelectedKey ajaxOptions frequency minChars choices autoSelect partialSearch partialChars ignoreCase fullSearch conditionGroup tabindex firstInList="" currentValue="">
+<#macro renderDropDownField name className alert id multiple formName otherFieldName event action size explicitDescription allowEmpty options fieldName otherFieldName otherValue otherFieldSize dDFCurrent ajaxEnabled noCurrentSelectedKey ajaxOptions frequency minChars choices autoSelect partialSearch partialChars ignoreCase fullSearch conditionGroup tabindex firstInList="" currentValue="" disabled="">
 <#if currentValue?has_content && firstInList?has_content>
 <@makeBlock "" explicitDescription />
 <#else>
@@ -68,7 +68,7 @@ under the License.
 </#macro>
 
 <#macro renderCheckField items className alert id allChecked currentValue name event action conditionGroup tabindex disabled><@makeBlock "" "" /></#macro>
-<#macro renderRadioField items className alert currentValue noCurrentSelectedKey name event action conditionGroup tabindex><@makeBlock "" "" /></#macro>
+<#macro renderRadioField items className alert currentValue noCurrentSelectedKey name event action conditionGroup tabindex disabled><@makeBlock "" "" /></#macro>
 
 <#macro renderSubmitField buttonType className alert formName title name event action imgSrc confirmation containerId ajaxUrl tabindex><@makeBlock "" "" /></#macro>
 <#macro renderResetField className alert name title><@makeBlock "" "" /></#macro>
@@ -80,7 +80,7 @@ under the License.
 <#macro renderEmptyFormDataMessage message></#macro>
 <#macro renderSingleFormFieldTitle><!--title form--></#macro>
 
-<#macro renderFormOpen linkUrl formType targetWindow containerId containerStyle autocomplete name viewIndexField viewSizeField viewIndex viewSize useRowSubmit focusFieldName hasRequiredField></#macro>
+<#macro renderFormOpen linkUrl formType targetWindow containerId containerStyle autocomplete name viewIndexField viewSizeField viewIndex viewSize useRowSubmit focusFieldName hasRequiredField csrfNameValue></#macro>
 <#macro renderFormClose></#macro>
 <#macro renderMultiFormClose></#macro>
 
@@ -98,16 +98,16 @@ under the License.
 <#macro renderFormatHeaderRowCellOpen style="" positionSpan=""><fo:table-cell <#if positionSpan?has_content && positionSpan gt 1 >number-columns-spanned="${positionSpan}"</#if><#if style?has_content><@getFoStyle "${style}"/><#else><@getFoStyle "listtitlestyle"/></#if>><fo:block></#macro>
 <#macro renderFormatHeaderRowCellClose></fo:block></fo:table-cell></#macro>
 
-<#macro renderFormatHeaderRowFormCellOpen style></#macro>
-<#macro renderFormatHeaderRowFormCellClose></#macro>
+<#macro renderFormatHeaderRowFormCellOpen style><fo:table-cell></#macro>
+<#macro renderFormatHeaderRowFormCellClose></fo:table-cell></#macro>
 <#macro renderFormatHeaderRowFormCellTitleSeparator style isLast></#macro>
 
 <#macro renderFormatItemRowOpen formName itemIndex altRowStyles evenRowStyle oddRowStyle><fo:table-row <@getFoStyle "${altRowStyles}"/>></#macro>
 <#macro renderFormatItemRowClose formName></fo:table-row></#macro>
 <#macro renderFormatItemRowCellOpen fieldName style="" positionSpan=""><fo:table-cell <#if positionSpan?has_content && positionSpan gt 1 >number-columns-spanned="${positionSpan}"</#if><#if style?has_content><@getFoStyle style/><#else><@getFoStyle "tabletext"/></#if>><fo:block></#macro>
 <#macro renderFormatItemRowCellClose fieldName></fo:block></fo:table-cell></#macro>
-<#macro renderFormatItemRowFormCellOpen style></#macro>
-<#macro renderFormatItemRowFormCellClose></#macro>
+<#macro renderFormatItemRowFormCellOpen style><fo:table-cell></#macro>
+<#macro renderFormatItemRowFormCellClose></fo:table-cell></#macro>
 
 <#macro renderFormatSingleWrapperOpen formName style><fo:table><fo:table-column column-width="1.75in"/><fo:table-column column-width="1.75in"/><fo:table-column column-width="1.75in"/><fo:table-column column-width="1.75in"/><fo:table-body></#macro>
 <#macro renderFormatSingleWrapperClose formName></fo:table-body></fo:table></#macro>
