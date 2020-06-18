@@ -99,11 +99,11 @@ def genericContentPermission() {
                 contentOperationId = "CONTENT_UPDATE"
             }
             Map serviceUCP = updateContentPermission(hasPermission, contentId, ownerContentId, contentOperationId, contentPurposeTypeId, roleEntity, roleEntityField)
-                if (serviceUCP.errorMessage != null) {
-                    logError(serviceUCP.errorMessage)
-                } else {
-                    hasPermission = serviceUCP.hasPermission
-                }
+            if (serviceUCP.errorMessage != null) {
+                logError(serviceUCP.errorMessage)
+            } else {
+                hasPermission = serviceUCP.hasPermission
+            }
         } // all other actions use main base check
     } else {
         logInfo("Admin permission found: ${parameters.primaryPermission}_${mainAction}")
