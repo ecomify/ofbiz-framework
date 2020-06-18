@@ -48,18 +48,27 @@ def createBlogEntry() {
     }
 
     // complex template structure (image & text)
-    Map createMain = [dataResourceId: parameters.templateDataResourceId,
-        contentAssocTypeId: contentAssocTypeId,
-        contentName: parameters.contentName,
-        description: parameters.description,
-        statusId: parameters.statusId,
+    Map createMain = [contentAssocTypeId: contentAssocTypeId,
         contentIdFrom: contentIdFrom,
-        partyId: userLogin.partyId,
         ownerContentId: ownerContentId,
         dataTemplateTypeId: "SCREEN_COMBINED",
-        mapKey: "MAIN"
-    ]
-    // TODO check if entries are set as null in DB und wenn ja nur mit Abfrage der Map hinzufügen
+        mapKey: "MAIN"]
+    if (parameters.templateDataResourceId) {
+        createMain.dataResourceId = parameters.templateDataResourceId
+    }
+    if (parameters.contentName) {
+        createMain.contentName = parameters.contentName
+    }
+    if (parameters.description) {
+        createMain.description = parameters.description
+    }
+    if (parameters.statusId) {
+        createMain.statusId = parameters.statusId
+    }
+    if (userLogin.partyId) {
+        createMain.partyId = userLogin.partyId
+    }
+
     Map serviceResult = run service:"createContent", with: createMain
     String contentId = serviceResult.contentId
 
@@ -73,18 +82,32 @@ def createBlogEntry() {
             dataTemplateTypeId: "NONE",
             mapKey: "IMAGE",
             ownerContentId: ownerContentId,
-            contentName: parameters.contentName,
-            description: parameters.description,
-            statusId: parameters.statusId,
             contentAssocTypeId: contentAssocTypeId,
             contentIdFrom: contentIdFrom,
-            partyId: userLogin.partyId,
-            isPublic: "Y",
-            uploadedFile: parameters.uploadedFile,
-            _uploadedFile_fileName: parameters._uploadedFile_fileName,
-            _uploadedFile_contentType: parameters._uploadedFile_contentType,
+            isPublic: "Y"
         ]
-        // TODO siehe oben
+        if (parameters.contentName){
+            createImage.contentName = parameters.contentName
+        }
+        if (parameters.description) {
+            createImage.description = parameters.description
+        }
+        if (parameters.statusId) {
+            createImage.statusId = parameters.statusId
+        }
+        if (userLogin.partyId) {
+            createImage.partyId = userLogin.partyId
+        }
+        if (parameters.uploadedFile) {
+            createImage.uploadedFile = parameters.uploadedFile
+        }
+        if (parameters._uploadedFile_fileName) {
+            createImage._uploadedFile_fileName = parameters._uploadedFile_fileName
+        }
+        if (parameters._uploadedFile_contentType) {
+            createImage._uploadedFile_contentType = parameters._uploadedFile_contentType
+        }
+
         Map serviceResultCCFUF = run service:"createContentFromUploadedFile", with: createImage
         String imageContentId = serviceResultCCFUF.contentId
     }
@@ -96,17 +119,26 @@ def createBlogEntry() {
             dataTemplateTypeId: "NONE",
             mapKey: "MAIN",
             ownerContentId: ownerContentId,
-            contentName: parameters.contentName,
-            description: parameters.description,
-            statusId: parameters.statusId,
             contentAssocTypeId: contentAssocTypeId,
-            textData: parameters.articleData,
             contentIdFrom: contentIdFrom,
-            partyId: userLogin.partyId,
             mapKey: "ARTICLE"
         ]
-        // TODO siehe oben
-        logInfo("calling createTextContent with map: ${createText}")
+        if (parameters.contentName) {
+            createText.contentName = parameters.contentName
+        }
+        if (parameters.description) {
+            createText.description = parameters.description
+        }
+        if (parameters.statusId) {
+            createText.statusId = parameters.statusId
+        }
+        if (parameters.articleData) {
+            createText.textData = parameters.articleData
+        }
+        if (userLogin.partyId) {
+            createText.partyId = userLogin.partyId
+        }
+
         Map serviceResultCTC = run service:"createTextContent", with: createText
         String textContentId = serviceResultCTC.contentId
     }
@@ -119,15 +151,26 @@ def createBlogEntry() {
                 dataTemplateTypeId: "NONE",
                 mapKey: "SUMMARY",
                 ownerContentId: ownerContentId,
-                contentName: parameters.contentName,
-                description: parameters.description,
-                statusId: parameters.statusId,
                 contentAssocTypeId: contentAssocTypeId,
                 textData: parameters.summaryData,
-                contentIdFrom: contentIdFrom,
-                partyId: userLogin.partyId
+                contentIdFrom: contentIdFrom
             ]
-            // TODO siehe oben
+            if (parameters.contentName) {
+                createSummary.contentName = parameters.contentName
+            }
+            if (parameters.description) {
+                createSummary.description = parameters.description
+            }
+            if (parameters.statusId) {
+                createSummary.statusId = parameters.statusId
+            }
+            if (parameters.summaryData) {
+                createSummary.textData = parameters.summaryData
+            }
+            if (userLogin.partyId) {
+                createSummary.partyId = userLogin.partyId
+            }
+
             run service:"createTextContent", with: createSummary
         }
     }
@@ -146,8 +189,7 @@ def updateBlogEntry() {
     String ownerContentId
     String contentAssocTypeId
     String contentIdFrom
-    // removed = "Y", sodass getBlogEntry results liefert
-    String showNoResult
+    String showNoResult = "Y"
     parameters.showNoResult = showNoResult
 
     Map serviceResult = run service:"getBlogEntry", with: parameters
@@ -175,8 +217,8 @@ def updateBlogEntry() {
         run service:"updateContent" , with: updContent
         if (parameters.statusId != statusId) {
             if (imageContent) {
-                // TODO status als GV machen id setzten und dann auf imageContent gehen
-                imageContent.status.Id = parameters.statusId
+                GenericValue status = imageContent.status
+                status.Id = parameters.statusId
                 imageContent.store()
             }
         }
@@ -192,15 +234,25 @@ def updateBlogEntry() {
             dataTemplateTypeId: "NONE",
             mapKey: "ARTICLE",
             ownerContentId: ownerContentId,
-            contentName: parameters.contentName,
-            description: parameters.description,
-            statusId: parameters.statusId,
             contentAssocTypeId: contentAssocTypeId,
-            textData: parameters.articleData,
-            contentIdFrom: contentIdFrom,
-            partyId: userLogin.partyId
-            // TODO siehe oben
+            contentIdFrom: contentIdFrom
         ]
+        if (parameters.contentName) {
+            createText.contentName = parameters.contentName
+        }
+        if (parameters.description) {
+            createText.description = parameters.description
+        }
+        if (parameters.statusId) {
+            createText.statusId = parameters.statusId
+        }
+        if (parameters.articleData) {
+            createText.textData = parameters.articleData
+        }
+        if (userLogin.partyId) {
+            createText.partyId = userLogin.partyId
+        }
+
         run service:"createTextContent", with: createText
     }
 
@@ -221,15 +273,25 @@ def updateBlogEntry() {
             dataTemplateTypeId: "NONE",
             mapKey: "SUMMARY",
             ownerContentId: ownerContentId,
-            contentName: parameters.contentName,
-            description: parameters.description,
-            statusId: parameters.statusId,
             contentAssocTypeId: contentAssocTypeId,
-            textData: parameters.summaryData,
-            contentIdFrom: contentIdFrom,
-            partyId: userLogin.partyId
-            // TODO siehe oben
+            contentIdFrom: contentIdFrom
         ]
+        if (parameters.contentName) {
+            createSummary.contentName = parameters.contentName
+        }
+        if (parameters.description) {
+            createSummary.description = parameters.description
+        }
+        if (parameters.statusId) {
+            createSummary.statusId = parameters.statusId
+        }
+        if (parameters.summaryData) {
+            createSummary.textData = parameters.summaryData
+        }
+        if (userLogin.partyId) {
+            createSummary.partyId = userLogin.partyId
+        }
+
         run service:"createTextContent", with: createSummary
     }
 
@@ -253,19 +315,29 @@ def updateBlogEntry() {
         Map createImage = [dataResourceTypeId: "LOCAL_FILE",
             dataTemplateTypeId: "NONE",
             mapKey: "IMAGE",
-            ownerContentId: parameters.contentId,
             contentAssocTypeId: "SUB_CONTENT",
-            contentIdFrom: parameters.contentId,
-            partyId: userLogin.partyId,
-            isPublic: "Y",
-            uploadedFile: parameters.uploadedFile,
-            _uploadedFile_fileName: parameters._uploadedFile_fileName,
-            _uploadedFile_contentType: parameters._uploadedFile_contentType
+            isPublic: "Y"
         ]
-        // TODO G-String unnötig an dieser Stelle du kannst einfach die Variablen so nehmen
-        createImage.contentName = parameters.contentName ?: "${contentName}"
-        createImage.description = parameters.description ?: "${description}"
-        createImage.statusId = parameters.statusId ?: "${statusId}"
+        if (parameters.contentId) {
+            createImage.contentIdFrom = parameters.contentId
+            createImage.ownerContentId = parameters.contentId
+        }
+        if (userLogin.partyId) {
+            createImage.partyId = userLogin.partyId
+        }
+        if (parameters.uploadedFile) {
+            createImage.uploadedFile = parameters.uploadedFile
+        }
+        if (parameters._uploadedFile_fileName) {
+            createImage._uploadedFile_fileName = parameters._uploadedFile_fileName
+        }
+        if (parameters._uploadedFile_contentType) {
+            createImage._uploadedFile_contentType = parameters._uploadedFile_contentType
+        }
+
+        createImage.contentName = parameters.contentName ?: contentName
+        createImage.description = parameters.description ?: description
+        createImage.statusId = parameters.statusId ?: statusId
         run service:"createContentFromUploadedFile", with: createImage
     }
 
@@ -330,12 +402,11 @@ def getBlogEntry() {
     String contentName
     String description
     String statusId
-    // TODO showNoResult kann komplett entfernt werden aus allen Methoden
     String showNoResult = parameters.showNoResult
     String articleData
 
     if (!parameters.contentId) {
-        result.blogContentId = parameters.contentId
+        result.contentId = parameters?.blogContentId
         return result
     }
 
@@ -355,7 +426,7 @@ def getBlogEntry() {
         }
         if (assoc.mapKey == "IMAGE") {
             imageContent = delegator.getRelatedOne("ToContent", assoc, false)
-            
+
         }
         if (!showNoResult) {
             result.contentId = content?.contentId
