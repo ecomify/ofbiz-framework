@@ -45,9 +45,9 @@ import org.apache.ofbiz.service.ServiceUtil;
 
 public class RotateImage {
 
-    public static final String module = RotateImage.class.getName();
-    public static final String resourceError = "ProductErrorUiLabels";
-    public static final String resource = "ProductFUiLabels";
+    private static final String MODULE = RotateImage.class.getName();
+    private static final String RES_ERROR = "ProductErrorUiLabels";
+    private static final String RESOURCE = "ProductFUiLabels";
 
     public static Map<String, Object> imageRotate(DispatchContext dctx, Map<String, ? extends Object> context)
             throws IOException {
@@ -72,7 +72,7 @@ public class RotateImage {
                     return ServiceUtil.returnError(ServiceUtil.getErrorMessage(contentResult));
                 }
             } catch (GenericServiceException e) {
-                Debug.logError(e, module);
+                Debug.logError(e, MODULE);
                 return ServiceUtil.returnError(e.getMessage());
             }
 
@@ -86,7 +86,7 @@ public class RotateImage {
                     return ServiceUtil.returnError(ServiceUtil.getErrorMessage(contentThumbResult));
                 }
             } catch (GenericServiceException e) {
-                Debug.logError(e, module);
+                Debug.logError(e, MODULE);
                 return ServiceUtil.returnError(e.getMessage());
             }
 
@@ -141,7 +141,7 @@ public class RotateImage {
                     return ServiceUtil.returnError(ServiceUtil.getErrorMessage(serviceResult));
                 }
             } catch (GenericServiceException e) {
-                Debug.logError(e, module);
+                Debug.logError(e, MODULE);
                 return ServiceUtil.returnError(e.getMessage());
             }
 
@@ -158,7 +158,7 @@ public class RotateImage {
                     return ServiceUtil.returnError(ServiceUtil.getErrorMessage(serviceResult));
                 }
             } catch (GenericServiceException e) {
-                Debug.logError(e, module);
+                Debug.logError(e, MODULE);
                 return ServiceUtil.returnError(e.getMessage());
             }
 
@@ -171,15 +171,15 @@ public class RotateImage {
                     return ServiceUtil.returnError(ServiceUtil.getErrorMessage(serviceResult));
                 }
             } catch (GenericServiceException e) {
-                Debug.logError(e, module);
+                Debug.logError(e, MODULE);
                 return ServiceUtil.returnError(e.getMessage());
             }
         } else {
-            String errMsg = UtilProperties.getMessage(resourceError, "ProductPleaseSelectImage", locale);
-            Debug.logFatal(errMsg, module);
+            String errMsg = UtilProperties.getMessage(RES_ERROR, "ProductPleaseSelectImage", locale);
+            Debug.logFatal(errMsg, MODULE);
             return ServiceUtil.returnError(errMsg);
         }
-        String successMsg = UtilProperties.getMessage(resource, "ProductRotatedImageSuccessfully", locale);
+        String successMsg = UtilProperties.getMessage(RESOURCE, "ProductRotatedImageSuccessfully", locale);
         Map<String, Object> result = ServiceUtil.returnSuccess(successMsg);
         return result;
     }

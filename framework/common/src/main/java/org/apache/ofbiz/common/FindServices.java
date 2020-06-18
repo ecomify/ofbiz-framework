@@ -67,8 +67,8 @@ import org.apache.ofbiz.service.ServiceUtil;
  */
 public class FindServices {
 
-    public static final String module = FindServices.class.getName();
-    public static final String resource = "CommonUiLabels";
+    private static final String MODULE = FindServices.class.getName();
+    private static final String RESOURCE = "CommonUiLabels";
     public static final Map<String, EntityComparisonOperator<?, ?>> entityOperators;
 
     static {
@@ -483,7 +483,7 @@ public class FindServices {
             list = it.getPartialList(start+1, viewSize); // list starts at '1'
             listSize = it.getResultsSizeAfterPartialList();
         } catch (ClassCastException | NullPointerException | GenericEntityException e) {
-            Debug.logInfo("Problem getting partial list" + e, module);
+            Debug.logInfo("Problem getting partial list" + e, MODULE);
         }
 
         result.put("listSize", listSize);
@@ -549,7 +549,7 @@ public class FindServices {
                                                "filterByDateValue", filterByDateValue, "userLogin", userLogin, "fromDateName", fromDateName, "thruDateName", thruDateName,
                                                "locale", context.get("locale"), "timeZone", context.get("timeZone")));
         } catch (GenericServiceException gse) {
-            return ServiceUtil.returnError(UtilProperties.getMessage(resource, "CommonFindErrorPreparingConditions", UtilMisc.toMap("errorString", gse.getMessage()), locale));
+            return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE, "CommonFindErrorPreparingConditions", UtilMisc.toMap("errorString", gse.getMessage()), locale));
         }
         EntityConditionList<EntityCondition> exprList = UtilGenerics.cast(prepareResult.get("entityConditionList"));
         List<String> orderByList = checkCollection(prepareResult.get("orderByList"), String.class);
@@ -562,12 +562,12 @@ public class FindServices {
                                                                              "locale", context.get("locale"), "timeZone", context.get("timeZone"),
                                                                              "maxRows", maxRows));
         } catch (GenericServiceException gse) {
-            return ServiceUtil.returnError(UtilProperties.getMessage(resource, "CommonFindErrorRetrieveIterator", UtilMisc.toMap("errorString", gse.getMessage()), locale));
+            return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE, "CommonFindErrorRetrieveIterator", UtilMisc.toMap("errorString", gse.getMessage()), locale));
         }
 
         if (executeResult.get("listIt") == null) {
             if (Debug.verboseOn()) {
-                Debug.logVerbose("No list iterator found for query string + [" + prepareResult.get("queryString") + "]", module);
+                Debug.logVerbose("No list iterator found for query string + [" + prepareResult.get("queryString") + "]", MODULE);
             }
         }
 
@@ -697,7 +697,7 @@ public class FindServices {
                 listSize = listIt.getResultsSizeAfterPartialList();
             }
         } catch (GenericEntityException e) {
-            return ServiceUtil.returnError(UtilProperties.getMessage(resource, "CommonFindErrorRunning", UtilMisc.toMap("entityName", entityName, "errorString", e.getMessage()), locale));
+            return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE, "CommonFindErrorRunning", UtilMisc.toMap("entityName", entityName, "errorString", e.getMessage()), locale));
         }
 
         Map<String, Object> results = ServiceUtil.returnSuccess();
@@ -805,7 +805,7 @@ public class FindServices {
                 item = list.get(0);
             }
         } catch (ClassCastException | NullPointerException | GenericEntityException e) {
-            Debug.logInfo("Problem getting list Item" + e,module);
+            Debug.logInfo("Problem getting list Item" + e,MODULE);
         }
 
         if (UtilValidate.isNotEmpty(item)) {

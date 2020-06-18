@@ -44,15 +44,15 @@ import org.w3c.dom.Node;
 
 public class SaveLabelsToXmlFile {
 
-    private static final String resource = "WebtoolsUiLabels";
-    private static final String module = SaveLabelsToXmlFile.class.getName();
+    private static final String RESOURCE = "WebtoolsUiLabels";
+    private static final String MODULE = SaveLabelsToXmlFile.class.getName();
 
     public static Map<String, Object> saveLabelsToXmlFile(DispatchContext dctx, Map<String, ? extends Object> context) {
         Locale locale = (Locale) context.get("locale");
         String fileName = (String) context.get("fileName");
         if (UtilValidate.isEmpty(fileName)) {
-            Debug.logError("labelFileName cannot be empty", module);
-            return ServiceUtil.returnFailure(UtilProperties.getMessage(resource, "saveLabelsToXmlFile.exceptionDuringSaveLabelsToXmlFile", locale));
+            Debug.logError("labelFileName cannot be empty", MODULE);
+            return ServiceUtil.returnFailure(UtilProperties.getMessage(RESOURCE, "saveLabelsToXmlFile.exceptionDuringSaveLabelsToXmlFile", locale));
         }
         String key = (String) context.get("key");
         String keyComment = (String) context.get("keyComment");
@@ -67,14 +67,14 @@ public class SaveLabelsToXmlFile {
         try {
             apacheLicenseText = FileUtil.readString("UTF-8", FileUtil.getFile(apache2Header.getPath()));
         } catch (IOException e) {
-            Debug.logWarning(e, "Unable to read Apache License text file", module);
+            Debug.logWarning(e, "Unable to read Apache License text file", MODULE);
         }
         try {
             LabelManagerFactory factory = LabelManagerFactory.getInstance();
             LabelFile labelFile = factory.getLabelFile(fileName);
             if (labelFile == null) {
-                Debug.logError("Invalid file name: " + fileName, module);
-                return ServiceUtil.returnFailure(UtilProperties.getMessage(resource, "saveLabelsToXmlFile.exceptionDuringSaveLabelsToXmlFile", locale));
+                Debug.logError("Invalid file name: " + fileName, MODULE);
+                return ServiceUtil.returnFailure(UtilProperties.getMessage(RESOURCE, "saveLabelsToXmlFile.exceptionDuringSaveLabelsToXmlFile", locale));
             }
             synchronized(SaveLabelsToXmlFile.class) {
                 factory.findMatchingLabels(null, fileName, null, null, false);
@@ -97,14 +97,14 @@ public class SaveLabelsToXmlFile {
                         // Insert a new Label
                     } else {
                         if (UtilValidate.isNotEmpty(label)) {
-                            return ServiceUtil.returnError(UtilProperties.getMessage(resource, "WebtoolsLabelManagerNewLabelExisting", UtilMisc.toMap("key", key, "fileName", fileName), locale));
+                            return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE, "WebtoolsLabelManagerNewLabelExisting", UtilMisc.toMap("key", key, "fileName", fileName), locale));
                         } else {
                             if (UtilValidate.isEmpty(key)) {
-                                return ServiceUtil.returnError(UtilProperties.getMessage(resource, "WebtoolsLabelManagerNewLabelEmptyKey", locale));
+                                return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE, "WebtoolsLabelManagerNewLabelEmptyKey", locale));
                             } else {
                                 int notEmptyLabels = factory.updateLabelValue(localeNames, localeValues, localeComments, null, key, keyComment, fileName);
                                 if (notEmptyLabels == 0) {
-                                    return ServiceUtil.returnError(UtilProperties.getMessage(resource, "WebtoolsLabelManagerNewLabelEmpty", locale));
+                                    return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE, "WebtoolsLabelManagerNewLabelEmpty", locale));
                                 }
                             }
                         }
@@ -158,8 +158,8 @@ public class SaveLabelsToXmlFile {
                 }
             }
         } catch (Exception e) {
-            Debug.logError(e, "Exception during save labels to xml file:", module);
-            return ServiceUtil.returnFailure(UtilProperties.getMessage(resource, "saveLabelsToXmlFile.exceptionDuringSaveLabelsToXmlFile", locale));
+            Debug.logError(e, "Exception during save labels to xml file:", MODULE);
+            return ServiceUtil.returnFailure(UtilProperties.getMessage(RESOURCE, "saveLabelsToXmlFile.exceptionDuringSaveLabelsToXmlFile", locale));
         }
         return ServiceUtil.returnSuccess();
     }

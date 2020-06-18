@@ -51,7 +51,7 @@ under the License.
     <request-map uri="entity/create/{entityName}" method="get"><security https="true" auth="true"/><response name="success" type="view" value="EditGeneric"/></request-map>
 
     <!-- form for modifying a record  -->
-    <request-map uri="entity/edit/{entityName}/{pkValues: .*}" method="get"><security https="true" auth="true"/><response name="success" type="view" value="EditGeneric" /></request-map>
+    <request-map uri="entity/edit/{entityName}/{pkValues: .*}" method="post"><security https="true" auth="true"/><response name="success" type="view" value="EditGeneric" /></request-map>
 
     <!--view relations for a given entity -->
     <request-map uri="entity/relations/{entityName}" method="get"><security https="true" auth="true"/><response name="success" type="view" value="ViewRelations" /></request-map>
@@ -98,13 +98,14 @@ under the License.
         <response name="success" type="none"/>
     </request-map>
     <request-map uri="xmlrpc" track-serverhit="false" track-visit="false">
-        <security https="false"/>
+        <security auth="true"/>
         <event type="xmlrpc"/>
         <response name="error" type="none"/>
         <response name="success" type="none"/>
     </request-map>
 
     <request-map uri="ping">
+        <security auth="true"/>
         <event type="service" invoke="ping"/>
         <response name="error" type="view" value="ping"/>
         <response name="success" type="view" value="ping"/>

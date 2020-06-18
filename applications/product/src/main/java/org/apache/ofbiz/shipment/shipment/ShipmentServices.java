@@ -56,13 +56,13 @@ import org.apache.ofbiz.service.ServiceUtil;
  */
 public class ShipmentServices {
 
-    public static final String module = ShipmentServices.class.getName();
+    private static final String MODULE = ShipmentServices.class.getName();
+    private static final String RESOURCE = "ProductUiLabels";
+    private static final String RES_ERROR = "OrderErrorUiLabels";
 
-    public static final String resource = "ProductUiLabels";
-    public static final String resource_error = "OrderErrorUiLabels";
-    public static final int decimals = UtilNumber.getBigDecimalScale("order.decimals");
-    public static final RoundingMode rounding = UtilNumber.getRoundingMode("order.rounding");
-    public static final BigDecimal ZERO = BigDecimal.ZERO.setScale(decimals, rounding);
+    private static final int DECIMALS = UtilNumber.getBigDecimalScale("order.decimals");
+    private static final RoundingMode ROUNDING = UtilNumber.getRoundingMode("order.rounding");
+    private static final BigDecimal ZERO = BigDecimal.ZERO.setScale(DECIMALS, ROUNDING);
 
     public static Map<String, Object> createShipmentEstimate(DispatchContext dctx, Map<String, ? extends Object> context) {
         Map<String, Object> result = new HashMap<>();
@@ -75,7 +75,7 @@ public class ShipmentServices {
         try {
             productStoreShipMeth = EntityQuery.use(delegator).from("ProductStoreShipmentMeth").where("productStoreShipMethId", productStoreShipMethId).queryOne();
         } catch (GenericEntityException e) {
-            return ServiceUtil.returnError(UtilProperties.getMessage(resource, 
+            return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE,
                     "ProductStoreShipmentMethodCannotRetrieve", 
                     UtilMisc.toMap("productStoreShipMethId", productStoreShipMethId, 
                             "errorString", e.toString()), locale));
@@ -150,8 +150,8 @@ public class ShipmentServices {
             estimate = EntityQuery.use(delegator).from("ShipmentCostEstimate").where("shipmentCostEstimateId", shipmentCostEstimateId).queryOne();
             estimate.remove();
         } catch (GenericEntityException e) {
-            Debug.logError(e, module);
-            return ServiceUtil.returnError(UtilProperties.getMessage(resource, 
+            Debug.logError(e, MODULE);
+            return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE,
                     "ProductShipmentCostEstimateRemoveError", 
                     UtilMisc.toMap("errorString", e.toString()), locale));
         }
@@ -179,7 +179,7 @@ public class ShipmentServices {
                         }
                         storeAll.add(0, weightBreak);
                     } catch (Exception e) {
-                        Debug.logError(e, module);
+                        Debug.logError(e, MODULE);
                     }
                 }
                 else {
@@ -250,13 +250,13 @@ public class ShipmentServices {
                             .cache(true)
                             .queryList();
         } catch (GenericEntityException e) {
-            Debug.logError(e, module);
-            return ServiceUtil.returnError(UtilProperties.getMessage(resource, 
+            Debug.logError(e, MODULE);
+            return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE,
                     "ProductShipmentCostEstimateCannotRetrieve", locale));
         }
         if (estimates == null || estimates.size() < 1) {
             if (initialEstimateAmt.compareTo(BigDecimal.ZERO) == 0) {
-                Debug.logWarning("No shipping estimates found; the shipping amount returned is 0! Condition used was: " + estFieldsCond + "; Using the passed context: " + context, module);
+                Debug.logWarning("No shipping estimates found; the shipping amount returned is 0! Condition used was: " + estFieldsCond + "; Using the passed context: " + context, MODULE);
             }
 
             Map<String, Object> respNow = ServiceUtil.returnSuccess();
@@ -270,8 +270,8 @@ public class ShipmentServices {
             try {
                 shipAddress = EntityQuery.use(delegator).from("PostalAddress").where("contactMechId", shippingContactMechId).queryOne();
             } catch (GenericEntityException e) {
-                Debug.logError(e, module);
-                return ServiceUtil.returnError(UtilProperties.getMessage(resource, 
+                Debug.logError(e, MODULE);
+                return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE,
                         "ProductShipmentCostEstimateCannotGetShippingAddress", locale));
             }
         } else if (shippingPostalCode != null) {
@@ -285,7 +285,7 @@ public class ShipmentServices {
                     countryGeoId = countryGeo.getString("geoId");
                 }
             } catch (GenericEntityException e) {
-                Debug.logError(e, module);
+                Debug.logError(e, MODULE);
             }
             shipAddress = delegator.makeValue("PostalAddress");
             shipAddress.set("countryGeoId", countryGeoId);
@@ -358,12 +358,12 @@ public class ShipmentServices {
                     }
                 }
             } catch (GenericEntityException e) {
-                Debug.logError(e, e.getLocalizedMessage(), module);
+                Debug.logError(e, e.getLocalizedMessage(), MODULE);
             }
         }
 
         if (estimateList.size() < 1) {
-            return ServiceUtil.returnFailure(UtilProperties.getMessage(resource, 
+            return ServiceUtil.returnFailure(UtilProperties.getMessage(RESOURCE,
                     "ProductShipmentCostEstimateCannotFoundForCarrier",
                     UtilMisc.toMap("carrierPartyId", carrierPartyId, 
                             "shipmentMethodTypeId", shipmentMethodTypeId), locale));
@@ -517,7 +517,7 @@ public class ShipmentServices {
                             .filterByDate()
                             .queryFirst();
                 } catch (GenericEntityException e) {
-                    Debug.logError(e, "Unable to lookup feature/group" + fields, module);
+                    Debug.logError(e, "Unable to lookup feature/group" + fields, MODULE);
                 }
                 if (appl != null) {
                     featureSurcharge = featureSurcharge.add(shippableTotal.multiply(featurePercent.movePointLeft(2)).multiply(quantity));
@@ -569,12 +569,12 @@ public class ShipmentServices {
             try {
                 shipment = EntityQuery.use(delegator).from("Shipment").where("shipmentId", shipmentId).queryOne();
             } catch (GenericEntityException e) {
-                Debug.logError(e, module);
+                Debug.logError(e, MODULE);
                 return ServiceUtil.returnError(e.getMessage());
             }
         }
         if (shipment == null) {
-            return ServiceUtil.returnError(UtilProperties.getMessage(resource, 
+            return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE,
                     "ProductShipmentNotFoundId", locale));
         }
 
@@ -584,11 +584,11 @@ public class ShipmentServices {
             try {
                 address = shipment.getRelatedOne("DestinationPostalAddress", false);
             } catch (GenericEntityException e) {
-                Debug.logError(e, module);
+                Debug.logError(e, MODULE);
                 return ServiceUtil.returnError(e.getMessage());
             }
             if (address == null) {
-                return ServiceUtil.returnError(UtilProperties.getMessage(resource, 
+                return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE,
                         "ProductShipmentNoAddressFound", locale));
             }
 
@@ -596,12 +596,12 @@ public class ShipmentServices {
             try {
                 packages = shipment.getRelated("ShipmentPackage", null, null, false) ;
             } catch (GenericEntityException e) {
-                Debug.logError(e, module);
+                Debug.logError(e, MODULE);
                 return ServiceUtil.returnError(e.getMessage());
             }
 
             if (UtilValidate.isEmpty(packages)) {
-                return ServiceUtil.returnError(UtilProperties.getMessage(resource, 
+                return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE,
                         "ProductShipmentNoPackagesAvailable", locale));
             }
 
@@ -609,7 +609,7 @@ public class ShipmentServices {
             try {
                 routeSegs = shipment.getRelated("ShipmentRouteSegment", null, null, false);
             } catch (GenericEntityException e) {
-                Debug.logError(e, module);
+                Debug.logError(e, MODULE);
                 return ServiceUtil.returnError(e.getMessage());
             }
             GenericValue routeSeg = EntityUtil.getFirst(routeSegs);
@@ -652,11 +652,11 @@ public class ShipmentServices {
             try {
                 delegator.storeAll(toStore);
             } catch (GenericEntityException e) {
-                Debug.logError(e, module);
+                Debug.logError(e, MODULE);
                 return ServiceUtil.returnError(e.getMessage());
             }
         } else {
-            Debug.logWarning("Shipment #" + shipmentId + " is not available for shipment; not setting in staging tables.", module);
+            Debug.logWarning("Shipment #" + shipmentId + " is not available for shipment; not setting in staging tables.", MODULE);
         }
 
         return ServiceUtil.returnSuccess();
@@ -692,7 +692,7 @@ public class ShipmentServices {
                             try {
                                 delegator.create(rtSeg);
                             } catch (GenericEntityException e) {
-                                Debug.logError(e, module);
+                                Debug.logError(e, MODULE);
                                 return ServiceUtil.returnError(e.getMessage());
                             }
                         }
@@ -715,7 +715,7 @@ public class ShipmentServices {
                                   .queryOne();
 
                     if (pkg == null) {
-                        return ServiceUtil.returnError(UtilProperties.getMessage(resource, 
+                        return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE,
                                 "ProductShipmentPackageNotFound", 
                                 UtilMisc.toMap("shipmentPackageSeqId", packageSeqId, 
                                 "shipmentId",shipmentId), locale));
@@ -734,7 +734,7 @@ public class ShipmentServices {
                         try {
                             delegator.create(pkgRtSeg);
                         } catch (GenericEntityException e) {
-                            Debug.logError(e, module);
+                            Debug.logError(e, MODULE);
                             return ServiceUtil.returnError(e.getMessage());
                         }
                     }
@@ -747,7 +747,7 @@ public class ShipmentServices {
                 }
             }
         } catch (GenericEntityException e) {
-            Debug.logError(e, module);
+            Debug.logError(e, MODULE);
             return ServiceUtil.returnError(e.getMessage());
         }
 
@@ -767,7 +767,7 @@ public class ShipmentServices {
             try {
                 shipResp = dispatcher.runSync("updateShipment", shipCtx);
             } catch (GenericServiceException e) {
-                Debug.logError(e, module);
+                Debug.logError(e, MODULE);
                 return ServiceUtil.returnError(e.getMessage());
             }
             if (ServiceUtil.isError(shipResp)) {
@@ -779,7 +779,7 @@ public class ShipmentServices {
             try {
                 clearResp = dispatcher.runSync("clearShipmentStaging", UtilMisc.<String, Object>toMap("shipmentId", shipmentId, "userLogin", userLogin));
             } catch (GenericServiceException e) {
-                Debug.logError(e, module);
+                Debug.logError(e, MODULE);
                 return ServiceUtil.returnError(e.getMessage());
             }
             if (ServiceUtil.isError(clearResp)) {
@@ -798,7 +798,7 @@ public class ShipmentServices {
             delegator.removeByAnd("OdbcPackageOut", UtilMisc.toMap("shipmentId", shipmentId));
             delegator.removeByAnd("OdbcShipmentOut", UtilMisc.toMap("shipmentId", shipmentId));
         } catch (GenericEntityException e) {
-            Debug.logError(e, module);
+            Debug.logError(e, MODULE);
             return ServiceUtil.returnError(e.getMessage());
         }
         return ServiceUtil.returnSuccess();
@@ -864,10 +864,10 @@ public class ShipmentServices {
                 return ServiceUtil.returnError(ServiceUtil.getErrorMessage(serviceResult));
             }
         } catch (GenericEntityException e) {
-            Debug.logError(e, module);
+            Debug.logError(e, MODULE);
             return ServiceUtil.returnError(e.getMessage());
         } catch (GenericServiceException se) {
-            Debug.logError(se, module);
+            Debug.logError(se, MODULE);
             return ServiceUtil.returnError(se.getMessage());
         }
         return ServiceUtil.returnSuccess();
@@ -886,7 +886,7 @@ public class ShipmentServices {
         try {
             GenericValue shipmentRouteSeg = EntityQuery.use(delegator).from("ShipmentRouteSegment").where("shipmentId", shipmentId, "shipmentRouteSegmentId", shipmentRouteSegmentId).queryOne();
             if (shipmentRouteSeg == null) {
-                return ServiceUtil.returnError(UtilProperties.getMessage(resource, 
+                return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE,
                         "ProductShipmentRouteSegmentNotFound", 
                         UtilMisc.toMap("shipmentId", shipmentId,
                                 "shipmentRouteSegmentId", shipmentRouteSegmentId), locale));
@@ -935,7 +935,7 @@ public class ShipmentServices {
                     .queryOne();
             carrierPartyId = shipmentRouteSegment.getString("carrierPartyId");
         } catch (GenericEntityException e) {
-            Debug.logError(e, module);
+            Debug.logError(e, MODULE);
             return ServiceUtil.returnError(e.getMessage());
         }
 
@@ -948,10 +948,10 @@ public class ShipmentServices {
             if ("DHL".equals(carrierPartyId)) {
                 dispatcher.runAsync("dhlShipmentConfirm", input);
             } else {
-                Debug.logError(carrierPartyId + " is not supported at this time.  Sorry.", module);
+                Debug.logError(carrierPartyId + " is not supported at this time.  Sorry.", MODULE);
             }
         } catch (GenericServiceException se) {
-            Debug.logError(se, se.getMessage(), module);
+            Debug.logError(se, se.getMessage(), MODULE);
         }
 
         // don't return an error
@@ -984,15 +984,15 @@ public class ShipmentServices {
 
             shipment = EntityQuery.use(delegator).from("Shipment").where("shipmentId", shipmentId).queryOne();
             if (UtilValidate.isEmpty(shipment)) {
-                String errorMessage = UtilProperties.getMessage(resource, "ProductShipmentNotFoundId", locale);
-                Debug.logError(errorMessage, module);
+                String errorMessage = UtilProperties.getMessage(RESOURCE, "ProductShipmentNotFoundId", locale);
+                Debug.logError(errorMessage, MODULE);
                 return ServiceUtil.returnError(errorMessage);
             }
 
             shipmentPackage = EntityQuery.use(delegator).from("ShipmentPackage").where("shipmentId", shipmentId, "shipmentPackageSeqId", shipmentPackageSeqId).queryOne();
             if (UtilValidate.isEmpty(shipmentPackage)) {
-                String errorMessage = UtilProperties.getMessage(resource, "ProductShipmentPackageNotFound", context, locale);
-                Debug.logError(errorMessage, module);
+                String errorMessage = UtilProperties.getMessage(RESOURCE, "ProductShipmentPackageNotFound", context, locale);
+                Debug.logError(errorMessage, MODULE);
                 return ServiceUtil.returnError(errorMessage);
             }
 
@@ -1011,10 +1011,10 @@ public class ShipmentServices {
 
                 // How much of the invoiced quantity does the issued quantity represent?
                 BigDecimal issuedQuantity = packageContent.getBigDecimal("issuedQuantity");
-                BigDecimal proportionOfInvoicedQuantity = invoicedQuantity.signum() == 0 ? ZERO : issuedQuantity.divide(invoicedQuantity, 10, rounding);
+                BigDecimal proportionOfInvoicedQuantity = invoicedQuantity.signum() == 0 ? ZERO : issuedQuantity.divide(invoicedQuantity, 10, ROUNDING);
 
                 // Prorate the orderItem's invoiced amount by that proportion
-                BigDecimal packageContentValue = proportionOfInvoicedQuantity.multiply(invoicedAmount).setScale(decimals, rounding);
+                BigDecimal packageContentValue = proportionOfInvoicedQuantity.multiply(invoicedAmount).setScale(DECIMALS, ROUNDING);
 
                 // Convert the value to the shipment currency, if necessary
                 GenericValue orderHeader = packageContent.getRelatedOne("OrderHeader", false);
@@ -1023,7 +1023,7 @@ public class ShipmentServices {
                     return ServiceUtil.returnError(ServiceUtil.getErrorMessage(convertUomResult));
                 }
                 if (convertUomResult.containsKey("convertedValue")) {
-                    packageContentValue = ((BigDecimal) convertUomResult.get("convertedValue")).setScale(decimals, rounding);
+                    packageContentValue = ((BigDecimal) convertUomResult.get("convertedValue")).setScale(DECIMALS, ROUNDING);
                 }
 
                 // Add the value of the packed item to the package's total value
@@ -1031,10 +1031,10 @@ public class ShipmentServices {
             }
 
         } catch (GenericEntityException e) {
-            Debug.logError(e, module);
+            Debug.logError(e, MODULE);
             return ServiceUtil.returnError(e.getMessage());
         } catch (GenericServiceException e) {
-            Debug.logError(e, module);
+            Debug.logError(e, MODULE);
             return ServiceUtil.returnError(e.getMessage());
         }
         Map<String, Object> result = ServiceUtil.returnSuccess();
@@ -1059,16 +1059,16 @@ public class ShipmentServices {
             shipment = EntityQuery.use(delegator).from("Shipment").where("shipmentId", shipmentId).queryOne();
             orderHeader = EntityQuery.use(delegator).from("OrderHeader").where("orderId", shipment.getString("primaryOrderId")).queryOne();
         } catch (GenericEntityException e) {
-            Debug.logError(e, "Problem getting info from database", module);
+            Debug.logError(e, "Problem getting info from database", MODULE);
         }
         GenericValue productStoreEmail = null;
         try {
             productStoreEmail = EntityQuery.use(delegator).from("ProductStoreEmailSetting").where("productStoreId", orderHeader.get("productStoreId"), "emailType", "PRDS_ODR_SHIP_COMPLT").queryOne();
         } catch (GenericEntityException e) {
-            Debug.logError(e, "Problem getting the ProductStoreEmailSetting for productStoreId =" + orderHeader.get("productStoreId") + " and emailType = PRDS_ODR_SHIP_COMPLT", module);
+            Debug.logError(e, "Problem getting the ProductStoreEmailSetting for productStoreId =" + orderHeader.get("productStoreId") + " and emailType = PRDS_ODR_SHIP_COMPLT", MODULE);
         }
         if (productStoreEmail == null) {
-            return ServiceUtil.returnFailure(UtilProperties.getMessage(resource, 
+            return ServiceUtil.returnFailure(UtilProperties.getMessage(RESOURCE,
                     "ProductProductStoreEmailSettingsNotValid", 
                     UtilMisc.toMap("productStoreId", orderHeader.get("productStoreId"), 
                             "emailType", "PRDS_ODR_SHIP_COMPLT"), localePar));
@@ -1090,7 +1090,7 @@ public class ShipmentServices {
             emailString = email.getString("infoString");
         }
         if (UtilValidate.isEmpty(emailString)) {
-            return ServiceUtil.returnError(UtilProperties.getMessage(resource, 
+            return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE,
                     "ProductProductStoreEmailSettingsNoSendToFound", localePar));
         }
 
@@ -1119,16 +1119,16 @@ public class ShipmentServices {
         try {
             sendResp = dispatcher.runSync("sendMailFromScreen", sendMap);
         } catch (GenericServiceException gse) {
-            Debug.logError(gse, "Problem sending mail", module);
-            return ServiceUtil.returnError(UtilProperties.getMessage(resource_error, "OrderProblemSendingEmail", localePar));
+            Debug.logError(gse, "Problem sending mail", MODULE);
+            return ServiceUtil.returnError(UtilProperties.getMessage(RES_ERROR, "OrderProblemSendingEmail", localePar));
         } catch (Exception e) {
-            Debug.logError(e, "Problem sending mail", module);
-            return ServiceUtil.returnError(UtilProperties.getMessage(resource_error, "OrderProblemSendingEmail", localePar));
+            Debug.logError(e, "Problem sending mail", MODULE);
+            return ServiceUtil.returnError(UtilProperties.getMessage(RES_ERROR, "OrderProblemSendingEmail", localePar));
         }
         // check for errors
         if (sendResp != null && ServiceUtil.isError(sendResp)) {
             sendResp.put("emailType", "PRDS_ODR_SHIP_COMPLT");
-            return ServiceUtil.returnError(UtilProperties.getMessage(resource_error, "OrderProblemSendingEmail", localePar), null, null, sendResp);
+            return ServiceUtil.returnError(UtilProperties.getMessage(RES_ERROR, "OrderProblemSendingEmail", localePar), null, null, sendResp);
         }
         return sendResp;
     }
@@ -1138,24 +1138,24 @@ public class ShipmentServices {
         try {
             GenericValue shipment = EntityQuery.use(delegator).from("Shipment").where("shipmentId", shipmentId).queryOne();
             if (shipment == null) {
-                return ServiceUtil.returnError(UtilProperties.getMessage(resource, 
+                return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE,
                         "ProductShipmentNotFoundId", locale) + shipmentId);
             }
             GenericValue primaryOrderHeader = shipment.getRelatedOne("PrimaryOrderHeader", false);
             if (primaryOrderHeader == null) {
-                return ServiceUtil.returnError(UtilProperties.getMessage(resource, 
+                return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE,
                         "ProductShipmentPrimaryOrderHeaderNotFound", 
                         UtilMisc.toMap("shipmentId", shipmentId), locale));
             }
             String productStoreId = primaryOrderHeader.getString("productStoreId");
             if (UtilValidate.isEmpty(productStoreId)) {
-                return ServiceUtil.returnError(UtilProperties.getMessage(resource, 
+                return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE,
                         "ProductShipmentPrimaryOrderHeaderProductStoreNotFound", 
                         UtilMisc.toMap("productStoreId", productStoreId, "shipmentId", shipmentId), locale));
             }
             GenericValue primaryOrderItemShipGroup = shipment.getRelatedOne("PrimaryOrderItemShipGroup", false);
             if (primaryOrderItemShipGroup == null) {
-                return ServiceUtil.returnError(UtilProperties.getMessage(resource, 
+                return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE,
                         "ProductShipmentPrimaryOrderHeaderItemShipGroupNotFound", 
                         UtilMisc.toMap("shipmentId", shipmentId), locale));
             }
@@ -1170,16 +1170,16 @@ public class ShipmentServices {
                 shipmentGatewayConfig.put("shipmentGatewayConfigId", productStoreShipmentMeth.getString("shipmentGatewayConfigId"));
                 shipmentGatewayConfig.put("configProps", productStoreShipmentMeth.getString("configProps"));
             } else {
-                return ServiceUtil.returnError(UtilProperties.getMessage(resource, 
+                return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE,
                         "ProductStoreShipmentMethodNotFound", 
                         UtilMisc.toMap("shipmentId", shipmentId), locale));
             }
         } catch (GenericEntityException gee) {
-            return ServiceUtil.returnError(UtilProperties.getMessage(resource, 
+            return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE,
                     "FacilityShipmentGatewayConfigFromShipmentError", 
                     UtilMisc.toMap("errorString", gee.getMessage()), locale));
         } catch (Exception e) {
-            return ServiceUtil.returnError(UtilProperties.getMessage(resource, 
+            return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE,
                     "FacilityShipmentGatewayConfigFromShipmentError", 
                     UtilMisc.toMap("errorString", e.getMessage()), locale));
         }

@@ -62,9 +62,9 @@ import org.jdom.JDOMException;
 
 public class FrameImage {
 
-    public static final String module = FrameImage.class.getName();
-    public static final String resourceError = "ProductErrorUiLabels";
-    public static final String resource = "ProductUiLabels";
+    private static final String MODULE = FrameImage.class.getName();
+    private static final String RES_ERROR = "ProductErrorUiLabels";
+    private static final String RESOURCE = "ProductUiLabels";
 
     public static Map<String, Object> addImageFrame(DispatchContext dctx, Map<String, ? extends Object> context)
             throws IOException {
@@ -83,12 +83,12 @@ public class FrameImage {
         Locale locale = (Locale) context.get("locale");
 
         if (UtilValidate.isEmpty(context.get("frameContentId")) || UtilValidate.isEmpty(context.get("frameDataResourceId"))) {
-            result = ServiceUtil.returnError(UtilProperties.getMessage(resourceError,
+            result = ServiceUtil.returnError(UtilProperties.getMessage(RES_ERROR,
                     "ProductImageFrameContentIdRequired", locale));
             result.putAll(context);
         }
         if (UtilValidate.isEmpty(context.get("imageWidth")) || UtilValidate.isEmpty(context.get("imageHeight"))) {
-            result = ServiceUtil.returnError(UtilProperties.getMessage(resourceError,
+            result = ServiceUtil.returnError(UtilProperties.getMessage(RES_ERROR,
                     "ProductImageWidthAndHeightRequired", locale));
             result.putAll(context);
         }
@@ -101,7 +101,7 @@ public class FrameImage {
             GenericValue contentDataResourceView = EntityQuery.use(delegator).from("ContentDataResourceView").where("contentId", frameContentId, "drDataResourceId", frameDataResourceId).queryOne();
             frameImageName = contentDataResourceView.getString("contentName");
         } catch (GenericEntityException gee) {
-            Debug.logError(gee, module);
+            Debug.logError(gee, MODULE);
             result = ServiceUtil.returnError(gee.getMessage());
             result.putAll(context);
         }
@@ -132,7 +132,7 @@ public class FrameImage {
                     return ServiceUtil.returnError(ServiceUtil.getErrorMessage(contentResult));
                 }
             } catch (GenericServiceException e) {
-                Debug.logError(e, module);
+                Debug.logError(e, MODULE);
                 result =  ServiceUtil.returnError(e.getMessage());
                 result.putAll(context);
             }
@@ -147,7 +147,7 @@ public class FrameImage {
                     return ServiceUtil.returnError(ServiceUtil.getErrorMessage(contentThumbResult));
                 }
             } catch (GenericServiceException e) {
-                Debug.logError(e, module);
+                Debug.logError(e, MODULE);
                 result =  ServiceUtil.returnError(e.getMessage());
                 result.putAll(context);
             }
@@ -187,7 +187,7 @@ public class FrameImage {
                     return ServiceUtil.returnError(ServiceUtil.getErrorMessage(serviceResult));
                 }
             } catch (GenericServiceException e) {
-                Debug.logError(e, module);
+                Debug.logError(e, MODULE);
                 result =  ServiceUtil.returnError(e.getMessage());
                 result.putAll(context);
             }
@@ -205,7 +205,7 @@ public class FrameImage {
                     return ServiceUtil.returnError(ServiceUtil.getErrorMessage(serviceResult));
                 }
             } catch (GenericServiceException e) {
-                Debug.logError(e, module);
+                Debug.logError(e, MODULE);
                 result =  ServiceUtil.returnError(e.getMessage());
                 result.putAll(context);
             }
@@ -219,18 +219,18 @@ public class FrameImage {
                     return ServiceUtil.returnError(ServiceUtil.getErrorMessage(serviceResult));
                 }
             } catch (GenericServiceException e) {
-                Debug.logError(e, module);
+                Debug.logError(e, MODULE);
                 result =  ServiceUtil.returnError(e.getMessage());
                 result.putAll(context);
             }
         }
          else{
-             String errMsg = UtilProperties.getMessage(resourceError, "ProductPleaseSelectImage", locale);
-             Debug.logFatal(errMsg, module);
+             String errMsg = UtilProperties.getMessage(RES_ERROR, "ProductPleaseSelectImage", locale);
+             Debug.logFatal(errMsg, MODULE);
              result =  ServiceUtil.returnError(errMsg);
              result.putAll(context);
         }
-        String successMsg = UtilProperties.getMessage(resource, "ProductFrameImageSuccessfully", locale);
+        String successMsg = UtilProperties.getMessage(RESOURCE, "ProductFrameImageSuccessfully", locale);
         result = ServiceUtil.returnSuccess(successMsg);
         return result;
     }
@@ -321,7 +321,7 @@ public class FrameImage {
             if (ServiceUtil.isError(dataResourceResult)) {
                 String errorMessage = ServiceUtil.getErrorMessage(dataResourceResult);
                 request.setAttribute("_ERROR_MESSAGE_", errorMessage);
-                Debug.logError(errorMessage, module);
+                Debug.logError(errorMessage, MODULE);
                 return "error";
             }
             dataResourceId = dataResourceResult.get("dataResourceId").toString();
@@ -336,7 +336,7 @@ public class FrameImage {
             if (ServiceUtil.isError(contentResult)) {
                 String errorMessage = ServiceUtil.getErrorMessage(contentResult);
                 request.setAttribute("_ERROR_MESSAGE_", errorMessage);
-                Debug.logError(errorMessage, module);
+                Debug.logError(errorMessage, MODULE);
                 return "error";
             }
             contentId = contentResult.get("contentId").toString();
@@ -396,7 +396,7 @@ public class FrameImage {
         if (UtilValidate.isNotEmpty(imageName)) {
             File file = new File(imageServerPath + "/preview/" +"/previewImage.jpg");
             if(!file.delete()) {
-                Debug.logError("File :" + file.getName() + ", couldn't be loaded", module);
+                Debug.logError("File :" + file.getName() + ", couldn't be loaded", MODULE);
             }
             // Image Frame
             BufferedImage bufImg1 = ImageIO.read(FileUtil.createFileWithNormalizedPath(imageServerPath + "/" + productId + "/" + imageName)); // cf. OFBIZ-9973
@@ -460,7 +460,7 @@ public class FrameImage {
         File file = new File(imageServerPath + "/preview/" + "/previewImage.jpg");
         if (file.exists()) {
             if (!file.delete()) {
-                Debug.logError("File :" + file.getName() + ", couldn't be deleted", module);
+                Debug.logError("File :" + file.getName() + ", couldn't be deleted", MODULE);
             }
         }
         return "success";

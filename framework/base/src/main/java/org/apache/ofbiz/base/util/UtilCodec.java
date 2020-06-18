@@ -46,7 +46,7 @@ import org.owasp.html.Sanitizers;
 
 @SuppressWarnings("rawtypes")
 public class UtilCodec {
-    private static final String module = UtilCodec.class.getName();
+    private static final String MODULE = UtilCodec.class.getName();
     private static final HtmlEncoder htmlEncoder = new HtmlEncoder();
     private static final XmlEncoder xmlEncoder = new XmlEncoder();
     private static final StringEncoder stringEncoder = new StringEncoder();
@@ -159,7 +159,7 @@ public class UtilCodec {
                             | InvocationTargetException | NoSuchMethodException | SecurityException
                             | InstantiationException e) {
                         // Just logging the error and falling back to default policy
-                        Debug.logError(e, "Could not find custom permissive sanitizer policy. Using default instead", module);
+                        Debug.logError(e, "Could not find custom permissive sanitizer policy. Using default instead", MODULE);
                     }
 
                     if (policy != null) {
@@ -239,7 +239,7 @@ public class UtilCodec {
             try {
                 return URLEncoder.encode(original, "UTF-8");
             } catch (UnsupportedEncodingException ee) {
-                Debug.logError(ee, module);
+                Debug.logError(ee, MODULE);
                 return null;
             }
         }
@@ -259,10 +259,10 @@ public class UtilCodec {
         @Override
         public String decode(String original) {
             try {
-                canonicalize(original);
+                original = canonicalize(original);
                 return URLDecoder.decode(original, "UTF-8");
             } catch (UnsupportedEncodingException ee) {
-                Debug.logError(ee, module);
+                Debug.logError(ee, MODULE);
                 return null;
             }
         }
@@ -358,17 +358,17 @@ public class UtilCodec {
             if (restrictMultiple || restrictMixed) {
                 throw new IntrusionException("Input validation failure");
             }
-            Debug.logWarning("Multiple (" + foundCount + "x) and mixed encoding (" + mixedCount + "x) detected in " + input, module);
+            Debug.logWarning("Multiple (" + foundCount + "x) and mixed encoding (" + mixedCount + "x) detected in " + input, MODULE);
         } else if (foundCount >= 2) {
             if (restrictMultiple) {
                 throw new IntrusionException("Input validation failure");
             }
-            Debug.logWarning("Multiple (" + foundCount + "x) encoding detected in " + input, module);
+            Debug.logWarning("Multiple (" + foundCount + "x) encoding detected in " + input, MODULE);
         } else if (mixedCount > 1) {
             if (restrictMixed) {
                 throw new IntrusionException("Input validation failure");
             }
-            Debug.logWarning("Mixed encoding (" + mixedCount + "x) detected in " + input, module);
+            Debug.logWarning("Mixed encoding (" + mixedCount + "x) detected in " + input, MODULE);
         }
         return working;
     }
@@ -398,7 +398,7 @@ public class UtilCodec {
         } catch (IntrusionException e) {
             // NOTE: using different log and user targeted error messages to allow the end-user message to be less technical
             Debug.logError("Canonicalization (format consistency, character escaping that is mixed or double, etc) "
-                    + "error for attribute named [" + valueName + "], String [" + value + "]: " + e.toString(), module);
+                    + "error for attribute named [" + valueName + "], String [" + value + "]: " + e.toString(), MODULE);
             String issueMsg = null;
             if (locale.equals(new Locale("test"))) { // labels are not available in testClasses Gradle task
                 issueMsg = "In field [" + valueName + "] found character escaping (mixed or double) "
@@ -481,20 +481,22 @@ public class UtilCodec {
                 | InvocationTargetException | NoSuchMethodException | SecurityException
                 | InstantiationException e) {
             Debug.logError(e, "Could not find custom safe sanitizer policy. Using default instead."
-                    + "Beware: the result is not rightly checked!", module);
+                    + "Beware: the result is not rightly checked!", MODULE);
         }
 
-        String filtered = policy.sanitize(value);
-        if (!value.equals(StringEscapeUtils.unescapeHtml4(filtered))) {
-            String issueMsg = null;
-            if (locale.equals(new Locale("test"))) {
-                issueMsg = "In field [" + valueName + "] by our input policy, your input has not been accepted "
-                        + "for security reason. Please check and modify accordingly, thanks.";
-            } else {
-                issueMsg = UtilProperties.getMessage("SecurityUiLabels","PolicySafe", 
-                        UtilMisc.toMap("valueName", valueName), locale);
+        if (value != null) {
+            String filtered = policy.sanitize(value);
+            if (filtered != null && !value.equals(StringEscapeUtils.unescapeHtml4(filtered))) {
+                String issueMsg = null;
+                if (locale.equals(new Locale("test"))) {
+                    issueMsg = "In field [" + valueName + "] by our input policy, your input has not been accepted "
+                            + "for security reason. Please check and modify accordingly, thanks.";
+                } else {
+                    issueMsg = UtilProperties.getMessage("SecurityUiLabels","PolicySafe", 
+                            UtilMisc.toMap("valueName", valueName), locale);
+                }
+                errorMessageList.add(issueMsg);
             }
-            errorMessageList.add(issueMsg);
         }
         
         return value;

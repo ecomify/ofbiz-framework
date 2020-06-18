@@ -56,8 +56,8 @@ import org.apache.ofbiz.service.ServiceUtil;
  */
 public class ContentServices {
 
-    public static final String module = ContentServices.class.getName();
-    public static final String resource = "ContentUiLabels";
+    private static final String MODULE = ContentServices.class.getName();
+    private static final String RESOURCE = "ContentUiLabels";
 
     /**
      * findRelatedContent Finds the related
@@ -85,7 +85,7 @@ public class ContentServices {
         try {
             contentList = ContentWorker.getAssociatedContent(currentContent, toFrom, assocTypes, contentTypes, fromDate, thruDate);
         } catch (GenericEntityException e) {
-            return ServiceUtil.returnError(UtilProperties.getMessage(resource, "ContentAssocRetrievingError", UtilMisc.toMap("errorString", e.toString()), locale));
+            return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE, "ContentAssocRetrievingError", UtilMisc.toMap("errorString", e.toString()), locale));
         }
 
         if (UtilValidate.isEmpty(targetOperations)) {
@@ -109,7 +109,7 @@ public class ContentServices {
                 }
             } catch (GenericServiceException e) {
                 Debug.logError(e, "Problem checking permissions", "ContentServices");
-                return ServiceUtil.returnError(UtilProperties.getMessage(resource, "ContentPermissionNotGranted", locale));
+                return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE, "ContentPermissionNotGranted", locale));
             }
 
             String permissionStatus = (String) permResults.get("permissionStatus");
@@ -187,8 +187,8 @@ public class ContentServices {
         try {
             content = EntityQuery.use(delegator).from("Content").where("contentId", contentId).queryOne();
         } catch (GenericEntityException e) {
-            Debug.logError(e, "Entity Error:" + e.getMessage(), module);
-            return ServiceUtil.returnError(UtilProperties.getMessage(resource, "ContentNoContentFound", UtilMisc.toMap("contentId", contentId), locale));
+            Debug.logError(e, "Entity Error:" + e.getMessage(), MODULE);
+            return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE, "ContentNoContentFound", UtilMisc.toMap("contentId", contentId), locale));
         }
 
         String fromDateStr = (String) context.get("fromDateStr");
@@ -266,12 +266,12 @@ public class ContentServices {
         try {
             contentAssoc = EntityQuery.use(delegator).from("ContentAssoc").where(pk).queryOne();
         } catch (GenericEntityException e) {
-            Debug.logError(e, "Entity Error:" + e.getMessage(), module);
-            return ServiceUtil.returnError(UtilProperties.getMessage(resource, "ContentAssocRetrievingError", UtilMisc.toMap("errorString", e.getMessage()), locale));
+            Debug.logError(e, "Entity Error:" + e.getMessage(), MODULE);
+            return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE, "ContentAssocRetrievingError", UtilMisc.toMap("errorString", e.getMessage()), locale));
         }
 
         if (contentAssoc == null) {
-            return ServiceUtil.returnError(UtilProperties.getMessage(resource, "ContentAssocDeactivatingError", locale));
+            return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE, "ContentAssocDeactivatingError", locale));
         }
 
         GenericValue userLogin = (GenericValue) context.get("userLogin");
@@ -299,7 +299,7 @@ public class ContentServices {
             }
         } catch (GenericServiceException e) {
             Debug.logError(e, "Problem checking permissions", "ContentServices");
-            return ServiceUtil.returnError(UtilProperties.getMessage(resource, "ContentPermissionNotGranted", locale));
+            return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE, "ContentPermissionNotGranted", locale));
         }
         permissionStatus = (String) permResults.get("permissionStatus");
 
@@ -338,7 +338,7 @@ public class ContentServices {
             if (fromDate != null) {
                 activeAssoc = EntityQuery.use(delegator).from("ContentAssoc").where("contentId", activeContentId, "contentIdTo", contentIdTo, "fromDate", fromDate, "contentAssocTypeId", contentAssocTypeId).queryOne();
                 if (activeAssoc == null) {
-                    return ServiceUtil.returnError(UtilProperties.getMessage(resource, "ContentAssocNotFound", UtilMisc.toMap("activeContentId", activeContentId, "contentIdTo", contentIdTo, "contentAssocTypeId", contentAssocTypeId, "fromDate", fromDate), locale));
+                    return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE, "ContentAssocNotFound", UtilMisc.toMap("activeContentId", activeContentId, "contentIdTo", contentIdTo, "contentAssocTypeId", contentAssocTypeId, "fromDate", fromDate), locale));
                 }
                 sequenceNum = (String) activeAssoc.get("sequenceNum");
             }
@@ -416,10 +416,10 @@ public class ContentServices {
             out.write(outWriter.toString());
             results.put("textData", outWriter.toString());
         } catch (GeneralException e) {
-            Debug.logError(e, "Error rendering sub-content text", module);
+            Debug.logError(e, "Error rendering sub-content text", MODULE);
             return ServiceUtil.returnError(e.toString());
         } catch (IOException e) {
-            Debug.logError(e, "Error rendering sub-content text", module);
+            Debug.logError(e, "Error rendering sub-content text", MODULE);
             return ServiceUtil.returnError(e.toString());
         }
 
@@ -465,10 +465,10 @@ public class ContentServices {
             if (out != null) out.write(outWriter.toString());
             results.put("textData", outWriter.toString());
         } catch (GeneralException e) {
-            Debug.logError(e, "Error rendering sub-content text", module);
+            Debug.logError(e, "Error rendering sub-content text", MODULE);
             return ServiceUtil.returnError(e.toString());
         } catch (IOException e) {
-            Debug.logError(e, "Error rendering sub-content text", module);
+            Debug.logError(e, "Error rendering sub-content text", MODULE);
             return ServiceUtil.returnError(e.toString());
         }
         return results;
@@ -486,8 +486,8 @@ public class ContentServices {
         String privilegeEnumId = (String) context.get("privilegeEnumId");
         GenericValue userLogin = (GenericValue) context.get("userLogin");
 
-        if (Debug.infoOn()) Debug.logInfo("in publishContent, statusId:" + statusId, module);
-        if (Debug.infoOn()) Debug.logInfo("in publishContent, userLogin:" + userLogin, module);
+        if (Debug.infoOn()) Debug.logInfo("in publishContent, statusId:" + statusId, MODULE);
+        if (Debug.infoOn()) Debug.logInfo("in publishContent, userLogin:" + userLogin, MODULE);
 
         Map<String, Object> mapIn = new HashMap<>();
         mapIn.put("contentId", contentId);
@@ -500,13 +500,13 @@ public class ContentServices {
             GenericValue contentAssocViewFrom = ContentWorker.getContentAssocViewFrom(delegator, contentIdTo, contentId, contentAssocTypeId, statusId, privilegeEnumId);
             if (contentAssocViewFrom != null)
                 isPublished = true;
-            if (Debug.infoOn()) Debug.logInfo("in publishContent, contentId:" + contentId + " contentIdTo:" + contentIdTo + " contentAssocTypeId:" + contentAssocTypeId + " publish:" + publish + " isPublished:" + isPublished, module);
+            if (Debug.infoOn()) Debug.logInfo("in publishContent, contentId:" + contentId + " contentIdTo:" + contentIdTo + " contentAssocTypeId:" + contentAssocTypeId + " publish:" + publish + " isPublished:" + isPublished, MODULE);
             if (UtilValidate.isNotEmpty(publish) && "Y".equalsIgnoreCase(publish)) {
                 GenericValue content = EntityQuery.use(delegator).from("Content").where("contentId", contentId).queryOne();
                 String contentStatusId = (String) content.get("statusId");
                 String contentPrivilegeEnumId = (String) content.get("privilegeEnumId");
 
-                if (Debug.infoOn()) Debug.logInfo("in publishContent, statusId:" + statusId + " contentStatusId:" + contentStatusId + " privilegeEnumId:" + privilegeEnumId + " contentPrivilegeEnumId:" + contentPrivilegeEnumId, module);
+                if (Debug.infoOn()) Debug.logInfo("in publishContent, statusId:" + statusId + " contentStatusId:" + contentStatusId + " privilegeEnumId:" + privilegeEnumId + " contentPrivilegeEnumId:" + contentPrivilegeEnumId, MODULE);
                 // Don't do anything if link was already there
                 if (!isPublished) {
                     content.put("privilegeEnumId", privilegeEnumId);
@@ -550,7 +550,7 @@ public class ContentServices {
             content.put("statusId", "CTNT_PUBLISHED");
             content.store();
         } catch (GenericEntityException e) {
-            Debug.logError(e.getMessage(), module);
+            Debug.logError(e.getMessage(), MODULE);
             return ServiceUtil.returnError(e.getMessage());
         }
         return result;

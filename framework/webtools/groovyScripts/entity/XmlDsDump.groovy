@@ -86,7 +86,7 @@ if ("Product1".equals(preConfiguredSetName)) {
     passedEntityNames.add("ProductFeatureGroup")
     passedEntityNames.add("ProductPriceChange")
     passedEntityNames.add("ProductPromoAction")
-    passedEntityNames.add("ProductPromoCodeEmail")
+    passedEntityNames.add("ProdPromoCodeContactMech")
     passedEntityNames.add("ProductPromoCodeParty")
     passedEntityNames.add("ProductPromoCond")
 } else if ("Product4".equals(preConfiguredSetName)) {
@@ -128,7 +128,7 @@ if ("Product1".equals(preConfiguredSetName)) {
     passedEntityNames.add("ProductPromoProduct")
     passedEntityNames.add("ProductPromoRule")
     passedEntityNames.add("ProductPromoAction")
-    passedEntityNames.add("ProductPromoCodeEmail")
+    passedEntityNames.add("ProdPromoCodeContactMech")
     passedEntityNames.add("ProductPromoCodeParty")
     passedEntityNames.add("ProductPromoCond")
 
@@ -225,7 +225,7 @@ if (passedEntityNames) {
                     TransactionUtil.commit(beganTransaction)
                 } catch (Exception e) {
                     errMsg = "Error reading data for XML export:"
-                    Debug.logError(e, errMsg, "JSP")
+                    logError(e, errMsg)
                     TransactionUtil.rollback(beganTransaction, errMsg, e)
                 }
             }

@@ -48,9 +48,9 @@ import org.apache.ofbiz.service.ServiceUtil;
  * This class handles any data conversion needed.</p>
  */
 public class PreferenceServices {
-    public static final String module = PreferenceServices.class.getName();
+    private static final String MODULE = PreferenceServices.class.getName();
 
-    public static final String resource = "PrefErrorUiLabels";
+    private static final String RESOURCE = "PrefErrorUiLabels";
 
     /**
      * Retrieves a single user preference from persistent storage. Call with
@@ -64,13 +64,13 @@ public class PreferenceServices {
     public static Map<String, Object> getUserPreference(DispatchContext ctx, Map<String, ?> context) {
         Locale locale = (Locale) context.get("locale");
         if (!PreferenceWorker.isValidGetId(ctx, context)) {
-            return ServiceUtil.returnError(UtilProperties.getMessage(resource, "getPreference.permissionError", locale));
+            return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE, "getPreference.permissionError", locale));
         }
         Delegator delegator = ctx.getDelegator();
 
         String userPrefTypeId = (String) context.get("userPrefTypeId");
         if (UtilValidate.isEmpty(userPrefTypeId)) {
-            return ServiceUtil.returnError(UtilProperties.getMessage(resource, "getPreference.invalidArgument", locale));
+            return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE, "getPreference.invalidArgument", locale));
         }
         String userLoginId = PreferenceWorker.getUserLoginId(context, true);
         Map<String, String> fieldMap = UtilMisc.toMap("userLoginId", userLoginId, "userPrefTypeId", userPrefTypeId);
@@ -86,8 +86,8 @@ public class PreferenceServices {
                 userPrefMap = PreferenceWorker.createUserPrefMap(preference);
             }
         } catch (GeneralException e) {
-            Debug.logWarning(e.getMessage(), module);
-            return ServiceUtil.returnError(UtilProperties.getMessage(resource, "getPreference.readFailure", new Object[] { e.getMessage() }, locale));
+            Debug.logWarning(e.getMessage(), MODULE);
+            return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE, "getPreference.readFailure", new Object[] { e.getMessage() }, locale));
         }
 
         Map<String, Object> result = ServiceUtil.returnSuccess();
@@ -114,13 +114,13 @@ public class PreferenceServices {
     public static Map<String, Object> getUserPreferenceGroup(DispatchContext ctx, Map<String, ?> context) {
         Locale locale = (Locale) context.get("locale");
         if (!PreferenceWorker.isValidGetId(ctx, context)) {
-            return ServiceUtil.returnError(UtilProperties.getMessage(resource, "getPreference.permissionError", locale));
+            return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE, "getPreference.permissionError", locale));
         }
         Delegator delegator = ctx.getDelegator();
 
         String userPrefGroupTypeId = (String) context.get("userPrefGroupTypeId");
         if (UtilValidate.isEmpty(userPrefGroupTypeId)) {
-            return ServiceUtil.returnError(UtilProperties.getMessage(resource, "getPreference.invalidArgument", locale));
+            return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE, "getPreference.invalidArgument", locale));
         }
         String userLoginId = PreferenceWorker.getUserLoginId(context, false);
 
@@ -133,8 +133,8 @@ public class PreferenceServices {
                 userPrefMap.putAll(PreferenceWorker.createUserPrefMap(EntityQuery.use(delegator).from("UserPreference").where(fieldMap).cache(true).queryList()));
             }
         } catch (GeneralException e) {
-            Debug.logWarning(e.getMessage(), module);
-            return ServiceUtil.returnError(UtilProperties.getMessage(resource, "getPreference.readFailure", new Object[] { e.getMessage() }, locale));
+            Debug.logWarning(e.getMessage(), MODULE);
+            return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE, "getPreference.readFailure", new Object[] { e.getMessage() }, locale));
         }
         // for the 'DEFAULT' values find the related values in general properties and if found use those.
         Properties generalProperties = UtilProperties.getProperties("general");
@@ -168,7 +168,7 @@ public class PreferenceServices {
         String userPrefTypeId = (String) context.get("userPrefTypeId");
         Object userPrefValue = context.get("userPrefValue");
         if (UtilValidate.isEmpty(userLoginId) || UtilValidate.isEmpty(userPrefTypeId) || userPrefValue == null) {
-            return ServiceUtil.returnError(UtilProperties.getMessage(resource, "setPreference.invalidArgument", locale));
+            return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE, "setPreference.invalidArgument", locale));
         }
         String userPrefGroupTypeId = (String) context.get("userPrefGroupTypeId");
         String userPrefDataType = (String) context.get("userPrefDataType");
@@ -180,8 +180,8 @@ public class PreferenceServices {
             GenericValue rec = delegator.makeValidValue("UserPreference", PreferenceWorker.toFieldMap(userLoginId, userPrefTypeId, userPrefGroupTypeId, userPrefValue));
             delegator.createOrStore(rec);
         } catch (GeneralException e) {
-            Debug.logWarning(e.getMessage(), module);
-            return ServiceUtil.returnError(UtilProperties.getMessage(resource, "setPreference.writeFailure", new Object[] { e.getMessage() }, locale));
+            Debug.logWarning(e.getMessage(), MODULE);
+            return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE, "setPreference.writeFailure", new Object[] { e.getMessage() }, locale));
         }
 
         return ServiceUtil.returnSuccess();
@@ -194,7 +194,7 @@ public class PreferenceServices {
         String userLoginId = PreferenceWorker.getUserLoginId(context, false);
         String userPrefTypeId = (String) context.get("userPrefTypeId");
         if (UtilValidate.isEmpty(userLoginId) || UtilValidate.isEmpty(userPrefTypeId)) {
-            return ServiceUtil.returnError(UtilProperties.getMessage(resource, "setPreference.invalidArgument", locale));
+            return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE, "setPreference.invalidArgument", locale));
         }
 
         try {
@@ -206,8 +206,8 @@ public class PreferenceServices {
                 rec.remove();
             }
         } catch (GenericEntityException e) {
-            Debug.logWarning(e.getMessage(), module);
-            return ServiceUtil.returnError(UtilProperties.getMessage(resource, "setPreference.writeFailure", new Object[] { e.getMessage() }, locale));
+            Debug.logWarning(e.getMessage(), MODULE);
+            return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE, "setPreference.writeFailure", new Object[] { e.getMessage() }, locale));
         }
 
         return ServiceUtil.returnSuccess();
@@ -230,7 +230,7 @@ public class PreferenceServices {
         Map<String, Object> userPrefMap = checkMap(context.get("userPrefMap"), String.class, Object.class);
         String userPrefGroupTypeId = (String) context.get("userPrefGroupTypeId");
         if (UtilValidate.isEmpty(userLoginId) || UtilValidate.isEmpty(userPrefGroupTypeId) || userPrefMap == null) {
-            return ServiceUtil.returnError(UtilProperties.getMessage(resource, "setPreference.invalidArgument", locale));
+            return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE, "setPreference.invalidArgument", locale));
         }
 
         try {
@@ -239,8 +239,8 @@ public class PreferenceServices {
                 delegator.createOrStore(rec);
             }
         } catch (GeneralException e) {
-            Debug.logWarning(e.getMessage(), module);
-            return ServiceUtil.returnError(UtilProperties.getMessage(resource, "setPreference.writeFailure", new Object[] { e.getMessage() }, locale));
+            Debug.logWarning(e.getMessage(), MODULE);
+            return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE, "setPreference.writeFailure", new Object[] { e.getMessage() }, locale));
         }
 
         return ServiceUtil.returnSuccess();
@@ -263,7 +263,7 @@ public class PreferenceServices {
         String fromUserLoginId = (String) context.get("fromUserLoginId");
         String userPrefGroupTypeId = (String) context.get("userPrefGroupTypeId");
         if (UtilValidate.isEmpty(userLoginId) || UtilValidate.isEmpty(userPrefGroupTypeId) || UtilValidate.isEmpty(fromUserLoginId)) {
-            return ServiceUtil.returnError(UtilProperties.getMessage(resource, "copyPreference.invalidArgument", locale));
+            return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE, "copyPreference.invalidArgument", locale));
         }
 
         try {
@@ -278,8 +278,8 @@ public class PreferenceServices {
                 delegator.storeAll(resultList);
             }
         } catch (GenericEntityException e) {
-            Debug.logWarning(e.getMessage(), module);
-            return ServiceUtil.returnError(UtilProperties.getMessage(resource, "copyPreference.writeFailure", new Object[] { e.getMessage() }, locale));
+            Debug.logWarning(e.getMessage(), MODULE);
+            return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE, "copyPreference.writeFailure", new Object[] { e.getMessage() }, locale));
         }
 
         return ServiceUtil.returnSuccess();

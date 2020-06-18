@@ -17,6 +17,8 @@ specific language governing permissions and limitations
 under the License.
 -->
 
+<script src="/common/js/jquery/plugins/jsTree/jquery.jstree.js" type="application/javascript" data-import="head"></script>
+
 <script type="application/javascript">
 <#-- some labels are not unescaped in the JSON object so we have to do this manualy -->
 function unescapeHtmlText(text) {
@@ -65,7 +67,7 @@ var rawdata = [
             "plugins" : [ "themes", "json_data","ui" ,"cookies", "types"],
             "json_data" : {
                 "data" : rawdata,
-                "ajax" : { "url" : "<@ofbizUrl>getChild</@ofbizUrl>",
+                "ajax" : { "url" : "getChild",
                            "type" : "POST",
                            "data" : function (n) {
                                         return {

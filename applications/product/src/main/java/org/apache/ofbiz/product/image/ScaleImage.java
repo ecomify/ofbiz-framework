@@ -50,8 +50,8 @@ import org.jdom.JDOMException;
  */
 public class ScaleImage {
 
-    public static final String module = ScaleImage.class.getName();
-    public static final String resource = "ProductErrorUiLabels";
+    private static final String MODULE = ScaleImage.class.getName();
+    private static final String RESOURCE = "ProductErrorUiLabels";
     /* public so that other code can easily use the imageUrlMap returned by scaleImageInAllSize */
     public static final List<String> sizeTypeList = UtilMisc.toList("small", "medium", "large", "detail");
 
@@ -97,8 +97,8 @@ public class ScaleImage {
         if (resultXMLMap.containsKey("responseMessage") && "success".equals(resultXMLMap.get("responseMessage"))) {
             imgPropertyMap.putAll(UtilGenerics.<Map<String, Map<String, String>>>cast(resultXMLMap.get("xml")));
         } else {
-            String errMsg = UtilProperties.getMessage(resource, "ScaleImage.unable_to_parse", locale) + " : ImageProperties.xml";
-            Debug.logError(errMsg, module);
+            String errMsg = UtilProperties.getMessage(RESOURCE, "ScaleImage.unable_to_parse", locale) + " : ImageProperties.xml";
+            Debug.logError(errMsg, MODULE);
             result.put(ModelService.ERROR_MESSAGE, errMsg);
             return result;
         }
@@ -135,7 +135,7 @@ public class ScaleImage {
             }
             fileLocation = filenameExpander.expandString(UtilMisc.toMap("location", "products", "id", id, "viewtype", viewType, "sizetype", "original"));
         } else {
-            return ServiceUtil.returnError(UtilProperties.getMessage(resource, "ProductImageViewType", UtilMisc.toMap("viewType", viewType), locale));
+            return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE, "ProductImageViewType", UtilMisc.toMap("viewType", viewType), locale));
         }
 
         /* get original BUFFERED IMAGE */
@@ -148,8 +148,8 @@ public class ScaleImage {
             imgHeight = bufImg.getHeight();
             imgWidth = bufImg.getWidth();
             if (imgHeight == 0.0 || imgWidth == 0.0) {
-                String errMsg = UtilProperties.getMessage(resource, "ScaleImage.one_current_image_dimension_is_null", locale) + " : imgHeight = " + imgHeight + " ; imgWidth = " + imgWidth;
-                Debug.logError(errMsg, module);
+                String errMsg = UtilProperties.getMessage(RESOURCE, "ScaleImage.one_current_image_dimension_is_null", locale) + " : imgHeight = " + imgHeight + " ; imgWidth = " + imgWidth;
+                Debug.logError(errMsg, MODULE);
                 result.put(ModelService.ERROR_MESSAGE, errMsg);
                 return result;
             }
@@ -185,8 +185,8 @@ public class ScaleImage {
                         if (!targetDir.exists()) {
                             boolean created = targetDir.mkdirs();
                             if (!created) {
-                                String errMsg = UtilProperties.getMessage(resource, "ScaleImage.unable_to_create_target_directory", locale) + " - " + targetDirectory;
-                                Debug.logFatal(errMsg, module);
+                                String errMsg = UtilProperties.getMessage(RESOURCE, "ScaleImage.unable_to_create_target_directory", locale) + " - " + targetDirectory;
+                                Debug.logFatal(errMsg, MODULE);
                                 return ServiceUtil.returnError(errMsg);
                             }
                         // Delete existing image files
@@ -197,29 +197,29 @@ public class ScaleImage {
                                 for (File file : files) {
                                     if (file.isFile() && file.getName().startsWith(id)) {
                                         if (!file.delete()) {
-                                            Debug.logError("File :" + file.getName() + ", couldn't be deleted", module);
+                                            Debug.logError("File :" + file.getName() + ", couldn't be deleted", MODULE);
                                         }
                                     }
                                 }
                             } catch (SecurityException e) {
-                                Debug.logError(e,module);
+                                Debug.logError(e,MODULE);
                             }
                         }
                     } catch (NullPointerException e) {
-                        Debug.logError(e,module);
+                        Debug.logError(e,MODULE);
                     }
 
                     // write new image
                     try {
                         ImageIO.write(bufNewImg, imgExtension, new File(imageServerPath + "/" + newFileLocation + "." + imgExtension));
                     } catch (IllegalArgumentException e) {
-                        String errMsg = UtilProperties.getMessage(resource, "ScaleImage.one_parameter_is_null", locale) + e.toString();
-                        Debug.logError(errMsg, module);
+                        String errMsg = UtilProperties.getMessage(RESOURCE, "ScaleImage.one_parameter_is_null", locale) + e.toString();
+                        Debug.logError(errMsg, MODULE);
                         result.put(ModelService.ERROR_MESSAGE, errMsg);
                         return result;
                     } catch (IOException e) {
-                        String errMsg = UtilProperties.getMessage(resource, "ScaleImage.error_occurs_during_writing", locale) + e.toString();
-                        Debug.logError(errMsg, module);
+                        String errMsg = UtilProperties.getMessage(RESOURCE, "ScaleImage.error_occurs_during_writing", locale) + e.toString();
+                        Debug.logError(errMsg, MODULE);
                         result.put(ModelService.ERROR_MESSAGE, errMsg);
                         return result;
                     }
@@ -239,8 +239,8 @@ public class ScaleImage {
             return result;
 
         } else {
-            String errMsg = UtilProperties.getMessage(resource, "ScaleImage.unable_to_scale_original_image", locale) + " : " + filenameToUse;
-            Debug.logError(errMsg, module);
+            String errMsg = UtilProperties.getMessage(RESOURCE, "ScaleImage.unable_to_scale_original_image", locale) + " : " + filenameToUse;
+            Debug.logError(errMsg, MODULE);
             result.put(ModelService.ERROR_MESSAGE, errMsg);
             return ServiceUtil.returnError(errMsg);
         }
@@ -275,8 +275,8 @@ public class ScaleImage {
         if (resultXMLMap.containsKey("responseMessage") && "success".equals(resultXMLMap.get("responseMessage"))) {
             imgPropertyMap.putAll(UtilGenerics.<Map<String, Map<String, String>>>cast(resultXMLMap.get("xml")));
         } else {
-            String errMsg = UtilProperties.getMessage(resource, "ScaleImage.unable_to_parse", locale) + " : ImageProperties.xml";
-            Debug.logError(errMsg, module);
+            String errMsg = UtilProperties.getMessage(RESOURCE, "ScaleImage.unable_to_parse", locale) + " : ImageProperties.xml";
+            Debug.logError(errMsg, MODULE);
             result.put(ModelService.ERROR_MESSAGE, errMsg);
             return result;
         }
@@ -305,7 +305,7 @@ public class ScaleImage {
             type = "additional";
             id = imgName + "_View_" + viewNumber;
         } else {
-            return ServiceUtil.returnError(UtilProperties.getMessage(resource,
+            return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE,
                     "ProductImageViewType", UtilMisc.toMap("viewType", type), locale));
         }
         FlexibleStringExpander mainFilenameExpander = FlexibleStringExpander.getInstance(mainFilenameFormat);
@@ -329,8 +329,8 @@ public class ScaleImage {
             imgHeight = bufImg.getHeight();
             imgWidth = bufImg.getWidth();
             if (imgHeight == 0.0 || imgWidth == 0.0) {
-                String errMsg = UtilProperties.getMessage(resource, "ScaleImage.one_current_image_dimension_is_null", locale) + " : imgHeight = " + imgHeight + " ; imgWidth = " + imgWidth;
-                Debug.logError(errMsg, module);
+                String errMsg = UtilProperties.getMessage(RESOURCE, "ScaleImage.one_current_image_dimension_is_null", locale) + " : imgHeight = " + imgHeight + " ; imgWidth = " + imgWidth;
+                Debug.logError(errMsg, MODULE);
                 result.put(ModelService.ERROR_MESSAGE, errMsg);
                 return result;
             }
@@ -366,8 +366,8 @@ public class ScaleImage {
                     if (!targetDir.exists()) {
                         boolean created = targetDir.mkdirs();
                         if (!created) {
-                            String errMsg = UtilProperties.getMessage(resource, "ScaleImage.unable_to_create_target_directory", locale) + " - " + targetDirectory;
-                            Debug.logFatal(errMsg, module);
+                            String errMsg = UtilProperties.getMessage(RESOURCE, "ScaleImage.unable_to_create_target_directory", locale) + " - " + targetDirectory;
+                            Debug.logFatal(errMsg, MODULE);
                             return ServiceUtil.returnError(errMsg);
                         }
                     }
@@ -376,13 +376,13 @@ public class ScaleImage {
                     try {
                         ImageIO.write(bufNewImg, imgExtension, new File(imageServerPath + "/" + newFilePathPrefix + filenameToUse));
                     } catch (IllegalArgumentException e) {
-                        String errMsg = UtilProperties.getMessage(resource, "ScaleImage.one_parameter_is_null", locale) + e.toString();
-                        Debug.logError(errMsg, module);
+                        String errMsg = UtilProperties.getMessage(RESOURCE, "ScaleImage.one_parameter_is_null", locale) + e.toString();
+                        Debug.logError(errMsg, MODULE);
                         result.put(ModelService.ERROR_MESSAGE, errMsg);
                         return result;
                     } catch (IOException e) {
-                        String errMsg = UtilProperties.getMessage(resource, "ScaleImage.error_occurs_during_writing", locale) + e.toString();
-                        Debug.logError(errMsg, module);
+                        String errMsg = UtilProperties.getMessage(RESOURCE, "ScaleImage.error_occurs_during_writing", locale) + e.toString();
+                        Debug.logError(errMsg, MODULE);
                         result.put(ModelService.ERROR_MESSAGE, errMsg);
                         return result;
                     }
@@ -400,8 +400,8 @@ public class ScaleImage {
             return result;
 
         }
-        String errMsg = UtilProperties.getMessage(resource, "ScaleImage.unable_to_scale_original_image", locale) + " : " + filenameToUse;
-        Debug.logError(errMsg, module);
+        String errMsg = UtilProperties.getMessage(RESOURCE, "ScaleImage.unable_to_scale_original_image", locale) + " : " + filenameToUse;
+        Debug.logError(errMsg, MODULE);
         result.put(ModelService.ERROR_MESSAGE, errMsg);
         return ServiceUtil.returnError(errMsg);
     }

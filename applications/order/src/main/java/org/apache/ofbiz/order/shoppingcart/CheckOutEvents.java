@@ -58,8 +58,8 @@ import org.apache.ofbiz.webapp.website.WebSiteWorker;
  */
 public class CheckOutEvents {
 
-    public static final String module = CheckOutEvents.class.getName();
-    public static final String resource_error = "OrderErrorUiLabels";
+    private static final String MODULE = CheckOutEvents.class.getName();
+    private static final String RES_ERROR = "OrderErrorUiLabels";
 
     public static String cartNotEmpty(HttpServletRequest request, HttpServletResponse response) {
         ShoppingCart cart = ShoppingCartEvents.getCartObject(request);
@@ -67,7 +67,7 @@ public class CheckOutEvents {
         if (UtilValidate.isNotEmpty(cart.items())) {
             return "success";
         }
-        String errMsg = UtilProperties.getMessage(resource_error, "checkevents.cart_empty", cart.getLocale());
+        String errMsg = UtilProperties.getMessage(RES_ERROR, "checkevents.cart_empty", cart.getLocale());
         request.setAttribute("_ERROR_MESSAGE_", errMsg);
         return "error";
     }
@@ -80,7 +80,7 @@ public class CheckOutEvents {
         HttpSession session = request.getSession();
 
         String curPage = request.getParameter("checkoutpage");
-        Debug.logInfo("CheckoutPage: " + curPage, module);
+        Debug.logInfo("CheckoutPage: " + curPage, MODULE);
 
         ShoppingCart cart = (ShoppingCart) session.getAttribute("shoppingCart");
         LocalDispatcher dispatcher = (LocalDispatcher) request.getAttribute("dispatcher");
@@ -94,7 +94,7 @@ public class CheckOutEvents {
             try {
                 cart.createDropShipGroups(dispatcher);
             } catch (CartItemModifyException e) {
-                Debug.logError(e, module);
+                Debug.logError(e, MODULE);
             }
         } else if ("shippingoptions".equals(curPage)) {
             //remove empty ship group
@@ -132,7 +132,7 @@ public class CheckOutEvents {
                     if (ServiceUtil.isError(createCustomerTaxAuthInfoResult)) {
                         String errorMessage = ServiceUtil.getErrorMessage(createCustomerTaxAuthInfoResult);
                         request.setAttribute("_ERROR_MESSAGE_", errorMessage);
-                        Debug.logError(errorMessage, module);
+                        Debug.logError(errorMessage, MODULE);
                         return "error";
                     }
                 } catch (GenericServiceException e) {
@@ -179,7 +179,7 @@ public class CheckOutEvents {
                 BigDecimal billingAccountAmt = null;
                 billingAccountAmt = determineBillingAccountAmount(billingAccountId, request.getParameter("billingAccountAmount"), dispatcher);
                 if ((billingAccountId != null) && !"_NA_".equals(billingAccountId) && (billingAccountAmt == null)) {
-                    request.setAttribute("_ERROR_MESSAGE_", UtilProperties.getMessage(resource_error,"OrderInvalidAmountSetForBillingAccount", UtilMisc.toMap("billingAccountId",billingAccountId), cart.getLocale()));
+                    request.setAttribute("_ERROR_MESSAGE_", UtilProperties.getMessage(RES_ERROR,"OrderInvalidAmountSetForBillingAccount", UtilMisc.toMap("billingAccountId",billingAccountId), cart.getLocale()));
                     return "error";
                 }
                 selectedPaymentMethods.put("EXT_BILLACT", UtilMisc.<String, Object>toMap("amount", billingAccountAmt, "securityCode", null));
@@ -317,14 +317,18 @@ public class CheckOutEvents {
                 if (UtilValidate.isNotEmpty(securityCode)) {
                     paymentMethodInfo.put("securityCode", securityCode);
                 }
+                String paymentRefNumber = request.getParameter("paymentRefNumber");
+                if (UtilValidate.isNotEmpty(paymentRefNumber)) {
+                    paymentMethodInfo.put("refNum", paymentRefNumber);
+                }
                 String amountStr = request.getParameter("amount_" + paymentMethod);
                 BigDecimal amount = null;
                 if (UtilValidate.isNotEmpty(amountStr) && !"REMAINING".equals(amountStr)) {
                     try {
                         amount = new BigDecimal(amountStr);
                     } catch (NumberFormatException e) {
-                        Debug.logError(e, module);
-                        errMsg = UtilProperties.getMessage(resource_error, "checkevents.invalid_amount_set_for_payment_method", (cart != null ? cart.getLocale() : Locale.getDefault()));
+                        Debug.logError(e, MODULE);
+                        errMsg = UtilProperties.getMessage(RES_ERROR, "checkevents.invalid_amount_set_for_payment_method", (cart != null ? cart.getLocale() : Locale.getDefault()));
                         request.setAttribute("_ERROR_MESSAGE_", errMsg);
                         return null;
                     }
@@ -333,7 +337,7 @@ public class CheckOutEvents {
                 selectedPaymentMethods.put(paymentMethod, paymentMethodInfo);
             }
         }
-        Debug.logInfo("Selected Payment Methods : " + selectedPaymentMethods, module);
+        Debug.logInfo("Selected Payment Methods : " + selectedPaymentMethods, MODULE);
         return selectedPaymentMethods;
     }
 
@@ -354,7 +358,7 @@ public class CheckOutEvents {
             BigDecimal billingAccountAmt = null;
             billingAccountAmt = determineBillingAccountAmount(billingAccountId, request.getParameter("billingAccountAmount"), dispatcher);
             if (billingAccountAmt == null) {
-                request.setAttribute("_ERROR_MESSAGE_", UtilProperties.getMessage(resource_error,"OrderInvalidAmountSetForBillingAccount", UtilMisc.toMap("billingAccountId",billingAccountId), (cart != null ? cart.getLocale() : Locale.getDefault())));
+                request.setAttribute("_ERROR_MESSAGE_", UtilProperties.getMessage(RES_ERROR,"OrderInvalidAmountSetForBillingAccount", UtilMisc.toMap("billingAccountId",billingAccountId), (cart != null ? cart.getLocale() : Locale.getDefault())));
                 return "error";
             }
             selectedPaymentMethods.put("EXT_BILLACT", UtilMisc.<String, Object>toMap("amount", billingAccountAmt, "securityCode", null));
@@ -394,7 +398,7 @@ public class CheckOutEvents {
                 if (ServiceUtil.isError(createCustomerTaxAuthInfoResult)) {
                     String errorMessage = ServiceUtil.getErrorMessage(createCustomerTaxAuthInfoResult);
                     request.setAttribute("_ERROR_MESSAGE_", errorMessage);
-                    Debug.logError(errorMessage, module);
+                    Debug.logError(errorMessage, MODULE);
                     return "error";
                 }
             } catch (GenericServiceException e) {
@@ -437,14 +441,14 @@ public class CheckOutEvents {
         if (cart.isSalesOrder()) {
             List<GenericValue> paymentMethodTypes = cart.getPaymentMethodTypes();
             if (UtilValidate.isEmpty(paymentMethodTypes)) {
-                String errMsg = UtilProperties.getMessage(resource_error, "OrderNoPaymentMethodTypeSelected",
+                String errMsg = UtilProperties.getMessage(RES_ERROR, "OrderNoPaymentMethodTypeSelected",
                         cart.getLocale());
                 request.setAttribute("_ERROR_MESSAGE_",errMsg);
                 return "error";
             }
             String shipmentMethod = cart.getShipmentMethodTypeId();
             if (UtilValidate.isEmpty(shipmentMethod)) {
-                String errMsg = UtilProperties.getMessage(resource_error, "OrderNoShipmentMethodSelected",
+                String errMsg = UtilProperties.getMessage(RES_ERROR, "OrderNoShipmentMethodSelected",
                         cart.getLocale());
                 request.setAttribute("_ERROR_MESSAGE_",errMsg);
                 return "error";
@@ -543,13 +547,13 @@ public class CheckOutEvents {
         GenericValue productStore = null;
         try {
             productStore = EntityQuery.use(delegator).from("ProductStore").where("productStoreId", cart.getProductStoreId()).cache().queryOne();
-            Debug.logInfo("checkShipmentNeeded: reqShipAddrForDigItems=" + productStore.getString("reqShipAddrForDigItems"), module);
+            Debug.logInfo("checkShipmentNeeded: reqShipAddrForDigItems=" + productStore.getString("reqShipAddrForDigItems"), MODULE);
         } catch (GenericEntityException e) {
-            Debug.logError(e, "Error getting ProductStore: " + e.toString(), module);
+            Debug.logError(e, "Error getting ProductStore: " + e.toString(), MODULE);
         }
 
         if (productStore != null && "N".equals(productStore.getString("reqShipAddrForDigItems"))) {
-            Debug.logInfo("checkShipmentNeeded: cart.containOnlyDigitalGoods()=" + cart.containOnlyDigitalGoods(), module);
+            Debug.logInfo("checkShipmentNeeded: cart.containOnlyDigitalGoods()=" + cart.containOnlyDigitalGoods(), MODULE);
             // don't require shipping for all digital items
             if (cart.containOnlyDigitalGoods()) {
                 return "shipmentNotNeeded";
@@ -568,11 +572,11 @@ public class CheckOutEvents {
                 failureCode = 1;
             }
         } catch (GeneralException e) {
-            Debug.logError(e, module);
+            Debug.logError(e, MODULE);
             ServiceUtil.setMessages(request, e.getMessage(), null, null);
             failureCode = 2;
         } catch (GeneralRuntimeException e) {
-            Debug.logError(e, module);
+            Debug.logError(e, MODULE);
             ServiceUtil.setMessages(request, e.getMessage(), null, null);
         }
 
@@ -693,7 +697,7 @@ public class CheckOutEvents {
                     }
                 }
             } catch (GenericEntityException e) {
-                Debug.logError(e, module);
+                Debug.logError(e, MODULE);
             }
         }
         return "success";
@@ -739,7 +743,7 @@ public class CheckOutEvents {
         String shipToPartyId = null;
 
         String mode = request.getParameter("finalizeMode");
-        Debug.logInfo("FinalizeMode: " + mode, module);
+        Debug.logInfo("FinalizeMode: " + mode, MODULE);
         // necessary to avoid infinite looping when in a funny state, and will go right back to beginning
         if (mode == null) {
             return "customer";
@@ -757,7 +761,7 @@ public class CheckOutEvents {
             try {
                 cart.setAutoUserLogin(null, dispatcher);
             } catch (CartItemModifyException e) {
-                Debug.logError(e, module);
+                Debug.logError(e, MODULE);
             }
         }
 
@@ -766,7 +770,7 @@ public class CheckOutEvents {
             try {
                 cart.createDropShipGroups(dispatcher);
             } catch (CartItemModifyException e) {
-                Debug.logError(e, module);
+                Debug.logError(e, MODULE);
             }
         }
 
@@ -790,7 +794,7 @@ public class CheckOutEvents {
                     try {
                         userLogin = EntityQuery.use(delegator).from("UserLogin").where("userLoginId", "anonymous").queryOne();
                     } catch (GenericEntityException e) {
-                        Debug.logError(e, module);
+                        Debug.logError(e, MODULE);
                     }
                     if (userLogin != null) {
                         userLogin.set("partyId", partyId);
@@ -799,9 +803,9 @@ public class CheckOutEvents {
                     try {
                         cart.setUserLogin(userLogin, dispatcher);
                     } catch (CartItemModifyException e) {
-                        Debug.logError(e, module);
+                        Debug.logError(e, MODULE);
                     }
-                    Debug.logInfo("Anonymous user-login has been activated", module);
+                    Debug.logInfo("Anonymous user-login has been activated", MODULE);
                 }
             }
         }
@@ -913,7 +917,7 @@ public class CheckOutEvents {
         // payment option; if offline we skip the payment screen
         methodType = request.getParameter("paymentMethodType");
         if ("offline".equals(methodType)) {
-            Debug.logInfo("Changing mode from->to: " + mode + "->payment", module);
+            Debug.logInfo("Changing mode from->to: " + mode + "->payment", MODULE);
             mode = "payment";
         }
 
@@ -931,7 +935,7 @@ public class CheckOutEvents {
                 BigDecimal billingAccountAmt = null;
                 billingAccountAmt = determineBillingAccountAmount(billingAccountId, request.getParameter("billingAccountAmount"), dispatcher);
                 if (billingAccountAmt == null) {
-                    request.setAttribute("_ERROR_MESSAGE_", UtilProperties.getMessage(resource_error,"OrderInvalidAmountSetForBillingAccount", UtilMisc.toMap("billingAccountId",billingAccountId), (cart != null ? cart.getLocale() : Locale.getDefault())));
+                    request.setAttribute("_ERROR_MESSAGE_", UtilProperties.getMessage(RES_ERROR,"OrderInvalidAmountSetForBillingAccount", UtilMisc.toMap("billingAccountId",billingAccountId), (cart != null ? cart.getLocale() : Locale.getDefault())));
                     return "error";
                 }
                 selectedPaymentMethods.put("EXT_BILLACT", UtilMisc.<String, Object>toMap("amount", billingAccountAmt, "securityCode", null));
@@ -1201,7 +1205,7 @@ public class CheckOutEvents {
                     cart.addItem(index, sci);
                 }
             } catch (CartItemModifyException | GenericEntityException e) {
-                Debug.logError(e.getMessage(), module);
+                Debug.logError(e.getMessage(), MODULE);
             }
         }
 

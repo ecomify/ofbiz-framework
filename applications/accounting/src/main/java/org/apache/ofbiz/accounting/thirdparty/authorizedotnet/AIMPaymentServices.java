@@ -49,8 +49,8 @@ import com.ibm.icu.util.Calendar;
 
 public class AIMPaymentServices {
 
-    public static final String module = AIMPaymentServices.class.getName();
-    public final static String resource = "AccountingUiLabels";
+    private static final String MODULE = AIMPaymentServices.class.getName();
+    public final static String RESOURCE = "AccountingUiLabels";
 
     // The list of refund failure response codes that would cause the ccRefund service
     // to attempt to void the refund's associated authorization transaction.  This list
@@ -93,7 +93,7 @@ public class AIMPaymentServices {
         Map<String, Object> validateResults = validateRequest(context, props, request);
         String respMsg = (String)validateResults.get(ModelService.RESPONSE_MESSAGE);
         if (ModelService.RESPOND_ERROR.equals(respMsg)) {
-            results.put(ModelService.ERROR_MESSAGE, UtilProperties.getMessage(resource, "AccountingValidationFailedInvalidValues", locale));
+            results.put(ModelService.ERROR_MESSAGE, UtilProperties.getMessage(RESOURCE, "AccountingValidationFailedInvalidValues", locale));
             return results;
         }
         Map<String, Object> reply = processCard(request, props, locale);
@@ -110,13 +110,13 @@ public class AIMPaymentServices {
         try {
             creditCard = delegator.getRelatedOne("CreditCard",orderPaymentPreference, false);
         } catch (GenericEntityException e) {
-            Debug.logError(e, module);
-            return ServiceUtil.returnError(UtilProperties.getMessage(resource, 
+            Debug.logError(e, MODULE);
+            return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE,
                     "AccountingPaymentUnableToGetCCInfo", locale));
         }
         GenericValue authTransaction = PaymentGatewayServices.getAuthTransaction(orderPaymentPreference);
         if (authTransaction == null) {
-            return ServiceUtil.returnError(UtilProperties.getMessage(resource, 
+            return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE,
                     "AccountingPaymentTransactionAuthorizationNotFoundCannotCapture", locale));
         }
         context.put("creditCard", creditCard);
@@ -137,7 +137,7 @@ public class AIMPaymentServices {
         Map<String, Object> validateResults = validateRequest(context, props, request);
         String respMsg = (String)validateResults.get(ModelService.RESPONSE_MESSAGE);
         if (ModelService.RESPOND_ERROR.equals(respMsg)) {
-            results.put(ModelService.ERROR_MESSAGE, UtilProperties.getMessage(resource, "AccountingValidationFailedInvalidValues", locale));
+            results.put(ModelService.ERROR_MESSAGE, UtilProperties.getMessage(RESOURCE, "AccountingValidationFailedInvalidValues", locale));
             return results;
         }
         Map<String, Object> reply = processCard(request, props, locale);
@@ -157,13 +157,13 @@ public class AIMPaymentServices {
         try {
             creditCard = delegator.getRelatedOne("CreditCard", orderPaymentPreference, false);
         } catch (GenericEntityException e) {
-            Debug.logError(e, module);
-            return ServiceUtil.returnError(UtilProperties.getMessage(resource, 
+            Debug.logError(e, MODULE);
+            return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE,
                     "AccountingPaymentUnableToGetCCInfo", locale));
         }
         GenericValue authTransaction = PaymentGatewayServices.getAuthTransaction(orderPaymentPreference);
         if (authTransaction == null) {
-            return ServiceUtil.returnError(UtilProperties.getMessage(resource, 
+            return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE,
                     "AccountingPaymentTransactionAuthorizationNotFoundCannotRefund", locale));
         }
         context.put("creditCard",creditCard);
@@ -182,7 +182,7 @@ public class AIMPaymentServices {
         Map<String, Object> validateResults = validateRequest(context, props, request);
         String respMsg = (String)validateResults.get(ModelService.RESPONSE_MESSAGE);
         if (ModelService.RESPOND_ERROR.equals(respMsg)) {
-            results.put(ModelService.ERROR_MESSAGE, UtilProperties.getMessage(resource, "AccountingValidationFailedInvalidValues", locale));
+            results.put(ModelService.ERROR_MESSAGE, UtilProperties.getMessage(RESOURCE, "AccountingValidationFailedInvalidValues", locale));
             return results;
         }
         Map<String, Object> reply = processCard(request, props, locale);
@@ -212,7 +212,7 @@ public class AIMPaymentServices {
                 canDoVoid = true;
             }
             if (canDoVoid) {
-                Debug.logWarning("Refund was unsuccessful; will now attempt a VOID transaction.", module);
+                Debug.logWarning("Refund was unsuccessful; will now attempt a VOID transaction.", MODULE);
                 BigDecimal authAmountObj = authTransaction.getBigDecimal("amount");
                 BigDecimal refundAmountObj = (BigDecimal)context.get("refundAmount");
                 BigDecimal authAmount = authAmountObj != null ? authAmountObj : BigDecimal.ZERO;
@@ -228,7 +228,7 @@ public class AIMPaymentServices {
                 } else {
                     // TODO: Modify the code to (a) do a void of the whole transaction, and (b)
                     // create a new auth-capture of the difference.
-                    return ServiceUtil.returnError(UtilProperties.getMessage(resource, 
+                    return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE,
                             "AccountingAuthorizeNetCannotPerformVoidTransaction", 
                             UtilMisc.toMap("authAmount", authAmount, "refundAmount", refundAmount), locale));
                 }
@@ -243,7 +243,7 @@ public class AIMPaymentServices {
         GenericValue orderPaymentPreference = (GenericValue) context.get("orderPaymentPreference");
         GenericValue authTransaction = PaymentGatewayServices.getAuthTransaction(orderPaymentPreference);
         if (authTransaction == null) {
-            return ServiceUtil.returnError(UtilProperties.getMessage(resource, 
+            return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE,
                     "AccountingPaymentTransactionAuthorizationNotFoundCannotRelease", locale));
         }
         Map<String, Object> reply = voidTransaction(authTransaction, context, delegator);
@@ -270,7 +270,7 @@ public class AIMPaymentServices {
         Map<String, Object> validateResults = validateRequest(context, props, request);
         String respMsg = (String)validateResults.get(ModelService.RESPONSE_MESSAGE);
         if (ModelService.RESPOND_ERROR.equals(respMsg)) {
-            results.put(ModelService.ERROR_MESSAGE, UtilProperties.getMessage(resource, "AccountingValidationFailedInvalidValues", locale));
+            results.put(ModelService.ERROR_MESSAGE, UtilProperties.getMessage(RESOURCE, "AccountingValidationFailedInvalidValues", locale));
             return results;
         }
         return processCard(request, props, locale);
@@ -280,7 +280,7 @@ public class AIMPaymentServices {
     	Locale locale = (Locale) context.get("locale");
         Map<String, Object> results = new HashMap<>();
         results.put(ModelService.RESPONSE_MESSAGE, ModelService.RESPOND_ERROR);
-        results.put(ModelService.ERROR_MESSAGE, UtilProperties.getMessage(resource, "AccountingAuthorizeNetccCreditUnsupported", locale));
+        results.put(ModelService.ERROR_MESSAGE, UtilProperties.getMessage(RESOURCE, "AccountingAuthorizeNetccCreditUnsupported", locale));
         return results;
     }
 
@@ -300,7 +300,7 @@ public class AIMPaymentServices {
         Map<String, Object> validateResults = validateRequest(context, props, request);
         String respMsg = (String)validateResults.get(ModelService.RESPONSE_MESSAGE);
         if (ModelService.RESPOND_ERROR.equals(respMsg)) {
-            results.put(ModelService.ERROR_MESSAGE, UtilProperties.getMessage(resource, "AccountingValidationFailedInvalidValues", locale));
+            results.put(ModelService.ERROR_MESSAGE, UtilProperties.getMessage(RESOURCE, "AccountingValidationFailedInvalidValues", locale));
             return results;
         }
         Map<String, Object> reply = processCard(request, props, locale);
@@ -317,13 +317,13 @@ public class AIMPaymentServices {
         Map<String, Object> result = new HashMap<>();
         String url = props.getProperty("url");
         if (UtilValidate.isEmpty(url)) {
-            return ServiceUtil.returnError(UtilProperties.getMessage(resource, 
+            return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE,
                     "AccountingAuthorizeNetTransactionUrlNotFound", locale));
         }
         if (isTestMode()) {
-            Debug.logInfo("TEST Authorize.net using url [" + url + "]", module);
-            Debug.logInfo("TEST Authorize.net request string " + request.toString(),module);
-            Debug.logInfo("TEST Authorize.net properties string " + props.toString(),module);
+            Debug.logInfo("TEST Authorize.net using url [" + url + "]", MODULE);
+            Debug.logInfo("TEST Authorize.net request string " + request.toString(),MODULE);
+            Debug.logInfo("TEST Authorize.net properties string " + props.toString(),MODULE);
         }
         
         // card present has a different layout from standard AIM; this determines how to parse the response
@@ -334,7 +334,7 @@ public class AIMPaymentServices {
             String certificateAlias = props.getProperty("certificateAlias");
             httpClient.setClientCertificateAlias(certificateAlias);
             String httpResponse = httpClient.post();
-            Debug.logInfo("transaction response: " + httpResponse,module);
+            Debug.logInfo("transaction response: " + httpResponse,MODULE);
             AuthorizeResponse ar = new AuthorizeResponse(httpResponse, apiType);            
             if (ar.isApproved()) {            
                 result.put("authResult", Boolean.TRUE);
@@ -347,16 +347,16 @@ public class AIMPaymentServices {
             } else {
                 result.put("authResult", Boolean.FALSE);
                 if (Debug.infoOn()) {
-                    Debug.logInfo("transactionId:  " + ar.getTransactionId(), module);
-                    Debug.logInfo("responseCode:   " + ar.getResponseCode(), module);
-                    Debug.logInfo("responseReason: " + ar.getReasonCode(), module);
-                    Debug.logInfo("reasonText:     " + ar.getReasonText(), module);
+                    Debug.logInfo("transactionId:  " + ar.getTransactionId(), MODULE);
+                    Debug.logInfo("responseCode:   " + ar.getResponseCode(), MODULE);
+                    Debug.logInfo("responseReason: " + ar.getReasonCode(), MODULE);
+                    Debug.logInfo("reasonText:     " + ar.getReasonText(), MODULE);
                 }
             }
             result.put("httpResponse", httpResponse);
             result.put("authorizeResponse", ar);
         } catch (HttpClientException e) {
-            Debug.logInfo(e, "Could not complete Authorize.Net transaction: " + e.toString(),module);
+            Debug.logInfo(e, "Could not complete Authorize.Net transaction: " + e.toString(),MODULE);
         }
         result.put(ModelService.RESPONSE_MESSAGE, ModelService.RESPOND_SUCCESS);
         return result;
@@ -395,14 +395,14 @@ public class AIMPaymentServices {
             ver = "3.0";
         }
         if (UtilValidate.isEmpty(login)) {
-            Debug.logInfo("the login property in " + configStr + " is not configured.", module);
+            Debug.logInfo("the login property in " + configStr + " is not configured.", MODULE);
         }
         if (UtilValidate.isEmpty(password) && !("3.1".equals(ver))) {
-            Debug.logInfo("The password property in " + configStr + " is not configured.", module);
+            Debug.logInfo("The password property in " + configStr + " is not configured.", MODULE);
         }
         if ("3.1".equals(ver)) {
             if (UtilValidate.isEmpty(tranKey)) {
-                Debug.logInfo("Trankey property required for version 3.1 reverting to 3.0",module);
+                Debug.logInfo("Trankey property required for version 3.1 reverting to 3.0",MODULE);
                 ver = "3.0";
             }
         }
@@ -436,7 +436,7 @@ public class AIMPaymentServices {
             AIMProperties = props;
         }
         if (isTestMode()) {
-            Debug.logInfo("Created Authorize.Net properties file: " + props.toString(), module);
+            Debug.logInfo("Created Authorize.Net properties file: " + props.toString(), MODULE);
         }
         return props;
     }
@@ -522,7 +522,7 @@ public class AIMPaymentServices {
                         }
                     }                    
                 } else {
-                    Debug.logWarning("Payment preference " + opp + " is not a credit card", module);
+                    Debug.logWarning("Payment preference " + opp + " is not a credit card", MODULE);
                 }
             } else {
                 // this would be the case for an authorization
@@ -538,7 +538,7 @@ public class AIMPaymentServices {
             }
             return;
         } catch (GenericEntityException ex) {
-            Debug.logError("Cannot build customer information for " + params + " due to error: " + ex.getMessage(), module);
+            Debug.logError("Cannot build customer information for " + params + " due to error: " + ex.getMessage(), MODULE);
             return;
         }
     }
@@ -626,7 +626,7 @@ public class AIMPaymentServices {
         if (AIMRequest.get("x_market_type") != null) {
             AIMRequest.put("x_card_type", getCardType(UtilFormatOut.checkNull(cc.getString("cardType"))));
         }
-        Debug.logInfo("buildCaptureTransaction. " + at.toString(), module);
+        Debug.logInfo("buildCaptureTransaction. " + at.toString(), MODULE);
     }
 
     private static void buildVoidTransaction(Map<String, Object> params, Properties props, Map<String, Object> AIMRequest) {
@@ -638,7 +638,7 @@ public class AIMPaymentServices {
         AIMRequest.put("x_ref_trans_id", at.get("referenceNum"));
         AIMRequest.put("x_Trans_ID", at.get("referenceNum"));
         AIMRequest.put("x_Auth_Code", at.get("gatewayCode"));
-        Debug.logInfo("buildVoidTransaction. " + at.toString(), module);
+        Debug.logInfo("buildVoidTransaction. " + at.toString(), MODULE);
     }
 
     private static Map<String, Object> validateRequest(Map<String, Object> params, Properties props, Map<String, Object> AIMRequest) {
@@ -670,12 +670,12 @@ public class AIMPaymentServices {
                 results.put("authRefNum", AuthorizeResponse.ERROR);
             }
         } catch (Exception ex) {
-            Debug.logError(ex, module);
+            Debug.logError(ex, MODULE);
             results.put("authCode", ar.getResponseCode());
             results.put("processAmount", BigDecimal.ZERO);
             results.put("authRefNum", AuthorizeResponse.ERROR);
         }
-        Debug.logInfo("processAuthTransResult: " + results.toString(),module);
+        Debug.logInfo("processAuthTransResult: " + results.toString(),MODULE);
     }
 
     private static void processCaptureTransResult(Map<String, Object> request, Map<String, Object> reply, Map<String, Object> results) {
@@ -697,10 +697,10 @@ public class AIMPaymentServices {
                 results.put("captureAmount", BigDecimal.ZERO);
             }
         } catch (Exception ex) {
-            Debug.logError(ex, module);
+            Debug.logError(ex, MODULE);
             results.put("captureAmount", BigDecimal.ZERO);
         }
-        Debug.logInfo("captureRefNum: " + results.toString(),module);
+        Debug.logInfo("captureRefNum: " + results.toString(),MODULE);
     }
 
     private static Map<String, Object> processRefundTransResult(Map<String, Object> request, Map<String, Object> reply) {
@@ -723,10 +723,10 @@ public class AIMPaymentServices {
                 results.put("refundAmount", BigDecimal.ZERO);
             }
         } catch (Exception ex) {
-            Debug.logError(ex, module);
+            Debug.logError(ex, MODULE);
             results.put("refundAmount", BigDecimal.ZERO);
         }
-        Debug.logInfo("processRefundTransResult: " + results.toString(),module);
+        Debug.logInfo("processRefundTransResult: " + results.toString(),MODULE);
         return results;
     }
 
@@ -750,10 +750,10 @@ public class AIMPaymentServices {
                 results.put("releaseAmount", BigDecimal.ZERO);
             }
         } catch (Exception ex) {
-            Debug.logError(ex, module);
+            Debug.logError(ex, MODULE);
             results.put("releaseAmount", BigDecimal.ZERO);
         }
-        Debug.logInfo("processReleaseTransResult: " + results.toString(),module);
+        Debug.logInfo("processReleaseTransResult: " + results.toString(),MODULE);
         return results;
     }
 
@@ -784,16 +784,16 @@ public class AIMPaymentServices {
             results.put("authRefNum", AuthorizeResponse.ERROR);
         }
         } catch (Exception ex) {
-            Debug.logError(ex, module);
+            Debug.logError(ex, MODULE);
             results.put("authCode", ar.getResponseCode());
             results.put("processAmount", BigDecimal.ZERO);
             results.put("authRefNum", AuthorizeResponse.ERROR);
         }
-        Debug.logInfo("processAuthTransResult: " + results.toString(),module);
+        Debug.logInfo("processAuthTransResult: " + results.toString(),MODULE);
     }
 
     private static String getPaymentGatewayConfigValue(Delegator delegator, String paymentGatewayConfigId, String paymentGatewayConfigParameterName,
-                                                       String resource, String parameterName) {
+                                                       String RESOURCE, String parameterName) {
         String returnValue = "";
         if (UtilValidate.isNotEmpty(paymentGatewayConfigId)) {
             try {
@@ -805,10 +805,10 @@ public class AIMPaymentServices {
                     }
                 }
             } catch (GenericEntityException e) {
-                Debug.logError(e, module);
+                Debug.logError(e, MODULE);
             }
         } else {
-            String value = EntityUtilProperties.getPropertyValue(resource, parameterName, delegator);
+            String value = EntityUtilProperties.getPropertyValue(RESOURCE, parameterName, delegator);
             if (value != null) {
                 returnValue = value.trim();
             }
@@ -833,7 +833,7 @@ public class AIMPaymentServices {
                 BigDecimal amount = new BigDecimal((String) request.get("x_Amount"));
                 amt = amount;
             } catch (NumberFormatException e) {
-                Debug.logWarning(e, e.getMessage(), module);
+                Debug.logWarning(e, e.getMessage(), MODULE);
             }
         }
         return amt;

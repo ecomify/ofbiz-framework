@@ -47,8 +47,8 @@ import org.apache.ofbiz.service.ServiceUtil;
  */
 
 public class UpgradeServices {
-    public static final String module = UpgradeServices.class.getName();
-    public static final String resource = "EntityExtUiLabels";
+    private static final String MODULE = UpgradeServices.class.getName();
+    private static final String RESOURCE = "EntityExtUiLabels";
 
 
     /**
@@ -76,8 +76,8 @@ public class UpgradeServices {
         // check permission
         GenericValue userLogin = (GenericValue) context.get("userLogin");
         if (!security.hasPermission("ENTITY_MAINT", userLogin)) {
-            Debug.logError(UtilProperties.getMessage(resource, "EntityExtServicePermissionNotGranted", locale), module);
-            return ServiceUtil.returnError(UtilProperties.getMessage(resource, "EntityExtServicePermissionNotGranted", locale));
+            Debug.logError(UtilProperties.getMessage(RESOURCE, "EntityExtServicePermissionNotGranted", locale), MODULE);
+            return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE, "EntityExtServicePermissionNotGranted", locale));
         }
 
         String groupName = (String) context.get("groupName");
@@ -108,10 +108,10 @@ public class UpgradeServices {
             }
             dataWriter.println("SET FOREIGN_KEY_CHECKS=1;");
         } catch (GenericEntityException e) {
-            Debug.logError(e, "Error getting list of entities in group: " + e.toString(), module);
-            return ServiceUtil.returnError(UtilProperties.getMessage(resource, "EntityExtErrorGettingListOfEntityInGroup", UtilMisc.toMap("errorString", e.toString()), locale));
+            Debug.logError(e, "Error getting list of entities in group: " + e.toString(), MODULE);
+            return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE, "EntityExtErrorGettingListOfEntityInGroup", UtilMisc.toMap("errorString", e.toString()), locale));
         } catch (FileNotFoundException | UnsupportedEncodingException e) {
-            Debug.logError(e, e.getMessage(), module);
+            Debug.logError(e, e.getMessage(), MODULE);
             return ServiceUtil.returnError(e.getMessage());
         }
 

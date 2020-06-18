@@ -55,8 +55,8 @@ import org.apache.ofbiz.service.ServiceUtil;
  */
 public class CategoryServices {
 
-    public static final String module = CategoryServices.class.getName();
-    public static final String resourceError = "ProductErrorUiLabels";
+    private static final String MODULE = CategoryServices.class.getName();
+    private static final String RES_ERROR = "ProductErrorUiLabels";
 
     public static Map<String, Object> getCategoryMembers(DispatchContext dctx, Map<String, ? extends Object> context) {
         Delegator delegator = dctx.getDelegator();
@@ -68,10 +68,10 @@ public class CategoryServices {
         try {
             productCategory = EntityQuery.use(delegator).from("ProductCategory").where("productCategoryId", categoryId).cache().queryOne();
             members = EntityUtil.filterByDate(productCategory.getRelated("ProductCategoryMember", null, UtilMisc.toList("sequenceNum"), true), true);
-            if (Debug.verboseOn()) Debug.logVerbose("Category: " + productCategory + " Member Size: " + members.size() + " Members: " + members, module);
+            if (Debug.verboseOn()) Debug.logVerbose("Category: " + productCategory + " Member Size: " + members.size() + " Members: " + members, MODULE);
         } catch (GenericEntityException e) {
-            Debug.logError(e, "Problem reading product categories: " + e.getMessage(), module);
-            return ServiceUtil.returnError(UtilProperties.getMessage(resourceError, 
+            Debug.logError(e, "Problem reading product categories: " + e.getMessage(), MODULE);
+            return ServiceUtil.returnError(UtilProperties.getMessage(RES_ERROR,
                     "categoryservices.problems_reading_category_entity", 
                     UtilMisc.toMap("errMessage", e.getMessage()), locale));
         }
@@ -92,7 +92,7 @@ public class CategoryServices {
         Locale locale = (Locale) context.get("locale");
         
         if (index == null && productId == null) {
-            return ServiceUtil.returnFailure(UtilProperties.getMessage(resourceError, "categoryservices.problems_getting_next_products", locale));
+            return ServiceUtil.returnFailure(UtilProperties.getMessage(RES_ERROR, "categoryservices.problems_getting_next_products", locale));
         }
 
         List<String> orderByFields = UtilGenerics.cast(context.get("orderByFields"));
@@ -105,8 +105,8 @@ public class CategoryServices {
             productCategory = EntityQuery.use(delegator).from("ProductCategory").where("productCategoryId", categoryId).cache().queryOne();
             productCategoryMembers = EntityQuery.use(delegator).from(entityName).where("productCategoryId", categoryId).orderBy(orderByFields).cache(true).queryList();
         } catch (GenericEntityException e) {
-            Debug.logInfo(e, "Error finding previous/next product info: " + e.toString(), module);
-            return ServiceUtil.returnFailure(UtilProperties.getMessage(resourceError, "categoryservices.error_find_next_products", UtilMisc.toMap("errMessage", e.getMessage()), locale));
+            Debug.logInfo(e, "Error finding previous/next product info: " + e.toString(), MODULE);
+            return ServiceUtil.returnFailure(UtilProperties.getMessage(RES_ERROR, "categoryservices.error_find_next_products", UtilMisc.toMap("errMessage", e.getMessage()), locale));
         }
         if (activeOnly) {
             productCategoryMembers = EntityUtil.filterByDate(productCategoryMembers, true);
@@ -134,7 +134,7 @@ public class CategoryServices {
 
         if (index == null) {
             // this is not going to be an error condition because we don't want it to be so critical, ie rolling back the transaction and such
-            return ServiceUtil.returnFailure(UtilProperties.getMessage(resourceError, "categoryservices.product_not_found", locale));
+            return ServiceUtil.returnFailure(UtilProperties.getMessage(RES_ERROR, "categoryservices.product_not_found", locale));
         }
 
         Map<String, Object> result = ServiceUtil.returnSuccess();
@@ -251,7 +251,7 @@ public class CategoryServices {
             } catch (NumberFormatException e) {
                 Debug.logWarning("Fail to parse viewSizeString "
                         + context.get("viewSizeString")
-                        + " " + e.getMessage(), module);
+                        + " " + e.getMessage(), MODULE);
             }
         }
 
@@ -259,7 +259,7 @@ public class CategoryServices {
         try {
             productCategory = EntityQuery.use(delegator).from("ProductCategory").where("productCategoryId", productCategoryId).cache().queryOne();
         } catch (GenericEntityException e) {
-            Debug.logWarning(e.getMessage(), module);
+            Debug.logWarning(e.getMessage(), MODULE);
             productCategory = null;
         }
 
@@ -286,7 +286,7 @@ public class CategoryServices {
                 }
             }
         } catch (GenericEntityException e) {
-            Debug.logWarning(e.getMessage(), module);
+            Debug.logWarning(e.getMessage(), MODULE);
         }
 
         List<GenericValue> productCategoryMembers = null;
@@ -315,7 +315,7 @@ public class CategoryServices {
                         try {
                             productCategoryMembers = ProductWorker.filterOutOfStockProducts(productCategoryMembers, dispatcher, delegator);
                         } catch (GeneralException e) {
-                            Debug.logWarning("Problem filtering out of stock products :"+e.getMessage(), module);
+                            Debug.logWarning("Problem filtering out of stock products :"+e.getMessage(), MODULE);
                         }
                     }
                     // filter out the view allow before getting the sublist
@@ -409,7 +409,7 @@ public class CategoryServices {
                             productCategoryMembers = ProductWorker.filterOutOfStockProducts(productCategoryMembers, dispatcher, delegator);
                             listSize = productCategoryMembers.size();
                         } catch (GeneralException e) {
-                            Debug.logWarning("Problem filtering out of stock products :"+e.getMessage(), module);
+                            Debug.logWarning("Problem filtering out of stock products :"+e.getMessage(), MODULE);
                         }
                     }
 
@@ -423,7 +423,7 @@ public class CategoryServices {
                     }
                 }
             } catch (GenericEntityException e) {
-                Debug.logError(e, module);
+                Debug.logError(e, MODULE);
             }
         }
 
@@ -533,7 +533,7 @@ public class CategoryServices {
                 }
             }
         } catch (GenericEntityException e) {
-            Debug.logWarning(e, module);
+            Debug.logWarning(e, MODULE);
             return "error";
         }
         return "success";

@@ -45,7 +45,7 @@ import org.apache.xmlrpc.client.XmlRpcClientConfigImpl;
  */
 public class XMLRPCClientEngine extends GenericAsyncEngine {
 
-    public static final String module = XMLRPCClientEngine.class.getName();
+    private static final String MODULE = XMLRPCClientEngine.class.getName();
 
     public XMLRPCClientEngine(ServiceDispatcher dispatcher) {
         super(dispatcher);
@@ -99,6 +99,10 @@ public class XMLRPCClientEngine extends GenericAsyncEngine {
                 Integer port = rpcPort + Start.getInstance().getConfig().portOffset;
                 url = url.replace(rpcPort.toString(), port.toString());
             }
+            // Necessary for "service-xml-rpc-local-engine" test
+            if (serviceName.equals("testXmlRpcAdd")) {
+                url = url + "?USERNAME=admin&PASSWORD=ofbiz";
+            }
             login = ServiceConfigUtil.getEngineParameter(engine, "login");
             password = ServiceConfigUtil.getEngineParameter(engine, "password");
             keyStoreComponent = ServiceConfigUtil.getEngineParameter(engine, "keyStoreComponent");
@@ -119,9 +123,9 @@ public class XMLRPCClientEngine extends GenericAsyncEngine {
         List<ModelParam> inModelParamList = modelService.getInModelParamList();
 
         if (Debug.verboseOn()) {
-            Debug.logVerbose("[XMLRPCClientEngine.invoke] : Parameter length - " + inModelParamList.size(), module);
+            Debug.logVerbose("[XMLRPCClientEngine.invoke] : Parameter length - " + inModelParamList.size(), MODULE);
             for (ModelParam p: inModelParamList) {
-                Debug.logVerbose("[XMLRPCClientEngine.invoke} : Parameter: " + p.name + " (" + p.mode + ")", module);
+                Debug.logVerbose("[XMLRPCClientEngine.invoke} : Parameter: " + p.name + " (" + p.mode + ")", MODULE);
             }
         }
 

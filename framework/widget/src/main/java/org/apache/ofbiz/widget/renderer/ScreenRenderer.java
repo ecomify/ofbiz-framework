@@ -58,6 +58,7 @@ import org.apache.ofbiz.widget.cache.GenericWidgetOutput;
 import org.apache.ofbiz.widget.cache.ScreenCache;
 import org.apache.ofbiz.widget.cache.WidgetContextCacheKey;
 import org.apache.ofbiz.widget.model.ModelScreen;
+import org.apache.ofbiz.widget.model.MultiBlockHtmlTemplateUtil;
 import org.apache.ofbiz.widget.model.ScreenFactory;
 import org.apache.ofbiz.widget.model.ThemeFactory;
 import org.xml.sax.SAXException;
@@ -72,7 +73,7 @@ import freemarker.ext.servlet.ServletContextHashModel;
  */
 public class ScreenRenderer {
 
-    public static final String module = ScreenRenderer.class.getName();
+    private static final String MODULE = ScreenRenderer.class.getName();
 
     protected Appendable writer;
     protected MapStack<String> context;
@@ -137,7 +138,12 @@ public class ScreenRenderer {
             }
         } else {
             context.put("renderFormSeqNumber", String.valueOf(renderFormSeqNumber));
-            modelScreen.renderScreenString(writer, context, screenStringRenderer);
+            if (context.get(MultiBlockHtmlTemplateUtil.MULTI_BLOCK_WRITER) != null) {
+                StringWriter stringWriter = (StringWriter) context.get(MultiBlockHtmlTemplateUtil.MULTI_BLOCK_WRITER);
+                modelScreen.renderScreenString(stringWriter, context, screenStringRenderer);
+            } else {
+                modelScreen.renderScreenString(writer, context, screenStringRenderer);
+            }
         }
         return "";
     }
@@ -176,7 +182,7 @@ public class ScreenRenderer {
             Map<String, Object> result = dispatcher.runSync("getUserPreferenceGroup", UtilMisc.toMap("userLogin", userLogin, "userPrefGroupTypeId", "GLOBAL_PREFERENCES"));
             context.put("userPreferences", result.get("userPrefMap"));
         } catch (GenericServiceException e) {
-            Debug.logError(e, "Error while getting user preferences: ", module);
+            Debug.logError(e, "Error while getting user preferences: ", MODULE);
         }
     }
 
@@ -266,7 +272,7 @@ public class ScreenRenderer {
         context.put("serverRoot", request.getAttribute("_SERVER_ROOT_URL_"));
         context.put("checkLoginUrl", LoginWorker.makeLoginUrl(request));
         String externalLoginKey = null;
-        boolean externalLoginKeyEnabled = "true".equals(EntityUtilProperties.getPropertyValue("security", "security.login.externalLoginKey.enabled", "true", (Delegator) request.getAttribute("delegator")));
+        boolean externalLoginKeyEnabled = ExternalLoginKeysManager.isExternalLoginKeyEnabled(request);
         if (externalLoginKeyEnabled) {
             externalLoginKey = ExternalLoginKeysManager.getExternalLoginKey(request);
         }

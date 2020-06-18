@@ -49,8 +49,8 @@ import org.apache.ofbiz.service.ServiceUtil;
 
 public class ProductFeatureServices {
 
-    public static final String module = ProductFeatureServices.class.getName();
-    public static final String resource = "ProductUiLabels";
+    private static final String MODULE = ProductFeatureServices.class.getName();
+    private static final String RESOURCE = "ProductUiLabels";
 
     /*
      * Parameters: productFeatureCategoryId, productFeatureGroupId, productId, productFeatureApplTypeId
@@ -87,7 +87,7 @@ public class ProductFeatureServices {
         }
 
         if (valueToSearch == null) {
-            return ServiceUtil.returnError(UtilProperties.getMessage(resource, "ProductFeatureByType", locale));
+            return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE, "ProductFeatureByType", locale));
         }
 
         try {
@@ -116,7 +116,7 @@ public class ProductFeatureServices {
             results.put("productFeatureTypes", featureTypes);
             results.put("productFeaturesByType", featuresByType);
         } catch (GenericEntityException ex) {
-            Debug.logError(ex, ex.getMessage(), module);
+            Debug.logError(ex, ex.getMessage(), MODULE);
             return ServiceUtil.returnError(ex.getMessage());
         }
         return results;
@@ -167,7 +167,7 @@ public class ProductFeatureServices {
             results = ServiceUtil.returnSuccess();
             results.put("variantProductIds", existingVariantProductIds);
         } catch (GenericEntityException ex) {
-            Debug.logError(ex, ex.getMessage(), module);
+            Debug.logError(ex, ex.getMessage(), MODULE);
             return ServiceUtil.returnError(ex.getMessage());
         }
     return results;
@@ -281,7 +281,7 @@ public class ProductFeatureServices {
             results = ServiceUtil.returnSuccess();
             results.put("featureCombinations", oldCombinations);
         } catch (GenericServiceException ex) {
-            Debug.logError(ex, ex.getMessage(), module);
+            Debug.logError(ex, ex.getMessage(), MODULE);
             return ServiceUtil.returnError(ex.getMessage());
         }
 
@@ -305,7 +305,7 @@ public class ProductFeatureServices {
         try {
             result = dispatcher.runSync("getProductCategoryMembers", UtilMisc.toMap("categoryId", productCategoryId));
         } catch (GenericServiceException ex) {
-            Debug.logError("Cannot get category memebers for " + productCategoryId + " due to error: " + ex.getMessage(), module);
+            Debug.logError("Cannot get category memebers for " + productCategoryId + " due to error: " + ex.getMessage(), MODULE);
             return ServiceUtil.returnError(ex.getMessage());
         }
 
@@ -324,7 +324,7 @@ public class ProductFeatureServices {
                 try {
                     result = dispatcher.runSync("getProductVariant", UtilMisc.toMap("productId", memberProduct.getString("productId"), "selectedFeatures", featuresByType));
                 } catch (GenericServiceException ex) {
-                    Debug.logError("Cannot get product variants for " + memberProduct.getString("productId") + " due to error: " + ex.getMessage(), module);
+                    Debug.logError("Cannot get product variants for " + memberProduct.getString("productId") + " due to error: " + ex.getMessage(), MODULE);
                     return ServiceUtil.returnError(ex.getMessage());
                 }
 
@@ -332,19 +332,19 @@ public class ProductFeatureServices {
                 if ((variantProducts != null) && (variantProducts.size() > 0)) {
                     products.addAll(variantProducts);
                 } else {
-                    Debug.logWarning("Product " + memberProduct.getString("productId") + " did not have any variants for the given features", module);
+                    Debug.logWarning("Product " + memberProduct.getString("productId") + " did not have any variants for the given features", MODULE);
                 }
             }
 
             if (products.size() == 0) {
-                return ServiceUtil.returnError(UtilProperties.getMessage(resource, "ProductCategoryNoVariants", locale));
+                return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE, "ProductCategoryNoVariants", locale));
             } else {
                 results = ServiceUtil.returnSuccess();
                 results.put("products", products);
             }
 
         } else {
-            Debug.logWarning("No products found in " + productCategoryId, module);
+            Debug.logWarning("No products found in " + productCategoryId, MODULE);
         }
 
         return results;

@@ -45,8 +45,8 @@ import org.apache.ofbiz.service.ServiceUtil;
  */
 public class SupplierProductServices {
 
-    public static final String module = SupplierProductServices.class.getName();
-    public static final String resource = "ProductUiLabels";
+    private static final String MODULE = SupplierProductServices.class.getName();
+    private static final String RESOURCE = "ProductUiLabels";
 
     /*
      * Parameters: productId, partyId, currencyUomId, quantity
@@ -116,7 +116,7 @@ public class SupplierProductServices {
             results = ServiceUtil.returnSuccess();
             results.put("supplierProducts", supplierProducts);
         } catch (GenericEntityException ex) {
-            Debug.logError(ex, ex.getMessage(), module);
+            Debug.logError(ex, ex.getMessage(), MODULE);
             return ServiceUtil.returnError(ex.getMessage());
         }
         return results;
@@ -156,7 +156,7 @@ public class SupplierProductServices {
             results = ServiceUtil.returnSuccess();
             results.put("convertedProductFeatures", features);
         } catch (GenericEntityException ex) {
-            Debug.logError(ex, ex.getMessage(), module);
+            Debug.logError(ex, ex.getMessage(), MODULE);
             return ServiceUtil.returnError(ex.getMessage());
         }
         return results;
