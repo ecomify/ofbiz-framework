@@ -264,7 +264,7 @@ def createContentPermission(Boolean hasPermission, String ownerContentId, String
         }
     }
     result.hasPermission = hasPermission
-    return hasPermission
+    return result
 }
 
 /**
@@ -532,8 +532,8 @@ def checkOwnership() {
     Boolean hasPermission = false
 
     if (!checkId) {
-        String requiredField = checkId
-        return error(UtilProperties.getMessage('ContentUiLabels', 'ContentRequiredField', parameters.locale))
+        String requiredField = "checkId"
+        return error(UtilProperties.getMessage("ContentUiLabels", "ContentRequiredField", [requiredField: requiredField], parameters.locale))
     }
     if (!partyId) {
         partyId = userLogin.partyId
