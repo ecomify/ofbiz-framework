@@ -232,8 +232,8 @@ public class DataResourceWorker  implements org.apache.ofbiz.widget.content.Data
         GenericValue userLogin = (GenericValue)session.getAttribute("userLogin");
         passedParams.put("userLogin", userLogin);
         byte[] imageBytes = null;
-        for (int i = 0; i < lst.size(); i++) {
-            fi = lst.get(i);
+        for (FileItem fileItem : lst) {
+            fi = fileItem;
             String fieldName = fi.getFieldName();
             if (fi.isFormField()) {
                 String fieldStr = fi.getString();
@@ -531,16 +531,13 @@ public class DataResourceWorker  implements org.apache.ofbiz.widget.content.Data
         }
 
         // descending comparator
-        Comparator<Object> desc = new Comparator<Object>() {
-            @Override
-            public int compare(Object o1, Object o2) {
-                if ((Long) o1 > (Long) o2) {
-                    return -1;
-                } else if ((Long) o1 < (Long) o2) {
-                    return 1;
-                }
-                return 0;
+        Comparator<Object> desc = (o1, o2) -> {
+            if ((Long) o1 > (Long) o2) {
+                return -1;
+            } else if ((Long) o1 < (Long) o2) {
+                return 1;
             }
+            return 0;
         };
 
         // check for the latest subdirectory
@@ -551,9 +548,9 @@ public class DataResourceWorker  implements org.apache.ofbiz.widget.content.Data
             File[] subs = parent.listFiles();
             if (subs != null) {
                 int length = subs.length;
-                for (int i = 0; i < length; i++) {
-                    if (subs[i].isDirectory()) {
-                        dirMap.put(subs[i].lastModified(), subs[i]);
+                for (File sub : subs) {
+                    if (sub.isDirectory()) {
+                        dirMap.put(sub.lastModified(), sub);
                     }
                 }
             }
