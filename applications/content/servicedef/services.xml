@@ -1153,8 +1153,6 @@
         <attribute name="contentPurposeTypeId" type="String" mode="IN" optional="true"/>
         <attribute name="contentOperationId" type="String" mode="IN" optional="true"/>
     </service>
-    
-
     <service name="checkOwnership" engine="groovy" auth="true"
             location="component://content/groovyScripts/permission/ContentPermissionServices.groovy" invoke="checkOwnership">
         <description>Generic DataResource Permission Service; Takes mainAction to determine the mode.</description>
@@ -1163,17 +1161,7 @@
         <attribute name="roleEntityField" type="String" mode="IN" optional="true"/>
         <attribute name="checkId" type="String" mode="IN" optional="true"/>
     </service>
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
+
     <service name="genericDataResourcePermission" engine="simple" auth="true"
             location="component://content/minilang/permission/DataResourcePermissionServices.xml" invoke="genericDataResourcePermission">
         <description>Generic DataResource Permission Service; Takes mainAction to determine the mode.</description>
