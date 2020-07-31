@@ -189,8 +189,8 @@ def updateBlogEntry() {
     String ownerContentId
     String contentAssocTypeId
     String contentIdFrom
-    String showNoResult = "Y"
-    parameters.showNoResult = showNoResult
+    // TODO showNoResult entfernt, da es für andere Handhabe bei Methodeninternem Aufruf relevant war
+    // TODO Aufruf erfolgt jetzt immer über service Definition
 
     Map serviceResult = run service:"getBlogEntry", with: parameters
     String contentId = serviceResult.contentId
@@ -428,34 +428,26 @@ def getBlogEntry() {
             imageContent = delegator.getRelatedOne("ToContent", assoc, false)
 
         }
-        if (!showNoResult) {
-            result.contentId = content?.contentId
-            result.contentName = content?.contentName
-            result.description = content?.description
-            result.statusId = content?.statusId
-
-            if(imageContent) {
-                result.templateDataResourceId = content.dataResourceId
-                result.imageContent = imageContent
-            }
-            result.articleData = articleText?.textData
-            result.summaryData = summaryText?.textData
-            result.imageContentId = imageContent?.contentId
-            result.articleContentId = mainContent?.contentId
-            result.summaryContentId = summaryContent?.contentId
-            result.blogContentId = parameters?.blogContentId
-            result.articleText = articleText
-            result.summaryText = summaryText
-        } else {
-            contentId = content?.contentId
-            contentName = content?.contentName
-            description = content?.description
-            statusId = content?.statusId
-            String templateDataResourceId = content?.dataResourceId
-            articleData = articleText?.textData
-            summaryData = summaryText?.textData
-            String imageDataResourceId = imageContent?.dataResourceId
-        }
     }
+    // TODO for-Schleife entsprechend verkleinert
+    // TODO Die Abfrage showNoResult ist für Klasseninterne Methodenaufrufe, die durch die Konvertierung nicht mehr länger auftreten, daher unnötig 
+    result.contentId = content?.contentId
+    result.contentName = content?.contentName
+    result.description = content?.description
+    result.statusId = content?.statusId
+
+    if(imageContent) {
+        result.templateDataResourceId = content.dataResourceId
+        // TODO imageContent entfernt
+    }
+    result.articleData = articleText?.textData
+    result.summaryData = summaryText?.textData
+    result.imageContentId = imageContent?.contentId
+    result.articleContentId = mainContent?.contentId
+    result.summaryContentId = summaryContent?.contentId
+    result.blogContentId = parameters?.blogContentId
+    result.articleText = articleText
+    result.summaryText = summaryText
+
     return result
 }
