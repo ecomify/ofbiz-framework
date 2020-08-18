@@ -48,10 +48,12 @@ def createShoppingList() {
         newEntity.isPublic = "N"
     }
 
-    if (!newEntity.isActive && newEntity.shoppingListTypeId == "SLT_AUTO_REODR") {
-        newEntity.isActive = "N"
-    } else {
-        newEntity.isActive = "Y"
+    if (!newEntity.isActive) {
+        if (newEntity.shoppingListTypeId == "SLT_AUTO_REODR") {
+            newEntity.isActive = "N"
+        } else {
+            newEntity.isActive = "Y"
+        }
     }
 
     newEntity.shoppingListId = delegator.getNextSeqId("ShoppingList")
@@ -199,13 +201,23 @@ def calculateShoppingListDeepTotalPrice() {
     if (!hasPermission) {
         return error(UtilProperties.getMessage("OrderErrorUiLabels", "OrderSecurityErrorToRunForAnotherParty", parameters.locale))
     }
-    Map calcPriceInBaseMap = [prodCatalogId: parameters.prodCatalogId,
-        webSiteId: parameters.webSiteId,
-        partyId: parameters.partyId,
-        productStoreId: parameters.productStoreId,
-        productStoreGroupId:parameters.productStoreGroupId,
-        currencyUomId: parameters.currencyUomId,
-        autoUserLogin: parameters.autoUserLogin]
+    Map calcPriceInBaseMap = [prodCatalogId: parameters.prodCatalogId, webSiteId: parameters.webSiteId]
+    if (parameters.partyId) {
+        calcPriceInBaseMap.partyId = parameters.partyId
+    }
+    if (parameters.productStoreId) {
+        calcPriceInBaseMap.productStoreId = parameters.productStoreId
+    }
+    if (parameters.productStoreGroupId) {
+        calcPriceInBaseMap.productStoreGroupId = parameters.productStoreGroupId
+    }
+    if (parameters.currencyUomId) {
+        calcPriceInBaseMap.currencyUomId = parameters.currencyUomId
+    }
+    if (parameters.autoUserLogin) {
+        calcPriceInBaseMap.autoUserLogin = parameters.autoUserLogin
+    }
+
     List shoppingListItems = from("ShoppingListItem").where(shoppingListId: parameters.shoppingListId).cache().queryList()
     BigDecimal totalPrice = (BigDecimal) 0.0
     for (GenericValue shoppingListItem : shoppingListItems) {
@@ -228,9 +240,9 @@ def calculateShoppingListDeepTotalPrice() {
         totalPrice += (itemPrice * shoppingListItemQuantity)
     }
     List childshoppingLists = from("ShoppingList")
-            .where(parentShoppingListId: parameters.shoppingListId, partyId: userLogin.partyId)
-            .cache()
-            .queryList()
+    .where(parentShoppingListId: parameters.shoppingListId, partyId: userLogin.partyId)
+    .cache()
+    .queryList()
     for (GenericValue childshoppingList : childshoppingLists) {
         Map calcChildPriceInMap = [:]
         calcChildPriceInMap << calcPriceInBaseMap
@@ -239,7 +251,7 @@ def calculateShoppingListDeepTotalPrice() {
         if (!ServiceUtil.isSuccess(serviceResultCSLDTP)) {
             return error(serviceResultCSLDTP.errorMessage)
         }
-        totalPrice = calcPriceOutMap.totalPrice
+        calcPriceOutMap.totalPrice = serviceResultCSLDTP.totalPrice
         totalPrice += calcPriceOutMap.totalPrice
     }
 
@@ -255,7 +267,7 @@ def calculateShoppingListDeepTotalPrice() {
 def checkShoppingListSecurity() {
     Map result = success()
     Boolean hasPermission = false
-    if (userLogin && userLogin.userLoginId != "anonymous" && parameters.partyId && !(userLogin.partyId.equals(parameters.partyId))
+    if (userLogin && (userLogin.userLoginId != "anonymous") && parameters.partyId && (userLogin.partyId. != parameters.partyId)
     && !security.hasEntityPermission("PARTYMGR", "_${parameters.permissionAction}", parameters.userLogin)) {
         return error(UtilProperties.getMessage("OrderErrorUiLabels", "OrderSecurityErrorToRunForAnotherParty", parameters.locale))
     } else {
@@ -278,7 +290,6 @@ def checkShoppingListItemSecurity() {
         errorLog = [parentMethodName: parameters.parentMethodName]
         errorLog.permissionAction = parameters.permissionAction
         return error(UtilProperties.getMessage("OrderErrorUiLabels", "OrderSecurityErrorToRunForAnotherParty", errorLog, parameters.locale))
-
     } else {
         hasPermission = true
     }
@@ -292,11 +303,10 @@ def checkShoppingListItemSecurity() {
  */
 def addSuggestionsToShoppingList() {
     Map result = success()
-    List compProductAssocList = []
     String shoppingListId
     // first check the ProductStore.enableAutoSuggestionList indicator
     GenericValue orderHeader = from("OrderHeader").where(parameters).queryOne()
-    if (!(orderHeader.productStoreId)) {
+    if (!(orderHeader?.productStoreId)) {
         return result
     }
     GenericValue productStore = from("ProductStore").where(productStoreId: orderHeader.productStoreId).queryOne()
@@ -320,9 +330,9 @@ def addSuggestionsToShoppingList() {
     List orderItemList = from ("OrderItem").where(orderId: parameters.orderId).orderBy("orderItemSeqId").queryList()
     for (GenericValue orderItem : orderItemList) {
         if (orderItem.productId) {
-            compProductAssocList = from("ProductAssoc").where(productId: orderItem.productId, productAssocTypeId: "PRODUCT_COMPLEMENT").filterByDate().queryList()
+            List compProductAssocList = from("ProductAssoc").where(productId: orderItem.productId, productAssocTypeId: "PRODUCT_COMPLEMENT").filterByDate().queryList()
             for (GenericValue compProductAssoc : compProductAssocList) {
-                Map shoppingListParameters = [productId: compProductAssoc.productIdTo, shoppingListId: shoppingListId, quantity: (BigDecimal)1]
+                Map shoppingListParameters = [productId: compProductAssoc.productIdTo, shoppingListId: shoppingListId, quantity: (BigDecimal) 1]
                 Map serviceResultADSLI = run service:"addDistinctShoppingListItem", with: shoppingListParameters
                 if (!ServiceUtil.isSuccess(serviceResultADSLI)) {
                     return error(serviceResultADSLI.errorMessage)
