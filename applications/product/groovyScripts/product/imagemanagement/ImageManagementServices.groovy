@@ -20,16 +20,18 @@
 import java.sql.Timestamp
 
 import org.apache.ofbiz.base.util.ScriptUtil
-import org.apache.ofbiz.base.util.StringUtil
 import org.apache.ofbiz.base.util.UtilDateTime
 import org.apache.ofbiz.base.util.UtilProperties
 import org.apache.ofbiz.entity.GenericValue
+import org.apache.ofbiz.service.ServiceUtil
 
 /**
  * Method to upload multiple images for product
  * @return
  */
 def UploadProductImages() {
+    Map result = success()
+    Map serviceResult = [:]
     Map addAdditionalViewForProductMap = parameters
     if (parameters._additionalImageOne_fileName) {
         addAdditionalViewForProductMap.productId = parameters.productId
@@ -38,7 +40,10 @@ def UploadProductImages() {
         addAdditionalViewForProductMap.productContentTypeId = "IMAGE"
         addAdditionalViewForProductMap._uploadedFile_fileName = parameters._additionalImageOne_fileName
         addAdditionalViewForProductMap._uploadedFile_contentType = parameters._additionalImageOne_contentType
-        run service: "addMultipleuploadForProduct", with: addAdditionalViewForProductMap
+        serviceResult = run service: "addMultipleuploadForProduct", with: addAdditionalViewForProductMap
+        if (!ServiceUtil.isSuccess(serviceResult)) {
+            return error(serviceResult.errorMessage)
+        }
         addAdditionalViewForProductMap.clear()
     }
     if (parameters._additionalImageTwo_fileName) {
@@ -48,7 +53,10 @@ def UploadProductImages() {
         addAdditionalViewForProductMap.productContentTypeId = "IMAGE"
         addAdditionalViewForProductMap._uploadedFile_fileName = parameters._additionalImageTwo_fileName
         addAdditionalViewForProductMap._uploadedFile_contentType = parameters._additionalImageTwo_contentType
-        run service: "addMultipleuploadForProduct", with: addAdditionalViewForProductMap
+        serviceResult = run service: "addMultipleuploadForProduct", with: addAdditionalViewForProductMap
+        if (!ServiceUtil.isSuccess(serviceResult)) {
+            return error(serviceResult.errorMessage)
+        }
         addAdditionalViewForProductMap.clear()
     }
     if (parameters._additionalImageThree_fileName) {
@@ -58,7 +66,10 @@ def UploadProductImages() {
         addAdditionalViewForProductMap.productContentTypeId = "IMAGE"
         addAdditionalViewForProductMap._uploadedFile_fileName = parameters._additionalImageThree_fileName
         addAdditionalViewForProductMap._uploadedFile_contentType = parameters._additionalImageThree_contentType
-        run service: "addMultipleuploadForProduct", with: addAdditionalViewForProductMap
+        serviceResult = run service: "addMultipleuploadForProduct", with: addAdditionalViewForProductMap
+        if (!ServiceUtil.isSuccess(serviceResult)) {
+            return error(serviceResult.errorMessage)
+        }
         addAdditionalViewForProductMap.clear()
     }
     if (parameters._additionalImageFour_fileName) {
@@ -68,7 +79,10 @@ def UploadProductImages() {
         addAdditionalViewForProductMap.productContentTypeId = "IMAGE"
         addAdditionalViewForProductMap._uploadedFile_fileName = parameters._additionalImageFour_fileName
         addAdditionalViewForProductMap._uploadedFile_contentType = parameters._additionalImageFour_contentType
-        run service: "addMultipleuploadForProduct", with: addAdditionalViewForProductMap
+        serviceResult = run service: "addMultipleuploadForProduct", with: addAdditionalViewForProductMap
+        if (!ServiceUtil.isSuccess(serviceResult)) {
+            return error(serviceResult.errorMessage)
+        }
         addAdditionalViewForProductMap.clear()
     }
     if (parameters._additionalImageFive_fileName) {
@@ -78,7 +92,10 @@ def UploadProductImages() {
         addAdditionalViewForProductMap.productContentTypeId = "IMAGE"
         addAdditionalViewForProductMap._uploadedFile_fileName = parameters._additionalImageFive_fileName
         addAdditionalViewForProductMap._uploadedFile_contentType = parameters._additionalImageFive_contentType
-        run service: "addMultipleuploadForProduct", with: addAdditionalViewForProductMap
+        serviceResult = run service: "addMultipleuploadForProduct", with: addAdditionalViewForProductMap
+        if (!ServiceUtil.isSuccess(serviceResult)) {
+            return error(serviceResult.errorMessage)
+        }
         addAdditionalViewForProductMap.clear()
     }
     if (parameters._additionalImageSix_fileName) {
@@ -88,7 +105,10 @@ def UploadProductImages() {
         addAdditionalViewForProductMap.productContentTypeId = "IMAGE"
         addAdditionalViewForProductMap._uploadedFile_fileName = parameters._additionalImageSix_fileName
         addAdditionalViewForProductMap._uploadedFile_contentType = parameters._additionalImageSix_contentType
-        run service: "addMultipleuploadForProduct", with: addAdditionalViewForProductMap
+        serviceResult = run service: "addMultipleuploadForProduct", with: addAdditionalViewForProductMap
+        if (!ServiceUtil.isSuccess(serviceResult)) {
+            return error(serviceResult.errorMessage)
+        }
         addAdditionalViewForProductMap.clear()
     }
     if (parameters._additionalImageSeven_fileName) {
@@ -98,7 +118,10 @@ def UploadProductImages() {
         addAdditionalViewForProductMap.productContentTypeId = "IMAGE"
         addAdditionalViewForProductMap._uploadedFile_fileName = parameters._additionalImageSeven_fileName
         addAdditionalViewForProductMap._uploadedFile_contentType = parameters._additionalImageSeven_contentType
-        run service: "addMultipleuploadForProduct", with: addAdditionalViewForProductMap
+        serviceResult = run service: "addMultipleuploadForProduct", with: addAdditionalViewForProductMap
+        if (!ServiceUtil.isSuccess(serviceResult)) {
+            return error(serviceResult.errorMessage)
+        }
         addAdditionalViewForProductMap.clear()
     }
     if (parameters._additionalImageEight_fileName) {
@@ -108,7 +131,10 @@ def UploadProductImages() {
         addAdditionalViewForProductMap.productContentTypeId = "IMAGE"
         addAdditionalViewForProductMap._uploadedFile_fileName = parameters._additionalImageEight_fileName
         addAdditionalViewForProductMap._uploadedFile_contentType = parameters._additionalImageEight_contentType
-        run service: "addMultipleuploadForProduct", with: addAdditionalViewForProductMap
+        serviceResult = run service: "addMultipleuploadForProduct", with: addAdditionalViewForProductMap
+        if (!ServiceUtil.isSuccess(serviceResult)) {
+            return error(serviceResult.errorMessage)
+        }
         addAdditionalViewForProductMap.clear()
     }
     if (parameters._additionalImageNine_fileName) {
@@ -118,7 +144,10 @@ def UploadProductImages() {
         addAdditionalViewForProductMap.productContentTypeId = "IMAGE"
         addAdditionalViewForProductMap._uploadedFile_fileName = parameters._additionalImageNine_fileName
         addAdditionalViewForProductMap._uploadedFile_contentType = parameters._additionalImageNine_contentType
-        run service: "addMultipleuploadForProduct", with: addAdditionalViewForProductMap
+        serviceResult = run service: "addMultipleuploadForProduct", with: addAdditionalViewForProductMap
+        if (!ServiceUtil.isSuccess(serviceResult)) {
+            return error(serviceResult.errorMessage)
+        }
         addAdditionalViewForProductMap.clear()
     }
     if (parameters._additionalImageTen_fileName) {
@@ -128,9 +157,14 @@ def UploadProductImages() {
         addAdditionalViewForProductMap.productContentTypeId = "IMAGE"
         addAdditionalViewForProductMap._uploadedFile_fileName = parameters._additionalImageTen_fileName
         addAdditionalViewForProductMap._uploadedFile_contentType = parameters._additionalImageTen_contentType
-        run service: "addMultipleuploadForProduct", with: addAdditionalViewForProductMap
+        serviceResult = run service: "addMultipleuploadForProduct", with: addAdditionalViewForProductMap
+        if (!ServiceUtil.isSuccess(serviceResult)) {
+            return error(serviceResult.errorMessage)
+        }
         addAdditionalViewForProductMap.clear()
     }
+    result.productId = parameters.productId
+    return result
 }
 
 /**
@@ -139,20 +173,28 @@ def UploadProductImages() {
  */
 def removeProductContentAndImageFile() {
     Map removeContent
-    List checkDefaultImage = from("ProductContent").where(productId: parameters.productId, contentId: parameters.contentId, productContentTypeId: "DEFAULT_IMAGE").queryList()
+    Map serviceResult = [:]
+    List checkDefaultImage = from("ProductContent").where(productId: parameters.productId, contentId: parameters.contentId,
+        productContentTypeId: "DEFAULT_IMAGE").queryList()
     if (!checkDefaultImage) {
         List contentAssocs = from("ContentAssoc").where(contentId: parameters.contentId, contentAssocTypeId: "IMAGE_THUMBNAIL").queryList()
         if (contentAssocs) {
             for (GenericValue contentAssoc : contentAssocs) {
                 contentAssoc.remove()
                 removeContent = [contentId: contentAssoc.contentIdTo, productId: parameters.productId]
-                run service: "removeProductContentForImageManagement", with: removeContent
+                serviceResult = run service: "removeProductContentForImageManagement", with: removeContent
+                if (!ServiceUtil.isSuccess(serviceResult)) {
+                    return error(serviceResult.errorMessage)
+                }
             }
         }
         GenericValue lookedUpValue = from("ProductContent").where(parameters).queryOne()
         lookedUpValue.remove()
         removeContent = [contentId: parameters.contentId, productId: parameters.productId]
-        run service: "removeProductContentForImageManagement", with: removeContent
+        serviceResult = run service: "removeProductContentForImageManagement", with: removeContent
+        if (!ServiceUtil.isSuccess(serviceResult)) {
+            return error(serviceResult.errorMessage)
+        }
     } else {
         String errorMessage = UtilProperties.getMessage("ProductErrorUiLabels", "ImageManagementErrorRmoveDefaultImage", locale)
         logError("Cannot remove image contentId ${parameters.contentId}")
@@ -166,6 +208,7 @@ def removeProductContentAndImageFile() {
  * @return
  */
 def removeProductContentForImageManagement() {
+    Map serviceResult = [:]
     List contentRoles = from("ContentRole").where(contentId: parameters.contentId).queryList()
     if (contentRoles) {
         contentRoles.get(0).remove()
@@ -180,7 +223,10 @@ def removeProductContentForImageManagement() {
     }
     GenericValue content = from("Content").where(contentId: parameters.contentId).queryOne()
     Map removeContentPKMap = [contentId: parameters.contentId]
-    run service: "removeContent", with: removeContentPKMap
+    serviceResult = run service: "removeContent", with: removeContentPKMap
+    if (!ServiceUtil.isSuccess(serviceResult)) {
+        return error(serviceResult.errorMessage)
+    }
 
     String dataResourceId = content.dataResourceId
     List dataResourceRoles = from("DataResourceRole").where(dataResourceId: dataResourceId).queryList()
@@ -188,11 +234,18 @@ def removeProductContentForImageManagement() {
         dataResourceRoles.get(0).remove()
     }
     GenericValue dataResource = from("DataResource").where(dataResourceId: dataResourceId).queryOne()
-    Map removeImageFile = [productId: parameters.productId, contentId: parameters.contentId, objectInfo: dataResource.objectInfo, dataResourceName: dataResource.dataResourceName]
-    run service: "removeImageFileForImageManagement", with: removeImageFile
+    Map removeImageFile = [productId: parameters.productId, contentId: parameters.contentId, objectInfo: dataResource.objectInfo,
+        dataResourceName: dataResource.dataResourceName]
+    serviceResult = run service: "removeImageFileForImageManagement", with: removeImageFile
+    if (!ServiceUtil.isSuccess(serviceResult)) {
+        return error(serviceResult.errorMessage)
+    }
 
     Map removeDataResourcePKMap = [dataResourceId: dataResourceId]
-    run service: "removeDataResource", with: removeDataResourcePKMap
+    serviceResult = run service: "removeDataResource", with: removeDataResourcePKMap
+    if (!ServiceUtil.isSuccess(serviceResult)) {
+        return error(serviceResult.errorMessage)
+    }
     return success()
 }
 
@@ -212,6 +265,8 @@ def setImageDetail() {
     // set caption
     GenericValue content = from("Content").where(parameters).queryOne()
     content.description = parameters.description
+    content.store()
+
     if (content.statusId == "IM_APPROVED") {
         GenericValue dataResource = from("DataResource").where(dataResourceId: content.dataResourceId).queryOne()
         dataResource.isPublic = parameters.drIsPublic
@@ -240,7 +295,8 @@ def updateStatusImageManagement() {
             contentApproval.store()
         }
     } else {
-        GenericValue contentApproval = from("ContentApproval").where(partyId: userLogin.partyId, contentId: parameters.contentId, roleTypeId: "IMAGEAPPROVER").queryFirst()
+        GenericValue contentApproval = from("ContentApproval").where(partyId: userLogin.partyId, contentId: parameters.contentId,
+            roleTypeId: "IMAGEAPPROVER").queryFirst()
         contentApproval.approvalStatusId = parameters.checkStatusId
         contentApproval.store()
     }
@@ -263,21 +319,25 @@ def updateStatusImageManagement() {
                     content.statusId = "IM_APPROVED"
                     content.store()
 
-                    GenericValue productContent = from("ProductContent").where(contentId: parameters.contentId, productContentTypeId: "IMAGE").queryFirst()
+                    GenericValue productContent = from("ProductContent").where(contentId: parameters.contentId, productContentTypeId: "IMAGE")
+                        .queryFirst()
                     productContent.purchaseFromDate = nowTimestamp
                     productContent.store()
                 } else {
-                    Long countApprove = from("ContentApproval").where(contentId: parameters.contentId, roleTypeId: "IMAGEAPPROVER", approvalStatusId: "IM_APPROVED").queryCount()
+                    Long countApprove = from("ContentApproval").where(contentId: parameters.contentId, roleTypeId: "IMAGEAPPROVER",
+                        approvalStatusId: "IM_APPROVED").queryCount()
                     if (countApprove >= (Long) 2) {
                         GenericValue content = from("Content").where(parameters).queryOne()
                         content.statusId = "IM_APPROVED"
                         content.store()
 
-                        GenericValue productContent = from("ProductContent").where(contentId: parameters.contentId, productContentTypeId: "IMAGE").queryFirst()
+                        GenericValue productContent = from("ProductContent").where(contentId: parameters.contentId, productContentTypeId: "IMAGE")
+                            .queryFirst()
                         productContent.purchaseFromDate = nowTimestamp
                         productContent.store()
 
-                        List checkApproveList = from("ContentApproval").where(contentId: parameters.contentId, roleTypeId: "IMAGEAPPROVER").queryList()
+                        List checkApproveList = from("ContentApproval").where(contentId: parameters.contentId, roleTypeId: "IMAGEAPPROVER")
+                            .queryList()
                         for (GenericValue checkApprove : checkApproveList) {
                             checkApprove.approvalStatusId = "IM_APPROVED"
                             checkApprove.store()
@@ -339,8 +399,12 @@ def createImageContentApproval() {
     Timestamp nowTimestamp = UtilDateTime.nowTimestamp()
     List partyRoles = from("PartyRole").where(roleTypeId: "IMAGEAPPROVER").queryList()
     for (GenericValue partyRole : partyRoles) {
-        Map contentApproval = [partyId: partyRole.partyId, contentId: parameters.contentId, roleTypeId: "IMAGEAPPROVER", approvalDate: nowTimestamp, approvalStatusId: "IM_PENDING"]
-        run service: "createContentApproval", with: contentApproval
+        Map contentApproval = [partyId: partyRole.partyId, contentId: parameters.contentId, roleTypeId: "IMAGEAPPROVER",
+            approvalDate: nowTimestamp, approvalStatusId: "IM_PENDING"]
+        Map serviceResult = run service: "createContentApproval", with: contentApproval
+        if (!ServiceUtil.isSuccess(serviceResult)) {
+            return error(serviceResult.errorMessage)
+        }
     }
     return success()
 }
@@ -362,12 +426,17 @@ def removeImageContentApproval() {
  * @return
  */
 def resizeImages() {
+    Map serviceResult = [:]
     if (parameters.resizeOption == "resizeAllImages") {
         List productContentAndInfos = from("ProductContentAndInfo").where(productId: parameters.productId, productContentTypeId: "IMAGE").queryList()
         // <field-map field-name="statusId" value="IM_APPROVED"/>
         for (GenericValue productContentAndInfo : productContentAndInfos) {
-            Map resizeImageMap = [productId: productContentAndInfo.productId, dataResourceName: productContentAndInfo.drDataResourceName, resizeWidth: parameters.size]
-            run service: "resizeImageOfProduct", with: resizeImageMap
+            Map resizeImageMap = [productId: productContentAndInfo.productId, dataResourceName: productContentAndInfo.drDataResourceName,
+                resizeWidth: parameters.size]
+            serviceResult = run service: "resizeImageOfProduct", with: resizeImageMap
+            if (!ServiceUtil.isSuccess(serviceResult)) {
+                return error(serviceResult.errorMessage)
+            }
         }
     }
     if (parameters.resizeOption == "createNewThumbnail") {
@@ -377,8 +446,12 @@ def resizeImages() {
         List productContentAndInfos = from("ProductContentAndInfo").where(productId: parameters.productId, productContentTypeId: "IMAGE").queryList()
         // <field-map field-name="statusId" value="IM_APPROVED"/>
         for (GenericValue productContentAndInfo : productContentAndInfos) {
-            Map createNewImageThumbnailMap = [productId: productContentAndInfo.productId, contentId: productContentAndInfo.contentId, dataResourceName: productContentAndInfo.drDataResourceName, drObjectInfo: productContentAndInfo.drObjectInfo, sizeWidth: parameters.size]
-            run service: "createNewImageThumbnail", with: createNewImageThumbnailMap
+            Map createNewImageThumbnailMap = [productId: productContentAndInfo.productId, contentId: productContentAndInfo.contentId,
+                dataResourceName: productContentAndInfo.drDataResourceName, drObjectInfo: productContentAndInfo.drObjectInfo, sizeWidth: parameters.size]
+            serviceResult = run service: "createNewImageThumbnail", with: createNewImageThumbnailMap
+            if (!ServiceUtil.isSuccess(serviceResult)) {
+                return error(serviceResult.errorMessage)
+            }
         }
     }
     return success()
@@ -392,10 +465,17 @@ def removeImageBySize() {
     List productContentAndInfos = from("ProductContentAndInfo").where(productId: parameters.productId, productContentTypeId: "IMAGE").queryList()
     // <field-map field-name="statusId" value="IM_APPROVED"/>
     for (GenericValue productContentAndInfo : productContentAndInfos) {
-        List contentAssocs = from("ContentAssoc").where(contentId: productContentAndInfo.contentId, contentAssocTypeId: "IMAGE_THUMBNAIL", mapKey: parameters.mapKey).queryList()
-        for (GenericValue contentAssoc : contentAssocs) {
-            Map removeContent = [contentId: contentAssoc.contentIdTo, productId: parameters.productId]
-            run service: "removeProductContentForImageManagement", with: removeContent
+        List contentAssocs = from("ContentAssoc").where(contentId: productContentAndInfo.contentId, contentAssocTypeId: "IMAGE_THUMBNAIL",
+            mapKey: parameters.mapKey).queryList()
+        if (contentAssocs) {
+            for (GenericValue contentAssoc : contentAssocs) {
+                contentAssoc.remove()
+                Map removeContent = [contentId: contentAssoc.contentIdTo, productId: parameters.productId]
+                Map serviceResult = run service: "removeProductContentForImageManagement", with: removeContent
+                if (!ServiceUtil.isSuccess(serviceResult)) {
+                    return error(serviceResult.errorMessage)
+                }
+            }
         }
     }
     return success()
