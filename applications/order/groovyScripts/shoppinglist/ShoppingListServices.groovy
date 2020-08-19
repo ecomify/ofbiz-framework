@@ -267,7 +267,7 @@ def calculateShoppingListDeepTotalPrice() {
 def checkShoppingListSecurity() {
     Map result = success()
     Boolean hasPermission = false
-    if (userLogin && (userLogin.userLoginId != "anonymous") && parameters.partyId && (userLogin.partyId. != parameters.partyId)
+    if (userLogin && (userLogin.userLoginId != "anonymous") && parameters.partyId && (userLogin.partyId != parameters.partyId)
     && !security.hasEntityPermission("PARTYMGR", "_${parameters.permissionAction}", parameters.userLogin)) {
         return error(UtilProperties.getMessage("OrderErrorUiLabels", "OrderSecurityErrorToRunForAnotherParty", parameters.locale))
     } else {
@@ -285,7 +285,8 @@ def checkShoppingListItemSecurity() {
     Map result = success()
     Boolean hasPermission = false
     GenericValue shoppingList = from("ShoppingList").where(parameters).queryOne()
-    if (shoppingList?.partyId && !(userLogin.partyId.equals(shoppingList.partyId)) && !security.hasEntityPermission("PARTYMGR", "_${parameters.permissionAction}", parameters.userLogin)) {
+    if (shoppingList?.partyId && !(userLogin.partyId.equals(shoppingList.partyId)) 
+        && !security.hasEntityPermission("PARTYMGR", "_${parameters.permissionAction}", parameters.userLogin)) {
         Map errorLog = [:]
         errorLog = [parentMethodName: parameters.parentMethodName]
         errorLog.permissionAction = parameters.permissionAction
@@ -318,7 +319,8 @@ def addSuggestionsToShoppingList() {
 
     GenericValue shoppingList = from("ShoppingList").where(partyId: orderRole.partyId, listName: "Auto Suggestions").queryFirst()
     if (!shoppingList) {
-        Map createShoppingListInMap = [partyId: orderRole.partyId, listName: "Auto Suggestions", shoppingListTypeId: "SLT_WISH_LIST", productStoreId: parameters.productStoreId]
+        Map createShoppingListInMap = [partyId: orderRole.partyId, listName: "Auto Suggestions", shoppingListTypeId: "SLT_WISH_LIST",
+            productStoreId: parameters.productStoreId]
         Map serviceResultCSL = dispatcher.runSync("createShoppingList", createShoppingListInMap, 7200, true)
         if (!ServiceUtil.isSuccess(serviceResultCSL)) {
             return error(serviceResultCSL.errorMessage)
@@ -330,7 +332,8 @@ def addSuggestionsToShoppingList() {
     List orderItemList = from ("OrderItem").where(orderId: parameters.orderId).orderBy("orderItemSeqId").queryList()
     for (GenericValue orderItem : orderItemList) {
         if (orderItem.productId) {
-            List compProductAssocList = from("ProductAssoc").where(productId: orderItem.productId, productAssocTypeId: "PRODUCT_COMPLEMENT").filterByDate().queryList()
+            List compProductAssocList = from("ProductAssoc").where(productId: orderItem.productId, productAssocTypeId: "PRODUCT_COMPLEMENT")
+                .filterByDate().queryList()
             for (GenericValue compProductAssoc : compProductAssocList) {
                 Map shoppingListParameters = [productId: compProductAssoc.productIdTo, shoppingListId: shoppingListId, quantity: (BigDecimal) 1]
                 Map serviceResultADSLI = run service:"addDistinctShoppingListItem", with: shoppingListParameters
@@ -340,9 +343,11 @@ def addSuggestionsToShoppingList() {
             }
             GenericValue product = from("Product").where(productId: orderItem.productId).queryOne()
             if (product.isVariant == "Y") {
-                GenericValue virtualProductAssoc = from("ProductAssoc").where(productIdTo: orderItem.productId, productAssocTypeId: "PRODUCT_VARIANT").filterByDate().queryFirst()
+                GenericValue virtualProductAssoc = from("ProductAssoc").where(productIdTo: orderItem.productId,
+                    productAssocTypeId: "PRODUCT_VARIANT").filterByDate().queryFirst()
                 if (virtualProductAssoc) {
-                    compProductAssocList = from("ProductAssoc").where(productId: virtualProductAssoc.productId, productAssocTypeId: "PRODUCT_COMPLEMENT").filterByDate().queryList()
+                    compProductAssocList = from("ProductAssoc").where(productId: virtualProductAssoc.productId,
+                        productAssocTypeId: "PRODUCT_COMPLEMENT").filterByDate().queryList()
                     for (GenericValue compProductAssoc : compProductAssocList) {
                         Map shoppingListParameters = [productId: compProductAssoc.productIdTo, shoppingListId: shoppingListId]
                         shoppingListParameters.quantity = (BigDecimal) 1
