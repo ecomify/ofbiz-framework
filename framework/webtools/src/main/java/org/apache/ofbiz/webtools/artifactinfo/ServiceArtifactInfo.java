@@ -70,7 +70,6 @@ public class ServiceArtifactInfo extends ArtifactInfoBase {
 
     /**
      * This must be called after creation from the ArtifactInfoFactory after this class has been put into the global Map in order to avoid recursive initialization
-     *
      * @throws GeneralException
      */
     public void populateAll() throws GeneralException {
@@ -85,7 +84,7 @@ public class ServiceArtifactInfo extends ArtifactInfoBase {
             // we can do something with this!
             SimpleMethod simpleMethodToCall = null;
             try {
-                simpleMethodToCall = SimpleMethod.getSimpleMethod(this.modelService.location, this.modelService.invoke,null);
+                simpleMethodToCall = SimpleMethod.getSimpleMethod(this.modelService.location, this.modelService.invoke, null);
             } catch (MiniLangException e) {
                 Debug.logWarning("Error getting Simple-method [" + this.modelService.invoke + "] in [" + this.modelService.location + "] referenced in service [" + this.modelService.name + "]: " + e.toString(), MODULE);
             }
@@ -104,9 +103,6 @@ public class ServiceArtifactInfo extends ArtifactInfoBase {
                 String javaFile = null;
                 try {
                     javaFile = FileUtil.readTextFile(fullClassPathAndFile, true).toString();
-                } catch (FileNotFoundException e) {
-                    Debug.logWarning("Error reading java file [" + fullClassPathAndFile + "] for service implementation: " + e.toString(), MODULE);
-                    return;
                 } catch (IOException e) {
                     Debug.logWarning("Error reading java file [" + fullClassPathAndFile + "] for service implementation: " + e.toString(), MODULE);
                     return;
@@ -147,7 +143,7 @@ public class ServiceArtifactInfo extends ArtifactInfoBase {
             // we can do something with this!
             SimpleMethod simpleMethodToCall = null;
             try {
-                simpleMethodToCall = SimpleMethod.getSimpleMethod(this.modelService.location, this.modelService.invoke,null);
+                simpleMethodToCall = SimpleMethod.getSimpleMethod(this.modelService.location, this.modelService.invoke, null);
             } catch (MiniLangException e) {
                 Debug.logWarning("Error getting Simple-method [" + this.modelService.invoke + "] in [" + this.modelService.location + "] referenced in service [" + this.modelService.name + "]: " + e.toString(), MODULE);
             }
@@ -166,9 +162,6 @@ public class ServiceArtifactInfo extends ArtifactInfoBase {
                 String javaFile = null;
                 try {
                     javaFile = FileUtil.readTextFile(fullClassPathAndFile, true).toString();
-                } catch (FileNotFoundException e) {
-                    Debug.logWarning("Error reading java file [" + fullClassPathAndFile + "] for service implementation: " + e.toString(), MODULE);
-                    return;
                 } catch (IOException e) {
                     Debug.logWarning("Error reading java file [" + fullClassPathAndFile + "] for service implementation: " + e.toString(), MODULE);
                     return;

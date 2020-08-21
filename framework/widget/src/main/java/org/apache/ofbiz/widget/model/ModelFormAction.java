@@ -72,7 +72,6 @@ public abstract class ModelFormAction {
 
     /**
      * Models the &lt;call-parent-actions&gt; element.
-     *
      * @see <code>widget-form.xsd</code>
      */
     @SuppressWarnings("serial")
@@ -115,14 +114,13 @@ public abstract class ModelFormAction {
             }
         }
 
-        protected static enum ActionsKind {
+        protected enum ActionsKind {
             ACTIONS, ROW_ACTIONS
         }
     }
 
     /**
      * Models the &lt;service&gt; element.
-     *
      * @see <code>widget-form.xsd</code>
      */
     @SuppressWarnings("serial")

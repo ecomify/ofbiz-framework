@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.Stack;
 
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
@@ -91,7 +92,6 @@ public class ScreenRenderer {
 
     /**
      * Renders the named screen using the render environment configured when this ScreenRenderer was created.
-     *
      * @param combinedName A combination of the resource name/location for the screen XML file and the name of the screen within that file, separated by a pound sign ("#"). This is the same format that is used in the view-map elements on the controller.xml file.
      * @throws IOException
      * @throws SAXException
@@ -106,7 +106,6 @@ public class ScreenRenderer {
 
     /**
      * Renders the named screen using the render environment configured when this ScreenRenderer was created.
-     *
      * @param resourceName The name/location of the resource to use, can use "component://[component-name]/" and "ofbiz://" and other special OFBiz style URLs
      * @param screenName The name of the screen within the XML file specified by the resourceName.
      * @throws IOException
@@ -139,8 +138,8 @@ public class ScreenRenderer {
         } else {
             context.put("renderFormSeqNumber", String.valueOf(renderFormSeqNumber));
             if (context.get(MultiBlockHtmlTemplateUtil.MULTI_BLOCK_WRITER) != null) {
-                StringWriter stringWriter = (StringWriter) context.get(MultiBlockHtmlTemplateUtil.MULTI_BLOCK_WRITER);
-                modelScreen.renderScreenString(stringWriter, context, screenStringRenderer);
+                Stack<StringWriter> stringWriterStack = UtilGenerics.cast(context.get(MultiBlockHtmlTemplateUtil.MULTI_BLOCK_WRITER));
+                modelScreen.renderScreenString(stringWriterStack.peek(), context, screenStringRenderer);
             } else {
                 modelScreen.renderScreenString(writer, context, screenStringRenderer);
             }
@@ -189,7 +188,6 @@ public class ScreenRenderer {
     /**
      * This method populates the context for this ScreenRenderer based on the HTTP Request and Response objects and the ServletContext.
      * It leverages various conventions used in other places, namely the ControlServlet and so on, of OFBiz to get the different resources needed.
-     *
      * @param request
      * @param response
      * @param servletContext
@@ -226,7 +224,7 @@ public class ScreenRenderer {
         VisualTheme visualTheme = UtilHttp.getVisualTheme(request);
         if (visualTheme == null) {
             String defaultVisualThemeId = EntityUtilProperties.getPropertyValue("general", "VISUAL_THEME", (Delegator) request.getAttribute("delegator"));
-            visualTheme = ThemeFactory.getVisualThemeFromId(defaultVisualThemeId);  
+            visualTheme = ThemeFactory.getVisualThemeFromId(defaultVisualThemeId);
         }
         context.put("visualTheme", visualTheme);
         context.put("modelTheme", visualTheme.getModelTheme());
@@ -260,7 +258,7 @@ public class ScreenRenderer {
         context.put("requestAttributes", new HttpRequestHashModel(request, FreeMarkerWorker.getDefaultOfbizWrapper()));
         TaglibFactory JspTaglibs = new TaglibFactory(servletContext);
         context.put("JspTaglibs", JspTaglibs);
-        context.put("requestParameters",  UtilHttp.getParameterMap(request));
+        context.put("requestParameters", UtilHttp.getParameterMap(request));
 
         ServletContextHashModel ftlServletContext = (ServletContextHashModel) request.getAttribute("ftlServletContext");
         context.put("Application", ftlServletContext);

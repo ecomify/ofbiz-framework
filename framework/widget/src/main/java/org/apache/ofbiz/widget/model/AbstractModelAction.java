@@ -70,21 +70,17 @@ public abstract class AbstractModelAction implements Serializable, ModelAction {
      * ----------------------------------------------------------------------- *
      *                     DEVELOPERS PLEASE READ
      * ----------------------------------------------------------------------- *
-     *
      * This model is intended to be a read-only data structure that represents
      * an XML element. Outside of object construction, the class should not
      * have any behaviors.
-     *
      * Instances of this class will be shared by multiple threads - therefore
      * it is immutable. DO NOT CHANGE THE OBJECT'S STATE AT RUN TIME!
-     *
      */
 
     private static final String MODULE = AbstractModelAction.class.getName();
 
     /**
      * Returns a new <code>ModelAction</code> instance, built from <code>actionElement</code>.
-     *
      * @param modelWidget The <code>ModelWidget</code> that contains the &lt;actions&gt; element
      * @param actionElement
      * @return A new <code>ModelAction</code> instance
@@ -127,7 +123,6 @@ public abstract class AbstractModelAction implements Serializable, ModelAction {
 
     /**
      * Executes the actions contained in <code>actions</code>.
-     * 
      * @param actions
      * @param context
      */
@@ -163,7 +158,6 @@ public abstract class AbstractModelAction implements Serializable, ModelAction {
 
     /**
      * Returns the <code>ModelWidget</code> that contains the &lt;actions&gt; element.
-     * 
      * @return The <code>ModelWidget</code> that contains the &lt;actions&gt; element
      */
     public ModelWidget getModelWidget() {
@@ -184,7 +178,6 @@ public abstract class AbstractModelAction implements Serializable, ModelAction {
 
     /**
      * Models the &lt;entity-and&gt; element.
-     *
      * @see <code>widget-screen.xsd</code>
      */
     public static class EntityAnd extends AbstractModelAction {
@@ -218,7 +211,6 @@ public abstract class AbstractModelAction implements Serializable, ModelAction {
 
     /**
      * Models the &lt;entity-condition&gt; element.
-     *
      * @see <code>widget-screen.xsd</code>
      */
     public static class EntityCondition extends AbstractModelAction {
@@ -252,7 +244,6 @@ public abstract class AbstractModelAction implements Serializable, ModelAction {
 
     /**
      * Models the &lt;entity-one&gt; element.
-     *
      * @see <code>widget-common.xsd</code>
      */
     public static class EntityOne extends AbstractModelAction {
@@ -286,7 +277,6 @@ public abstract class AbstractModelAction implements Serializable, ModelAction {
 
     /**
      * Models the &lt;get-related&gt; element.
-     *
      * @see <code>widget-common.xsd</code>
      */
     public static class GetRelated extends AbstractModelAction {
@@ -320,7 +310,9 @@ public abstract class AbstractModelAction implements Serializable, ModelAction {
         public void runAction(Map<String, Object> context) {
             Object valueObject = valueNameAcsr.get(context);
             if (valueObject == null) {
-                if (Debug.verboseOn()) Debug.logVerbose("Value not found with name: " + valueNameAcsr + ", not getting related...", MODULE);
+                if (Debug.verboseOn()) {
+                    Debug.logVerbose("Value not found with name: " + valueNameAcsr + ", not getting related...", MODULE);
+                }
                 return;
             }
             if (!(valueObject instanceof GenericValue)) {
@@ -371,7 +363,6 @@ public abstract class AbstractModelAction implements Serializable, ModelAction {
 
     /**
      * Models the &lt;get-related-one&gt; element.
-     *
      * @see <code>widget-common.xsd</code>
      */
     public static class GetRelatedOne extends AbstractModelAction {
@@ -401,7 +392,9 @@ public abstract class AbstractModelAction implements Serializable, ModelAction {
         public void runAction(Map<String, Object> context) {
             Object valueObject = valueNameAcsr.get(context);
             if (valueObject == null) {
-                if (Debug.verboseOn()) Debug.logVerbose("Value not found with name: " + valueNameAcsr + ", not getting related...", MODULE);
+                if (Debug.verboseOn()) {
+                    Debug.logVerbose("Value not found with name: " + valueNameAcsr + ", not getting related...", MODULE);
+                }
                 return;
             }
             if (!(valueObject instanceof GenericValue)) {
@@ -436,7 +429,6 @@ public abstract class AbstractModelAction implements Serializable, ModelAction {
 
     /**
      * Models the &lt;property-map&gt; element.
-     *
      * @see <code>widget-common.xsd</code>
      */
     public static class PropertyMap extends AbstractModelAction {
@@ -510,7 +502,6 @@ public abstract class AbstractModelAction implements Serializable, ModelAction {
 
     /**
      * Models the &lt;property-to-field&gt; element.
-     *
      * @see <code>widget-common.xsd</code>
      */
     public static class PropertyToField extends AbstractModelAction {
@@ -598,7 +589,6 @@ public abstract class AbstractModelAction implements Serializable, ModelAction {
 
     /**
      * Models the &lt;script&gt; element.
-     *
      * @see <code>widget-common.xsd</code>
      */
     public static class Script extends AbstractModelAction {
@@ -646,7 +636,6 @@ public abstract class AbstractModelAction implements Serializable, ModelAction {
 
     /**
      * Models the &lt;service&gt; element.
-     *
      * @see <code>widget-screen.xsd</code>
      */
     public static class Service extends AbstractModelAction {
@@ -731,7 +720,6 @@ public abstract class AbstractModelAction implements Serializable, ModelAction {
 
     /**
      * Models the &lt;set&gt; element.
-     *
      * @see <code>widget-common.xsd</code>
      */
     public static class SetField extends AbstractModelAction {
@@ -810,7 +798,7 @@ public abstract class AbstractModelAction implements Serializable, ModelAction {
                     HttpSession session = (HttpSession) context.get("session");
                     newValue = getInMemoryPersistedFromField(session, context);
                     if (Debug.verboseOn()) {
-                         Debug.logVerbose("In user getting value for field from [" + this.fromField.getOriginalName() + "]: " + newValue, MODULE);
+                        Debug.logVerbose("In user getting value for field from [" + this.fromField.getOriginalName() + "]: " + newValue, MODULE);
                     }
                 } else if (!this.valueExdr.isEmpty()) {
                     newValue = this.valueExdr.expand(context);
@@ -820,7 +808,8 @@ public abstract class AbstractModelAction implements Serializable, ModelAction {
                     ServletContext servletContext = (ServletContext) context.get("application");
                     newValue = getInMemoryPersistedFromField(servletContext, context);
                     if (Debug.verboseOn()) {
-                         Debug.logVerbose("In application getting value for field from [" + this.fromField.getOriginalName() + "]: " + newValue, MODULE);
+                        Debug.logVerbose("In application getting value for field from [" + this.fromField.getOriginalName() + "]: " + newValue,
+                                MODULE);
                     }
                 } else if (!this.valueExdr.isEmpty()) {
                     newValue = this.valueExdr.expandString(context);
@@ -829,7 +818,7 @@ public abstract class AbstractModelAction implements Serializable, ModelAction {
                 if (!this.fromField.isEmpty()) {
                     newValue = this.fromField.get(context);
                     if (Debug.verboseOn()) {
-                         Debug.logVerbose("Getting value for field from [" + this.fromField.getOriginalName() + "]: " + newValue, MODULE);
+                        Debug.logVerbose("Getting value for field from [" + this.fromField.getOriginalName() + "]: " + newValue, MODULE);
                     }
                 } else if (!this.valueExdr.isEmpty()) {
                     newValue = this.valueExdr.expand(context);
@@ -856,13 +845,13 @@ public abstract class AbstractModelAction implements Serializable, ModelAction {
                     }
                 }
             }
-            if (!setIfNull && newValue == null){
+            if (!setIfNull && newValue == null) {
                 if (Debug.warningOn()) {
                     Debug.logWarning("Field value not found (null) for the field: [" + this.field.getOriginalName() + " and there was no default value, so field was not set", MODULE);
                 }
                 return;
             }
-            if (!setIfEmpty && ObjectType.isEmpty(newValue)){
+            if (!setIfEmpty && ObjectType.isEmpty(newValue)) {
                 if (Debug.warningOn()) {
                     Debug.logWarning("Field value not found (empty) for the field: [" + this.field.getOriginalName() + " and there was no default value, so field was not set", MODULE);
                 }
@@ -883,7 +872,7 @@ public abstract class AbstractModelAction implements Serializable, ModelAction {
                 HttpSession session = (HttpSession) context.get("session");
                 session.setAttribute(newKey, newValue);
                 if (Debug.verboseOn()) {
-                     Debug.logVerbose("In user setting value for field from [" + this.field.getOriginalName() + "]: " + newValue, MODULE);
+                    Debug.logVerbose("In user setting value for field from [" + this.field.getOriginalName() + "]: " + newValue, MODULE);
                 }
             } else if (this.toScope != null && "application".equals(this.toScope)) {
                 String originalName = this.field.getOriginalName();
@@ -900,13 +889,13 @@ public abstract class AbstractModelAction implements Serializable, ModelAction {
                 ServletContext servletContext = (ServletContext) context.get("application");
                 servletContext.setAttribute(newKey, newValue);
                 if (Debug.verboseOn()) {
-                     Debug.logVerbose("In application setting value for field from [" + this.field.getOriginalName() + "]: " + newValue, MODULE);
+                    Debug.logVerbose("In application setting value for field from [" + this.field.getOriginalName() + "]: " + newValue, MODULE);
                 }
             } else {
                 // only do this if it is not global, if global ONLY put it in the global context
                 if (!global) {
                     if (Debug.verboseOn()) {
-                         Debug.logVerbose("Setting field [" + this.field.getOriginalName() + "] to value: " + newValue, MODULE);
+                        Debug.logVerbose("Setting field [" + this.field.getOriginalName() + "] to value: " + newValue, MODULE);
                     }
                     this.field.put(context, newValue);
                 }

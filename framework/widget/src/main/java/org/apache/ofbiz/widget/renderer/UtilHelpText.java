@@ -35,11 +35,10 @@ public final class UtilHelpText {
 
     private static final String MODULE = UtilHelpText.class.getName();
 
-    private UtilHelpText () {}
+    private UtilHelpText() { }
 
     /**
      * Find the help text associated with an entity field.
-     *
      * @param entityName the entity name
      * @param fieldName the field name
      * @param delegator the delegator

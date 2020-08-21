@@ -40,9 +40,9 @@ import org.apache.ofbiz.entity.util.EntityUtilProperties;
  */
 public final class CommonWorkers {
 
-    public final static String MODULE = CommonWorkers.class.getName();
+    private static final String MODULE = CommonWorkers.class.getName();
 
-    private CommonWorkers() {}
+    private CommonWorkers() { }
 
     public static List<GenericValue> getCountryList(Delegator delegator) {
         List<GenericValue> geoList = new LinkedList<>();
@@ -147,16 +147,14 @@ public final class CommonWorkers {
             EntityCondition stateProvinceFindCond = EntityCondition.makeCondition(
                     EntityCondition.makeCondition("geoIdFrom", country),
                     EntityCondition.makeCondition("geoAssocTypeId", "REGIONS"),
-                    EntityCondition.makeCondition(EntityOperator.OR, EntityCondition.makeCondition("geoTypeId", "STATE"), EntityCondition.makeCondition("geoTypeId", "PROVINCE"), EntityCondition.makeCondition("geoTypeId", "MUNICIPALITY"),
-                    		EntityCondition.makeCondition("geoTypeId", "TERRITORY"), EntityCondition.makeCondition("geoTypeId", "COUNTY")));
+                    EntityCondition.makeCondition(EntityOperator.OR, EntityCondition.makeCondition("geoTypeId", "STATE"), EntityCondition.makeCondition("geoTypeId", "PROVINCE"), EntityCondition.makeCondition("geoTypeId", "MUNICIPALITY"), EntityCondition.makeCondition("geoTypeId", "TERRITORY"), EntityCondition.makeCondition("geoTypeId", "COUNTY")));
             geoList.addAll(EntityQuery.use(delegator)
                                       .from("GeoAssocAndGeoToWithState")
                                       .where(stateProvinceFindCond)
                                       .orderBy(sortList)
                                       .cache(true)
-                                      .queryList()
-                          );
-        } catch (GenericEntityException e){
+                                      .queryList());
+        } catch (GenericEntityException e) {
             Debug.logError(e, "Cannot lookup Geo", MODULE);
         }
 
@@ -166,7 +164,6 @@ public final class CommonWorkers {
     /**
      * A generic method to be used on Type enities, e.g. ProductType.  Recurse to the root level in the type hierarchy
      * and checks if the specified type childType has parentType as its parent somewhere in the hierarchy.
-     *
      * @param delegator       The Delegator object.
      * @param entityName      Name of the Type entity on which check is performed.
      * @param primaryKey      Primary Key field of the Type entity.
@@ -174,7 +171,6 @@ public final class CommonWorkers {
      * @param parentTypeField Field in Type entity which stores the parent type.
      * @param parentType      Value of the parent type against which check is performed.
      * @return boolean value based on the check results.
-     *
      * @deprecated Moved to {@link org.apache.ofbiz.entity.util.EntityTypeUtil#hasParentType(Delegator, String, String, String, String, String) EntityTypeUtil}
      */
     @Deprecated

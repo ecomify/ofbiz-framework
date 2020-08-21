@@ -66,12 +66,10 @@ public class FormRenderer {
      * ----------------------------------------------------------------------- *
      *                     DEVELOPERS PLEASE READ
      * ----------------------------------------------------------------------- *
-     *
      * An instance of this class is created by each thread for each form that
      * is rendered. If you need to keep track of things while rendering, then
      * this is the place to do it. In other words, feel free to modify this
      * object's state (except for the final fields of course).
-     *
      */
 
     private static final String MODULE = FormRenderer.class.getName();
@@ -128,7 +126,7 @@ public class FormRenderer {
     }
 
     private static Predicate<ModelFormField> filteringIgnoredFields(Map<String, Object> context, Set<String> alreadyRendered) {
-       return  modelFormField -> {
+        return modelFormField -> {
             FieldInfo fieldInfo = modelFormField.getFieldInfo();
 
             // render hidden/ignored field widget
@@ -219,7 +217,6 @@ public class FormRenderer {
     /**
      * Renders this form to a writer, as defined with the
      * FormStringRenderer implementation.
-     *
      * @param writer The Writer that the form text will be written to
      * @param context Map containing the form context; the following are
      *   reserved words in this context: parameters (Map), isError (Boolean),
@@ -324,7 +321,7 @@ public class FormRenderer {
             for (ModelFormField modelFormField : mainFieldList) {
                 FieldInfo fieldInfo = modelFormField.getFieldInfo();
 
-                // if the field's title is explicitly set to "" (title="") then
+                // if the field's title is explicitly set to "" (title= "") then
                 // the header is not created for it; this is useful for position list
                 // where one line can be rendered with more than one row, and we
                 // only want to display the title header for the main row
@@ -551,7 +548,7 @@ public class FormRenderer {
                 boolean cellOpen = false;
                 ModelFormField modelFormField = innerDisplayHyperlinkFieldIter.next();
 
-                if(modelFormField.shouldIgnore(localContext)) {
+                if (modelFormField.shouldIgnore(localContext)) {
                     continue;
                 }
 
@@ -911,7 +908,7 @@ public class FormRenderer {
         if (!modelForm.getHideHeader() && containsData) {
             numOfColumns = this.renderHeaderRow(writer, context);
         }
-        if (!containsData){
+        if (!containsData) {
             formStringRenderer.renderEmptyFormDataMessage(writer, context, modelForm);
         }
         // ===== render the item rows =====
@@ -940,7 +937,7 @@ public class FormRenderer {
         if (!modelForm.getHideHeader() && containsData) {
             numOfColumns = this.renderHeaderRow(writer, context);
         }
-        if (!containsData){
+        if (!containsData) {
             formStringRenderer.renderEmptyFormDataMessage(writer, context, modelForm);
         }
         // ===== render the item rows =====
@@ -1204,11 +1201,11 @@ public class FormRenderer {
         if (iter instanceof EntityListIterator) {
             EntityListIterator eli = (EntityListIterator) iter;
             try {
-                if(eli.getResultsSizeAfterPartialList() > 0){
+                if (eli.getResultsSizeAfterPartialList() > 0) {
                     itemIndex++;
                 }
             } catch (GenericEntityException gee) {
-                Debug.logError(gee,MODULE);
+                Debug.logError(gee, MODULE);
             }
         } else {
             while (iter.hasNext()) {
