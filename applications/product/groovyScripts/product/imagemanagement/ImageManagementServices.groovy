@@ -29,7 +29,7 @@ import org.apache.ofbiz.service.ServiceUtil
  * Method to upload multiple images for product
  * @return
  */
-def UploadProductImages() {
+def uploadProductImages() {
     Map result = success()
     Map serviceResult = [:]
     Map addAdditionalViewForProductMap = parameters
