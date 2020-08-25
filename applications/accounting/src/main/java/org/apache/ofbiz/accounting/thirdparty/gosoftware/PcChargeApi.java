@@ -35,7 +35,7 @@ import org.xml.sax.SAXException;
 
 public class PcChargeApi {
 
-    public static final String MODULE = PcChargeApi.class.getName();
+    private static final String MODULE = PcChargeApi.class.getName();
     public static final String xschema = "x-schema:..\\dtd\\stnd.xdr";
     public static final String rootElement = "XML_FILE";
     public static final String reqElement = "XML_REQUEST";
@@ -77,8 +77,8 @@ public class PcChargeApi {
     public static final String CARD_ID_CODE = "CARD_ID_CODE";
     public static final String CVV2_CODE = "CVV2_CODE";
 
-    private static final String[] validOut = { RESULT, TRANS_DATE, AVS_CODE, CVV2_CODE, CARD_ID_CODE, TICKET };
-    private static final String[] validIn = { PROCESSOR_ID, MERCH_NUM, ACCT_NUM, EXP_DATE, TRANS_AMOUNT, TRACK_DATA,
+    private static final String[] validOut = {RESULT, TRANS_DATE, AVS_CODE, CVV2_CODE, CARD_ID_CODE, TICKET };
+    private static final String[] validIn = {PROCESSOR_ID, MERCH_NUM, ACCT_NUM, EXP_DATE, TRANS_AMOUNT, TRACK_DATA,
             CUSTOMER_CODE, TAX_AMOUNT, PRINT_RECEIPTS_FLAG, PERIODIC_PAYMENT_FLAG, OFFLINE_FLAG, VOID_FLAG, ZIP_CODE,
             STREET, TICKET_NUM, CARDHOLDER, TRANS_STORE, TOTAL_AUTH, MULTI_FLAG, PRESENT_FLAG, CVV2 };
 

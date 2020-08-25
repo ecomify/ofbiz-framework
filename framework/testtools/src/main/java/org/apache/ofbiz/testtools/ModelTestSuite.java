@@ -48,14 +48,14 @@ import junit.framework.TestSuite;
  * Use this class in a JUnit test runner to bootstrap the Test Suite runner.
  */
 public class ModelTestSuite {
-    public static final String MODULE = ModelTestSuite.class.getName();
+    private static final String MODULE = ModelTestSuite.class.getName();
     public static final String DELEGATOR_NAME = "test";
     public static final String DISPATCHER_NAME = "test-dispatcher";
 
-    protected String suiteName;
-    protected Delegator delegator;
-    protected LocalDispatcher dispatcher;
-    protected List<Test> testList = new ArrayList<>();
+    private String suiteName;
+    private Delegator delegator;
+    private LocalDispatcher dispatcher;
+    private List<Test> testList = new ArrayList<>();
 
     public ModelTestSuite(Element mainElement, String testCase) {
         String uniqueSuffix = "-" + RandomStringUtils.randomAlphanumeric(10);
@@ -130,7 +130,7 @@ public class ModelTestSuite {
                 Class<?> cl;
                 cl = Class.forName(className);
                 Constructor<?> con = cl.getConstructor(String.class, Element.class);
-                this.testList.add((Test)con.newInstance(caseName, testElement));
+                this.testList.add((Test) con.newInstance(caseName, testElement));
             } catch (Exception e) {
                 Debug.logError(e, MODULE);
             }
@@ -142,19 +142,35 @@ public class ModelTestSuite {
         }
     }
 
+    /**
+     * Gets suite name.
+     * @return the suite name
+     */
     String getSuiteName() {
         return this.suiteName;
     }
 
+    /**
+     * Gets delegator.
+     * @return the delegator
+     */
     Delegator getDelegator() {
         return this.delegator;
     }
 
+    /**
+     * Gets test list.
+     * @return the test list
+     */
     List<Test> getTestList() {
         return testList;
     }
 
 
+    /**
+     * Make test suite test suite.
+     * @return the test suite
+     */
     public TestSuite makeTestSuite() {
         TestSuite suite = new TestSuite();
         suite.setName(this.getSuiteName());
@@ -166,17 +182,16 @@ public class ModelTestSuite {
         return suite;
     }
 
-    private void prepareTest(Test test)
-    {
+    private void prepareTest(Test test) {
         if (test instanceof TestSuite) {
             Enumeration<Test> subTests = UtilGenerics.cast(((TestSuite) test).tests());
             while (subTests.hasMoreElements()) {
                 prepareTest(subTests.nextElement());
             }
         } else if (test instanceof EntityTestCase) {
-            ((EntityTestCase)test).setDelegator(delegator);
+            ((EntityTestCase) test).setDelegator(delegator);
             if (test instanceof OFBizTestCase) {
-                ((OFBizTestCase)test).setDispatcher(dispatcher);
+                ((OFBizTestCase) test).setDispatcher(dispatcher);
             }
         }
     }

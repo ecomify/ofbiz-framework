@@ -30,10 +30,10 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public final class UtilURL {
 
-    public static final String MODULE = UtilURL.class.getName();
+    private static final String MODULE = UtilURL.class.getName();
     private static final Map<String, URL> urlMap = new ConcurrentHashMap<>();
 
-    private UtilURL() {}
+    private UtilURL() { }
 
     public static <C> URL fromClass(Class<C> contextClass) {
         String resourceName = contextClass.getName();
@@ -53,7 +53,6 @@ public final class UtilURL {
      * <p>This method uses various ways to locate the resource, and in all
      * cases it tests to see if the resource exists - so it
      * is very inefficient.</p>
-     *
      * @param resourceName
      * @return
      */
@@ -74,7 +73,6 @@ public final class UtilURL {
      * <p>This method uses various ways to locate the resource, and in all
      * cases it tests to see if the resource exists - so it
      * is very inefficient.</p>
-     *
      * @param resourceName
      * @param loader
      * @return
@@ -169,7 +167,7 @@ public final class UtilURL {
         String path = fileUrl.getPath();
         if (path.startsWith(ofbizHome)) {
             // note: the +1 is to remove the leading slash
-            path = path.substring(ofbizHome.length()+1);
+            path = path.substring(ofbizHome.length() + 1);
         }
         return path;
     }

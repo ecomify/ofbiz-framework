@@ -32,7 +32,6 @@ import org.w3c.dom.Element;
 
 /**
  * Implements the &lt;and&gt;, &lt;or&gt;, &lt;not&gt;, and &lt;xor&gt; elements.
- * 
  * @see <a href="https://cwiki.apache.org/confluence/display/OFBIZ/Mini+Language+-+minilang+-+simple-method+-+Reference">Mini-language Reference</a>
  */
 public abstract class CombinedCondition extends MiniLangElement implements Conditional {
@@ -62,7 +61,7 @@ public abstract class CombinedCondition extends MiniLangElement implements Condi
     }
 
     /**
-     * A &lt;and&gt; element factory. 
+     * A &lt;and&gt; element factory.
      */
     public static final class AndConditionFactory extends ConditionalFactory<CombinedCondition> {
         @Override
@@ -70,7 +69,7 @@ public abstract class CombinedCondition extends MiniLangElement implements Condi
             return new CombinedCondition(element, simpleMethod) {
                 @Override
                 public boolean checkCondition(MethodContext methodContext) throws MiniLangException {
-                    if (subConditions.size() == 0)
+                    if (subConditions.isEmpty())
                         return true;
                     for (Conditional subCond : subConditions) {
                         if (!subCond.checkCondition(methodContext)) {
@@ -93,7 +92,7 @@ public abstract class CombinedCondition extends MiniLangElement implements Condi
     }
 
     /**
-     * A &lt;not&gt; element factory. 
+     * A &lt;not&gt; element factory.
      */
     public static final class NotConditionFactory extends ConditionalFactory<CombinedCondition> {
         @Override
@@ -101,7 +100,7 @@ public abstract class CombinedCondition extends MiniLangElement implements Condi
             return new CombinedCondition(element, simpleMethod) {
                 @Override
                 public boolean checkCondition(MethodContext methodContext) throws MiniLangException {
-                    if (subConditions.size() == 0)
+                    if (subConditions.isEmpty())
                         return true;
                     Conditional subCond = subConditions.get(0);
                     return !subCond.checkCondition(methodContext);
@@ -109,7 +108,7 @@ public abstract class CombinedCondition extends MiniLangElement implements Condi
                 @Override
                 public void prettyPrint(StringBuilder messageBuffer, MethodContext methodContext) {
                     messageBuffer.append("( NOT ");
-                    if (subConditions.size() > 0) {
+                    if (!subConditions.isEmpty()) {
                         Conditional subCond = subConditions.get(0);
                         subCond.prettyPrint(messageBuffer, methodContext);
                     }
@@ -125,7 +124,7 @@ public abstract class CombinedCondition extends MiniLangElement implements Condi
     }
 
     /**
-     * A &lt;or&gt; element factory. 
+     * A &lt;or&gt; element factory.
      */
     public static final class OrConditionFactory extends ConditionalFactory<CombinedCondition> {
         @Override
@@ -133,7 +132,7 @@ public abstract class CombinedCondition extends MiniLangElement implements Condi
             return new CombinedCondition(element, simpleMethod) {
                 @Override
                 public boolean checkCondition(MethodContext methodContext) throws MiniLangException {
-                    if (subConditions.size() == 0)
+                    if (subConditions.isEmpty())
                         return true;
                     for (Conditional subCond : subConditions) {
                         if (subCond.checkCondition(methodContext)) {
@@ -156,7 +155,7 @@ public abstract class CombinedCondition extends MiniLangElement implements Condi
     }
 
     /**
-     * A &lt;xor&gt; element factory. 
+     * A &lt;xor&gt; element factory.
      */
     public static final class XorConditionFactory extends ConditionalFactory<CombinedCondition> {
         @Override
@@ -164,7 +163,7 @@ public abstract class CombinedCondition extends MiniLangElement implements Condi
             return new CombinedCondition(element, simpleMethod) {
                 @Override
                 public boolean checkCondition(MethodContext methodContext) throws MiniLangException {
-                    if (subConditions.size() == 0)
+                    if (subConditions.isEmpty())
                         return true;
                     boolean trueFound = false;
                     for (Conditional subCond : subConditions) {

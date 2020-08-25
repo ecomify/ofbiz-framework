@@ -36,7 +36,7 @@ import org.w3c.dom.Element;
  */
 public class GroupModel {
 
-    public static final String MODULE = GroupModel.class.getName();
+    private static final String MODULE = GroupModel.class.getName();
 
     private String groupName, sendMode;
     private List<GroupServiceModel> services;
@@ -62,7 +62,7 @@ public class GroupModel {
         }
 
         List<? extends Element> oldServiceTags = UtilXml.childElementList(group, "service");
-        if (oldServiceTags.size() > 0) {
+        if (!oldServiceTags.isEmpty()) {
             for (Element service : oldServiceTags) {
                 services.add(new GroupServiceModel(service));
             }
@@ -178,7 +178,9 @@ public class GroupModel {
             result.putAll(thisResult);
             if (model.resultToContext()) {
                 runContext.putAll(thisResult);
-                if (Debug.verboseOn()) Debug.logVerbose("Added result(s) to context.", MODULE);
+                if (Debug.verboseOn()) {
+                    Debug.logVerbose("Added result(s) to context.", MODULE);
+                }
             }
         }
         return result;

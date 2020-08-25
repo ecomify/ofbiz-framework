@@ -36,7 +36,7 @@ import org.w3c.dom.Element;
  */
 public class ServiceEcaSetField {
 
-    public static final String MODULE = ServiceEcaSetField.class.getName();
+    private static final String MODULE = ServiceEcaSetField.class.getName();
 
     protected String fieldName = null;
     protected String mapName = null;
@@ -48,7 +48,7 @@ public class ServiceEcaSetField {
         this.fieldName = set.getAttribute("field-name");
         if (UtilValidate.isNotEmpty(this.fieldName) && this.fieldName.indexOf('.') != -1) {
             this.mapName = fieldName.substring(0, this.fieldName.indexOf('.'));
-            this.fieldName = this.fieldName.substring(this.fieldName.indexOf('.') +1);
+            this.fieldName = this.fieldName.substring(this.fieldName.indexOf('.') + 1);
         }
         this.envName = set.getAttribute("env-name");
         this.value = set.getAttribute("value");

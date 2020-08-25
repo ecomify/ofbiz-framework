@@ -46,7 +46,7 @@ import org.apache.ofbiz.entity.util.EntityUtil;
  */
 public final class SecurityFactory {
 
-    public static final String MODULE = SecurityFactory.class.getName();
+    private static final String MODULE = SecurityFactory.class.getName();
     // The default implementation stores a Delegator reference, so we will cache by delegator name.
     // The goal is to remove Delegator references in the Security interface, then we can use a singleton
     // and eliminate the cache.
@@ -57,7 +57,6 @@ public final class SecurityFactory {
      * <a href="http://docs.oracle.com/javase/6/docs/api/java/util/ServiceLoader.html"><code>ServiceLoader</code></a>
      * to get a <code>Security</code> instance. If no instance is found, a default implementation is used.
      * The default implementation is based on/backed by the OFBiz entity engine.
-     *
      * @param delegator The delegator
      * @return A <code>Security</code> instance
      */
@@ -81,18 +80,18 @@ public final class SecurityFactory {
         return security;
     }
 
-    private SecurityFactory() {}
+    private SecurityFactory() { }
 
     private static final class OFBizSecurity implements Security {
 
         private Delegator delegator = null;
 
-        private static final Map<String, Map<String, String>> simpleRoleEntity = UtilMisc.toMap(
-            "ORDERMGR", UtilMisc.<String, String>toMap("name", "OrderRole", "pkey", "orderId"),
-            "FACILITY", UtilMisc.<String, String>toMap("name", "FacilityParty", "pkey", "facilityId"),
-            "MARKETING", UtilMisc.<String, String>toMap("name", "MarketingCampaignRole", "pkey", "marketingCampaignId"));
+        private static final Map<String, Map<String, String>> SIMPLE_ROLE_ENT = UtilMisc.toMap(
+                "ORDERMGR", UtilMisc.<String, String>toMap("name", "OrderRole", "pkey", "orderId"),
+                "FACILITY", UtilMisc.<String, String>toMap("name", "FacilityParty", "pkey", "facilityId"),
+                "MARKETING", UtilMisc.<String, String>toMap("name", "MarketingCampaignRole", "pkey", "marketingCampaignId"));
 
-        private OFBizSecurity() {}
+        private OFBizSecurity() { }
 
         @Override
         public void clearUserData(GenericValue userLogin) {
@@ -175,7 +174,6 @@ public final class SecurityFactory {
          * Like hasEntityPermission above, this checks the specified action, as well as for "_ADMIN" to allow for simplified
          * general administration permission, but also checks action_ROLE and validates the user is a member for the
          * application.
-         *
          * @param application The name of the application corresponding to the desired permission.
          * @param action The action on the application corresponding to the desired permission.
          * @param entityName The name of the role entity to use for validation.
@@ -222,7 +220,7 @@ public final class SecurityFactory {
             }
             String entityName = null;
             EntityCondition condition = null;
-            Map<String, String> simpleRoleMap = OFBizSecurity.simpleRoleEntity.get(application);
+            Map<String, String> simpleRoleMap = OFBizSecurity.SIMPLE_ROLE_ENT.get(application);
             if (simpleRoleMap != null && roles != null) {
                 entityName = simpleRoleMap.get("name");
                 String pkey = simpleRoleMap.get("pkey");

@@ -57,12 +57,11 @@ import org.apache.ofbiz.webapp.website.WebSiteWorker;
  */
 public class LoginEvents {
 
-    public static final String MODULE = LoginEvents.class.getName();
-    public static final String resource = "SecurityextUiLabels";
+    private static final String MODULE = LoginEvents.class.getName();
+    private static final String RESOURCE = "SecurityextUiLabels";
     public static final String usernameCookieName = "OFBiz.Username";
     /**
      * Save USERNAME and PASSWORD for use by auth pages even if we start in non-auth pages.
-     *
      * @param request The HTTP request object for the current JSP or Servlet request.
      * @param response The HTTP response object for the current JSP or Servlet request.
      * @return String
@@ -105,7 +104,6 @@ public class LoginEvents {
     /**
      * The user forgot his/her password.  This will call showPasswordHint, emailPassword or simply returns "success" in case
      * no operation has been specified.
-     *
      * @param request The HTTPRequest object for the current request
      * @param response The HTTPResponse object for the current request
      * @return String specifying the exit status of this event
@@ -137,40 +135,37 @@ public class LoginEvents {
 
         if (UtilValidate.isEmpty(userLoginId)) {
             // the password was incomplete
-            errMsg = UtilProperties.getMessage(resource, "loginevents.username_was_empty_reenter", UtilHttp.getLocale(request));
+            errMsg = UtilProperties.getMessage(RESOURCE, "loginevents.username_was_empty_reenter", UtilHttp.getLocale(request));
             request.setAttribute("_ERROR_MESSAGE_", errMsg);
             return "error";
         }
 
         GenericValue supposedUserLogin = null;
-        String passwordHint = null; 
-        
+        String passwordHint = null;
         try {
             supposedUserLogin = EntityQuery.use(delegator).from("UserLogin").where("userLoginId", userLoginId).queryOne();
         } catch (GenericEntityException gee) {
             Debug.logWarning(gee, "", MODULE);
         }
-        
         if (supposedUserLogin != null) {
             passwordHint = supposedUserLogin.getString("passwordHint");
         }
 
         if (supposedUserLogin == null || UtilValidate.isEmpty(passwordHint)) {
             // the Username was not found or there was no hint for the Username
-            errMsg = UtilProperties.getMessage(resource, "loginevents.no_password_hint_specified_try_password_emailed", UtilHttp.getLocale(request));
+            errMsg = UtilProperties.getMessage(RESOURCE, "loginevents.no_password_hint_specified_try_password_emailed", UtilHttp.getLocale(request));
             request.setAttribute("_ERROR_MESSAGE_", errMsg);
             return "error";
         }
 
         Map<String, String> messageMap = UtilMisc.toMap("passwordHint", passwordHint);
-        errMsg = UtilProperties.getMessage(resource, "loginevents.password_hint_is", messageMap, UtilHttp.getLocale(request));
+        errMsg = UtilProperties.getMessage(RESOURCE, "loginevents.password_hint_is", messageMap, UtilHttp.getLocale(request));
         request.setAttribute("_EVENT_MESSAGE_", errMsg);
         return "auth";
     }
 
     /**
      * event to send an email with a link to change password
-     *
      * @param request The HTTPRequest object for the current request
      * @param response The HTTPResponse object for the current request
      * @return String specifying the exit status of this event
@@ -184,7 +179,7 @@ public class LoginEvents {
         // get userloginId
         String userLoginId = request.getParameter("USERNAME");
         if (UtilValidate.isEmpty(userLoginId)) {
-            String errMsg = UtilProperties.getMessage(resource, "loginevents.username_was_empty_reenter",
+            String errMsg = UtilProperties.getMessage(RESOURCE, "loginevents.username_was_empty_reenter",
                     UtilHttp.getLocale(request));
             request.setAttribute("_ERROR_MESSAGE_", errMsg);
             return "error";
@@ -203,7 +198,7 @@ public class LoginEvents {
             if (userLogin == null || "N".equals(userLogin.getString("enabled"))) {
                 Debug.logError("userlogin uknown or disabled " + userLogin, MODULE);
                 //giving a "sent email to associated email-address" response, to suppress feedback on in-/valid usernames
-                String errMsg = UtilProperties.getMessage(resource, "loginevents.new_password_sent_check_email",
+                String errMsg = UtilProperties.getMessage(RESOURCE, "loginevents.new_password_sent_check_email",
                         UtilHttp.getLocale(request));
                 request.setAttribute("_EVENT_MESSAGE_", errMsg);
                 return "success";
@@ -212,7 +207,7 @@ public class LoginEvents {
             // check login is associated to a party
             GenericValue userParty = userLogin.getRelatedOne("Party", false);
             if (userParty == null) {
-                String errMsg = UtilProperties.getMessage(resource, "loginevents.username_not_found_reenter",
+                String errMsg = UtilProperties.getMessage(RESOURCE, "loginevents.username_not_found_reenter",
                        UtilHttp.getLocale(request));
                request.setAttribute("_ERROR_MESSAGE_", errMsg);
                 return "error";
@@ -222,7 +217,7 @@ public class LoginEvents {
             List<GenericValue> contactMechs = (List<GenericValue>) ContactHelper.getContactMechByPurpose(userParty, "PRIMARY_EMAIL", false);
             if (UtilValidate.isEmpty(contactMechs)) {
                 // the email was not found
-                String errMsg = UtilProperties.getMessage(resource,
+                String errMsg = UtilProperties.getMessage(RESOURCE,
                         "loginevents.no_primary_email_address_set_contact_customer_service",
                         UtilHttp.getLocale(request));
                 request.setAttribute("_ERROR_MESSAGE_", errMsg);
@@ -281,7 +276,7 @@ public class LoginEvents {
                     serviceContext.put("subject", subject);
                     serviceContext.put("sendFrom", emailTemplateSetting.get("fromAddress"));
                 } else {
-                    serviceContext.put("subject", UtilProperties.getMessage(resource, "loginservices.password_reminder_subject", UtilMisc.toMap("userLoginId", userLoginId), UtilHttp.getLocale(request)));
+                    serviceContext.put("subject", UtilProperties.getMessage(RESOURCE, "loginservices.password_reminder_subject", UtilMisc.toMap("userLoginId", userLoginId), UtilHttp.getLocale(request)));
                     serviceContext.put("sendFrom", EntityUtilProperties.getPropertyValue("general", "defaultFromEmailAddress", delegator));
                 }
             }
@@ -298,18 +293,18 @@ public class LoginEvents {
 
             if (ServiceUtil.isError(result)) {
                 Map<String, Object> messageMap = UtilMisc.toMap("errorMessage", result.get(ModelService.ERROR_MESSAGE));
-                String errMsg = UtilProperties.getMessage(resource, "loginevents.error_unable_email_password_contact_customer_service_errorwas", messageMap, UtilHttp.getLocale(request));
+                String errMsg = UtilProperties.getMessage(RESOURCE, "loginevents.error_unable_email_password_contact_customer_service_errorwas", messageMap, UtilHttp.getLocale(request));
                 request.setAttribute("_ERROR_MESSAGE_", errMsg);
                 return "error";
             }
         } catch (GeneralException e) {
             Debug.logWarning(e, "", MODULE);
-            String errMsg = UtilProperties.getMessage(resource, "loginevents.error_unable_email_password_contact_customer_service", UtilHttp.getLocale(request));
+            String errMsg = UtilProperties.getMessage(RESOURCE, "loginevents.error_unable_email_password_contact_customer_service", UtilHttp.getLocale(request));
             request.setAttribute("_ERROR_MESSAGE_", errMsg);
             return "error";
         }
 
-        String msg = UtilProperties.getMessage(resource, "loginevents.new_password_sent_check_email", UtilHttp.getLocale(request));
+        String msg = UtilProperties.getMessage(RESOURCE, "loginevents.new_password_sent_check_email", UtilHttp.getLocale(request));
         request.setAttribute("_EVENT_MESSAGE_", msg);
         return "success";
     }

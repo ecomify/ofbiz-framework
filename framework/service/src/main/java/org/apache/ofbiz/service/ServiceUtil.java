@@ -27,7 +27,6 @@ import java.util.Map;
 import java.util.TimeZone;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.transaction.Transaction;
 
 import org.apache.ofbiz.base.util.Debug;
 import org.apache.ofbiz.base.util.UtilDateTime;
@@ -38,11 +37,8 @@ import org.apache.ofbiz.base.util.UtilValidate;
 import org.apache.ofbiz.entity.Delegator;
 import org.apache.ofbiz.entity.GenericEntityException;
 import org.apache.ofbiz.entity.GenericValue;
-import org.apache.ofbiz.entity.transaction.GenericTransactionException;
-import org.apache.ofbiz.entity.transaction.TransactionUtil;
 import org.apache.ofbiz.entity.util.EntityQuery;
 import org.apache.ofbiz.security.Security;
-import org.apache.ofbiz.service.job.JobUtil;
 
 
 /**
@@ -50,20 +46,20 @@ import org.apache.ofbiz.service.job.JobUtil;
  */
 public final class ServiceUtil {
 
-    public static final String MODULE = ServiceUtil.class.getName();
+    private static final String MODULE = ServiceUtil.class.getName();
     private static final String resource = "ServiceErrorUiLabels";
 
-    private ServiceUtil () {}
+    private ServiceUtil() { }
 
     /** A little short-cut method to check to see if a service returned an error */
     public static boolean isError(Map<String, ? extends Object> results) {
-        return !(results == null || results.get(ModelService.RESPONSE_MESSAGE) == null) &&
-                ModelService.RESPOND_ERROR.equals(results.get(ModelService.RESPONSE_MESSAGE));
+        return !(results == null || results.get(ModelService.RESPONSE_MESSAGE) == null)
+                && ModelService.RESPOND_ERROR.equals(results.get(ModelService.RESPONSE_MESSAGE));
     }
 
     public static boolean isFailure(Map<String, ? extends Object> results) {
-        return !(results == null || results.get(ModelService.RESPONSE_MESSAGE) == null) &&
-                ModelService.RESPOND_FAIL.equals(results.get(ModelService.RESPONSE_MESSAGE));
+        return !(results == null || results.get(ModelService.RESPONSE_MESSAGE) == null)
+                && ModelService.RESPOND_FAIL.equals(results.get(ModelService.RESPONSE_MESSAGE));
     }
 
     /** A little short-cut method to check to see if a service was successful (neither error or failed) */
@@ -132,10 +128,10 @@ public final class ServiceUtil {
             }
         }
 
-        if (errorList.size() > 0) {
+        if (!errorList.isEmpty()) {
             result.put(ModelService.ERROR_MESSAGE_LIST, errorList);
         }
-        if (errorMap.size() > 0) {
+        if (!errorMap.isEmpty()) {
             result.put(ModelService.ERROR_MESSAGE_MAP, errorMap);
         }
         Debug.logError(result.toString(), MODULE);
@@ -360,7 +356,6 @@ public final class ServiceUtil {
      * Takes the result of an invocation and extracts any error messages
      * and adds them to the targetList or targetMap. This will handle both List and String
      * error messags.
-     *
      * @param targetList    The List to add the error messages to
      * @param targetMap The Map to add any Map error messages to
      * @param callResult The result from an invocation
@@ -446,7 +441,6 @@ public final class ServiceUtil {
      * Checks all incoming service attributes and look for fields with the same
      * name in the incoming map and copy those onto the outgoing map. Also
      * includes a userLogin if service requires one.
-     *
      * @param dispatcher
      * @param serviceName
      * @param fromMap
@@ -471,7 +465,7 @@ public final class ServiceUtil {
         }
         outMap.putAll(modelService.makeValid(fromMap, ModelService.IN_PARAM, true, null, timeZone, locale));
 
-        if (userLogin != null && modelService.auth) {
+        if (userLogin != null && modelService.isAuth()) {
             outMap.put("userLogin", userLogin);
         }
 

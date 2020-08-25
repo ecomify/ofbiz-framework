@@ -38,9 +38,9 @@ import javax.servlet.http.HttpServletRequest;
  */
 public class HttpRequestFileUpload {
     private static final String MODULE = HttpRequestFileUpload.class.getName();
-    private int BUFFER_SIZE = 4096;
-    private int WAIT_INTERVAL = 200; // in milliseconds
-    private int MAX_WAITS = 20;
+    private static final int BUFFER_SIZE = 4096;
+    private static final int WAIT_INTERVAL = 200; // in milliseconds
+    private static final int MAX_WAITS = 20;
     private int waitCount = 0;
     private String savePath;
     private String filepath;
@@ -284,10 +284,10 @@ public class HttpRequestFileUpload {
         while (((i = in.readLine(buf, off, len)) == -1) && (reqLen > 0)) {
             Debug.logInfo("waiting", MODULE);
             if (waitCount > MAX_WAITS) {
-                Debug.logInfo("waited " + waitCount + " times, bailing out while still expecting " +
-                    reqLen + " bytes.", MODULE);
-                throw new IOException("waited " + waitCount + " times, bailing out while still expecting " +
-                        reqLen + " bytes.");
+                Debug.logInfo("waited " + waitCount + " times, bailing out while still expecting "
+                        + reqLen + " bytes.", MODULE);
+                throw new IOException("waited " + waitCount + " times, bailing out while still expecting "
+                        + reqLen + " bytes.");
             }
             waitCount++;
             long endMS = new Date().getTime() + WAIT_INTERVAL;

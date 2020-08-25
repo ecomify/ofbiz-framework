@@ -370,7 +370,9 @@ public class ICalConverter {
                     alarm.validate(true);
                     Debug.logVerbose("iCalendar alarm passes validation", MODULE);
                 } catch (ValidationException e) {
-                    if (Debug.verboseOn()) Debug.logVerbose("iCalendar alarm fails validation: " + e, MODULE);
+                    if (Debug.verboseOn()) {
+                        Debug.logVerbose("iCalendar alarm fails validation: " + e, MODULE);
+                    }
                 }
             }
         }
@@ -415,7 +417,9 @@ public class ICalConverter {
                 calendar.validate(true);
                 Debug.logVerbose("iCalendar passes validation", MODULE);
             } catch (ValidationException e) {
-                if (Debug.verboseOn()) Debug.logVerbose("iCalendar fails validation: " + e, MODULE);
+                if (Debug.verboseOn()) {
+                    Debug.logVerbose("iCalendar fails validation: " + e, MODULE);
+                }
             }
         }
         return ICalWorker.createOkResponse(calendar.toString());
@@ -468,12 +472,12 @@ public class ICalConverter {
             ModelService modelService = null;
             modelService = dispatcher.getDispatchContext().getModelService(serviceName);
             for (ModelParam modelParam: modelService.getInModelParamList()) {
-                if (serviceMap.containsKey(modelParam.name)) {
-                    Object value = serviceMap.get(modelParam.name);
-                    if (UtilValidate.isNotEmpty(modelParam.type)) {
-                        value = ObjectType.simpleTypeOrObjectConvert(value, modelParam.type, null, null, null, true);
+                if (serviceMap.containsKey(modelParam.getName())) {
+                    Object value = serviceMap.get(modelParam.getName());
+                    if (UtilValidate.isNotEmpty(modelParam.getType())) {
+                        value = ObjectType.simpleTypeOrObjectConvert(value, modelParam.getType(), null, null, null, true);
                     }
-                    localMap.put(modelParam.name, value);
+                    localMap.put(modelParam.getName(), value);
                 }
             }
         } catch (GeneralException e) {
@@ -492,7 +496,8 @@ public class ICalConverter {
             }
             return result;
         } catch (GenericServiceException e) {
-            String errMsg = UtilProperties.getMessage("WorkEffortUiLabels", "WorkeffortErrorWhileInvokingService", UtilMisc.toMap("serviceName", serviceName), locale);
+            String errMsg = UtilProperties.getMessage("WorkEffortUiLabels", "WorkeffortErrorWhileInvokingService",
+                    UtilMisc.toMap("serviceName", serviceName), locale);
             Debug.logError(e, errMsg, MODULE);
             return ServiceUtil.returnError(errMsg + e);
         }
@@ -578,10 +583,14 @@ public class ICalConverter {
         boolean newCalendar = true;
         Calendar calendar = null;
         if (iCalData == null) {
-            if (Debug.verboseOn()) Debug.logVerbose("iCalendar Data not found, creating new Calendar", MODULE);
+            if (Debug.verboseOn()) {
+                Debug.logVerbose("iCalendar Data not found, creating new Calendar", MODULE);
+            }
             calendar = new Calendar();
         } else {
-            if (Debug.verboseOn()) Debug.logVerbose("iCalendar Data found, using saved Calendar", MODULE);
+            if (Debug.verboseOn()) {
+                Debug.logVerbose("iCalendar Data found, using saved Calendar", MODULE);
+            }
             try (StringReader reader = new StringReader(iCalData)) {
             CalendarBuilder builder = new CalendarBuilder();
                 calendar = builder.build(reader);
@@ -681,7 +690,6 @@ public class ICalConverter {
 
     /**
      * Updates work efforts from an incoming iCalendar request.
-     *
      * @param is the input feeding the calendar parser
      * @param context parameters from the execution environment
      * @return the response from the ICalWorker
@@ -710,8 +718,8 @@ public class ICalConverter {
             workEffortId = (String) context.get("workEffortId");
         }
         if (!workEffortId.equals(context.get("workEffortId"))) {
-            Debug.logWarning("Spoof attempt: received calendar workEffortId " + workEffortId +
-                    " on URL workEffortId " + context.get("workEffortId"), MODULE);
+            Debug.logWarning("Spoof attempt: received calendar workEffortId " + workEffortId
+                    + " on URL workEffortId " + context.get("workEffortId"), MODULE);
             return ICalWorker.createForbiddenResponse(null);
         }
         Delegator delegator = (Delegator) context.get("delegator");
@@ -754,8 +762,8 @@ public class ICalConverter {
                         replaceProperty(component.getProperties(), toXProperty(workEffortIdXPropName, workEffortId));
                         responseProps = storeWorkEffort(component, context);
                     } else {
-                        Debug.logWarning("Spoof attempt: unrelated workEffortId " + workEffortId +
-                                " on URL workEffortId " + context.get("workEffortId"), MODULE);
+                        Debug.logWarning("Spoof attempt: unrelated workEffortId " + workEffortId
+                                + " on URL workEffortId " + context.get("workEffortId"), MODULE);
                         responseProps = ICalWorker.createForbiddenResponse(null);
                     }
                 } else if (hasCreatePermission) {
@@ -811,7 +819,7 @@ public class ICalConverter {
             List<GenericValue> assignments = null;
             try {
                 assignments = EntityQuery.use(delegator).from("WorkEffortPartyAssignment").where(serviceMap).filterByDate().queryList();
-                if (assignments.size() == 0) {
+                if (assignments.isEmpty()) {
                     serviceMap.put("statusId", "PRTYASGN_OFFERED");
                     serviceMap.put("fromDate", new Timestamp(System.currentTimeMillis()));
                     invokeService("assignPartyToWorkEffort", serviceMap, context);
@@ -842,7 +850,8 @@ public class ICalConverter {
         return storePartyAssignments(workEffortId, component, context);
     }
 
-    protected static ResponseProperties toCalendarComponent(ComponentList components, GenericValue workEffort, Map<String, Object> context) throws GenericEntityException {
+    protected static ResponseProperties toCalendarComponent(ComponentList components, GenericValue workEffort, Map<String, Object> context)
+            throws GenericEntityException {
         Delegator delegator = workEffort.getDelegator();
         String workEffortId = workEffort.getString("workEffortId");
         String workEffortUid = workEffort.getString("universalId");
@@ -909,7 +918,7 @@ public class ICalConverter {
             replaceProperty(componentProps, toDuration(workEffort.getDouble("estimatedMilliSeconds")));
         }
         List<GenericValue> relatedParties = EntityQuery.use(delegator).from("WorkEffortPartyAssignView").where("workEffortId", workEffortId).cache(true).filterByDate().queryList();
-        if (relatedParties.size() > 0) {
+        if (!relatedParties.isEmpty()) {
             loadRelatedParties(relatedParties, componentProps, context);
         }
         if (newComponent) {

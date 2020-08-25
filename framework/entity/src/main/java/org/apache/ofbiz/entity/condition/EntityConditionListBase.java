@@ -32,7 +32,7 @@ import org.apache.ofbiz.entity.model.ModelEntity;
  */
 @SuppressWarnings("serial")
 abstract class EntityConditionListBase<T extends EntityCondition> implements EntityCondition {
-    public static final String MODULE = EntityConditionListBase.class.getName();
+    private static final String MODULE = EntityConditionListBase.class.getName();
     /** The list of condition expressions to combine.  */
     protected final List<? extends T> conditions;
     /** The infix operator used to combine every elements in the list of conditions.  */
@@ -40,7 +40,6 @@ abstract class EntityConditionListBase<T extends EntityCondition> implements Ent
 
     /**
      * Constructs a combination of multiple condition expressions.
-     *
      * @param conditions the list of condition expressions to combine
      * @param operator the infix operator used to combine every elements in the list of conditions
      */
@@ -51,7 +50,6 @@ abstract class EntityConditionListBase<T extends EntityCondition> implements Ent
 
     /**
      * Gets the infix operator used to combine every elements in the list of conditions.
-     *
      * @return the infix operator used to combine every elements in the list of conditions.
      */
     public EntityJoinOperator getOperator() {
@@ -60,7 +58,6 @@ abstract class EntityConditionListBase<T extends EntityCondition> implements Ent
 
     /**
      * Gets the condition expression stored at a particular of the internal list of conditions.
-     *
      * @param index the index of the condition expression to find
      * @return the corresponding condition expression
      */

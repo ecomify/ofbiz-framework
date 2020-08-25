@@ -68,17 +68,14 @@ public class ModelTree extends ModelWidget {
      * ----------------------------------------------------------------------- *
      *                     DEVELOPERS PLEASE READ
      * ----------------------------------------------------------------------- *
-     *
      * This model is intended to be a read-only data structure that represents
      * an XML element. Outside of object construction, the class should not
      * have any behaviors.
-     *
      * Instances of this class will be shared by multiple threads - therefore
      * it is immutable. DO NOT CHANGE THE OBJECT'S STATE AT RUN TIME!
-     *
      */
 
-    public static final String MODULE = ModelTree.class.getName();
+    private static final String MODULE = ModelTree.class.getName();
 
     private final String defaultEntityName;
     private final String defaultRenderStyle;
@@ -132,7 +129,7 @@ public class ModelTree extends ModelWidget {
         }
         this.postTrailOpenDepth = postTrailOpenDepth;
         List<? extends Element> nodeElements = UtilXml.childElementList(treeElement, "node");
-        if (nodeElements.size() == 0) {
+        if (nodeElements.isEmpty()) {
             throw new IllegalArgumentException("No node elements found for the tree definition with name: " + getName());
         }
         Map<String, ModelNode> nodeMap = new HashMap<>();
@@ -223,7 +220,6 @@ public class ModelTree extends ModelWidget {
 
     /**
      * Renders this model.
-     *
      * @param writer
      * @param context
      * @param treeStringRenderer
@@ -291,7 +287,6 @@ public class ModelTree extends ModelWidget {
 
     /**
      * Models the &lt;node&gt; element.
-     *
      * @see <code>widget-tree.xsd</code>
      */
     public static class ModelNode extends ModelWidget {
@@ -696,7 +691,6 @@ public class ModelTree extends ModelWidget {
 
         /**
          * Models the &lt;image&gt; element.
-         *
          * @see <code>widget-tree.xsd</code>
          */
         public static class Image {
@@ -761,7 +755,6 @@ public class ModelTree extends ModelWidget {
 
         /**
          * Models the &lt;label&gt; element.
-         *
          * @see <code>widget-tree.xsd</code>
          */
         public static final class Label {
@@ -820,7 +813,6 @@ public class ModelTree extends ModelWidget {
 
         /**
          * Models the &lt;link&gt; element.
-         *
          * @see <code>widget-tree.xsd</code>
          */
         public static class Link {
@@ -874,13 +866,20 @@ public class ModelTree extends ModelWidget {
 
             // FIXME: Using a widget model in this way is an ugly hack.
             public Link(String style, String target, String text) {
+                this(style, target, text, null);
+            }
+
+            // FIXME: Something to be replaced by a builder class, but allows us to quickly
+            // build Links to represent nodes with parameters in a tree, rather that trying
+            // to encode the parameters early in the link's target.
+            public Link(String style, String target, String text, List<Parameter> parameterList) {
                 this.encode = false;
                 this.fullPath = false;
                 this.idExdr = FlexibleStringExpander.getInstance("");
                 this.image = null;
                 this.linkType = "";
                 this.nameExdr = FlexibleStringExpander.getInstance("");
-                this.parameterList = Collections.emptyList();
+                this.parameterList = parameterList != null ? Collections.unmodifiableList(parameterList) : Collections.emptyList();
                 this.prefixExdr = FlexibleStringExpander.getInstance("");
                 this.secure = false;
                 this.styleExdr = FlexibleStringExpander.getInstance(style);
@@ -1027,7 +1026,6 @@ public class ModelTree extends ModelWidget {
 
         /**
          * Models the &lt;sub-node&gt; element.
-         *
          * @see <code>widget-tree.xsd</code>
          */
         public static class ModelSubNode extends ModelWidget {

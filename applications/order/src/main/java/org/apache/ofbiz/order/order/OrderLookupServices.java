@@ -59,7 +59,7 @@ import org.apache.ofbiz.widget.renderer.Paginator;
  */
 public class OrderLookupServices {
 
-    public static final String MODULE = OrderLookupServices.class.getName();
+    private static final String MODULE = OrderLookupServices.class.getName();
 
     public static Map<String, Object> findOrders(DispatchContext dctx, Map<String, ? extends Object> context) {
         LocalDispatcher dispatcher = dctx.getDispatcher();
@@ -579,7 +579,7 @@ public class OrderLookupServices {
 
         // create the main condition
         EntityCondition cond = null;
-        if (conditions.size() > 0 || "Y".equalsIgnoreCase(showAll)) {
+        if (!conditions.isEmpty() || "Y".equalsIgnoreCase(showAll)) {
             cond = EntityCondition.makeCondition(conditions, EntityOperator.AND);
         }
 
@@ -632,7 +632,7 @@ public class OrderLookupServices {
         result.put("viewSize", viewSize);
         result.put("showAll", showAll);
 
-        result.put("paramList", (paramString != null? paramString: ""));
+        result.put("paramList", (paramString != null ? paramString : ""));
         result.put("orderList", orderList);
         result.put("orderListSize", orderCount);
 
@@ -647,7 +647,7 @@ public class OrderLookupServices {
             doFilter = "N";
         }
 
-        if ("Y".equals(doFilter) && orderList.size() > 0) {
+        if ("Y".equals(doFilter) && !orderList.isEmpty()) {
             paramList.add("filterInventoryProblems=Y");
             for (GenericValue orderHeader : orderList) {
                 OrderReadHelper orh = new OrderReadHelper(orderHeader);
@@ -689,7 +689,7 @@ public class OrderLookupServices {
             doPoFilter = true;
         }
 
-        if (doPoFilter && orderList.size() > 0) {
+        if (doPoFilter && !orderList.isEmpty()) {
             for (GenericValue orderHeader : orderList) {
                 OrderReadHelper orh = new OrderReadHelper(orderHeader);
                 String orderType = orh.getOrderTypeId();

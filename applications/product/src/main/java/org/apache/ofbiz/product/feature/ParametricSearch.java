@@ -44,14 +44,13 @@ import org.apache.ofbiz.entity.util.EntityUtil;
  */
 public class ParametricSearch {
 
-    public static final String MODULE = ParametricSearch.class.getName();
+    private static final String MODULE = ParametricSearch.class.getName();
 
     public static final int DEFAULT_PER_TYPE_MAX_SIZE = 1000;
 
     /**
      * Gets all features associated with the specified category through:<br>
      * ProductCategory -&gt; ProductFeatureCategoryAppl -&gt; ProductFeatureCategory -&gt; ProductFeature.
-     *
      * @return a Map of Lists of ProductFeature GenericValue objects organized by productFeatureTypeId.
      */
     public static Map<String, List<GenericValue>> makeCategoryFeatureLists(String productCategoryId, Delegator delegator) {
@@ -111,7 +110,7 @@ public class ParametricSearch {
         // now before returning, order the features in each list by description
         Map<String, List<GenericValue>> productFeaturesByTypeMapSorted = new HashMap<>();
         for (Map.Entry<String, Map<String, GenericValue>> entry: productFeaturesByTypeMap.entrySet()) {
-            List<GenericValue> sortedFeatures = EntityUtil.orderBy(entry.getValue().values(), UtilMisc.toList("description","defaultSequenceNum"));
+            List<GenericValue> sortedFeatures = EntityUtil.orderBy(entry.getValue().values(), UtilMisc.toList("description", "defaultSequenceNum"));
             productFeaturesByTypeMapSorted.put(entry.getKey(), sortedFeatures);
         }
 

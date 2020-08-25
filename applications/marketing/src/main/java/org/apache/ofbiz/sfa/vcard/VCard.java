@@ -65,15 +65,15 @@ import ezvcard.property.StructuredName;
 import ezvcard.property.Telephone;
 
 public class VCard {
-    public static final String MODULE = VCard.class.getName();
-    public static final String resourceError = "MarketingUiLabels";
+    private static final String MODULE = VCard.class.getName();
+    private static final String RES_ERROR = "MarketingUiLabels";
 
     /**
      * import a vcard from byteBuffer. the reader use is ez-vcard, see official site https://github.com/mangstadt/ez-vcard/
      * @param dctx
      * @param context
      * @return
-     * @throws IOException 
+     * @throws IOException
      */
     public static Map<String, Object> importVCard(DispatchContext dctx, Map<String, ? extends Object> context) throws IOException {
         LocalDispatcher dispatcher = dctx.getDispatcher();
@@ -98,7 +98,7 @@ public class VCard {
                     String refCardId = formattedName.getValue();
                     GenericValue partyIdentification = EntityQuery.use(delegator).from("PartyIdentification").where("partyIdentificationTypeId", "VCARD_FN_ORIGIN", "idValue", refCardId).queryFirst();
                     if (partyIdentification != null) {
-                        partiesExist.add(UtilMisc.toMap("partyId", (String)partyIdentification.get("partyId")));
+                        partiesExist.add(UtilMisc.toMap("partyId", (String) partyIdentification.get("partyId")));
                         continue;
                     }
                     //TODO manage update
@@ -123,7 +123,7 @@ public class VCard {
                             break;
                         }
                     }
-                    if (! workAddress) continue;
+                    if (!workAddress) continue;
 
                     serviceCtx.put("address1", address.getStreetAddressFull());
                     serviceCtx.put("city", address.getLocality());
@@ -154,15 +154,15 @@ public class VCard {
                                 break;
                             }
                         }
-                        if (! workEmail) continue;
+                        if (!workEmail) continue;
                     }
                     String emailAddr = email.getValue();
                     if (UtilValidate.isEmail(emailAddr)) {
                         serviceCtx.put("emailAddress", emailAddr);
                     } else {
                         //TODO change uncorrect labellisation
-                        String emailFormatErrMsg = UtilProperties.getMessage(resourceError, "SfaImportVCardEmailFormatError", locale);
-                        return ServiceUtil.returnError(UtilProperties.getMessage(resourceError, "MarketingEmailFormatError", UtilMisc.toMap("firstName", structuredName.getGiven(), "lastName", structuredName.getFamily(), "emailFOrmatErrMsg", emailFormatErrMsg), locale));
+                        String emailFormatErrMsg = UtilProperties.getMessage(RES_ERROR, "SfaImportVCardEmailFormatError", locale);
+                        return ServiceUtil.returnError(UtilProperties.getMessage(RES_ERROR, "MarketingEmailFormatError", UtilMisc.toMap("firstName", structuredName.getGiven(), "lastName", structuredName.getFamily(), "emailFOrmatErrMsg", emailFormatErrMsg), locale));
                     }
                 }
 
@@ -176,7 +176,7 @@ public class VCard {
                                 break;
                             }
                         }
-                        if (! workPhone) continue;
+                        if (!workPhone) continue;
                     }
                     String phoneAddr = phone.getText();
                     boolean internationalPhone = phoneAddr.startsWith("+") || phoneAddr.startsWith("00");
@@ -223,7 +223,7 @@ public class VCard {
             }
         } catch (IOException | GenericEntityException | GenericServiceException e) {
             Debug.logError(e, MODULE);
-            return ServiceUtil.returnError(UtilProperties.getMessage(resourceError,
+            return ServiceUtil.returnError(UtilProperties.getMessage(RES_ERROR,
                     "SfaImportVCardError", UtilMisc.toMap("errorString", e.getMessage()), locale));
         }
         result.put("partiesCreated", partiesCreated);
@@ -252,7 +252,7 @@ public class VCard {
 
             GenericValue postalAddress = PartyWorker.findPartyLatestPostalAddress(partyId, delegator);
             if (postalAddress != null) {
-                Address address =  new Address();
+                Address address = new Address();
                 address.setStreetAddress(postalAddress.getString("address1"));
                 address.setLocality(postalAddress.getString("city"));
                 address.setPostalCode(postalAddress.getString("postalCode"));
@@ -293,14 +293,14 @@ public class VCard {
             Ezvcard.write(vcard).go(file);
         } catch (FileNotFoundException e) {
             Debug.logError(e, MODULE);
-            return ServiceUtil.returnError(UtilProperties.getMessage(resourceError, 
+            return ServiceUtil.returnError(UtilProperties.getMessage(RES_ERROR,
                     "SfaExportVCardErrorOpeningFile", UtilMisc.toMap("errorString", file.getAbsolutePath()), locale));
         } catch (IOException e) {
             Debug.logError(e, MODULE);
-            return ServiceUtil.returnError(UtilProperties.getMessage(resourceError, 
+            return ServiceUtil.returnError(UtilProperties.getMessage(RES_ERROR,
                     "SfaExportVCardErrorWritingFile", UtilMisc.toMap("errorString", file.getAbsolutePath()), locale));
         } catch (GenericEntityException e) {
-            return ServiceUtil.returnError(UtilProperties.getMessage(resourceError, 
+            return ServiceUtil.returnError(UtilProperties.getMessage(RES_ERROR,
                     "SfaExportVCardError", UtilMisc.toMap("errorString", e.getMessage()), locale));
         }
         return ServiceUtil.returnSuccess();

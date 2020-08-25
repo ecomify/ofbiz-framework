@@ -59,9 +59,9 @@ import org.xml.sax.SAXException;
  */
 public final class ICalWorker {
 
-    public static final String MODULE = ICalWorker.class.getName();
+    private static final String MODULE = ICalWorker.class.getName();
 
-    private ICalWorker() {}
+    private ICalWorker() { }
 
     public static final class ResponseProperties {
         public final int statusCode;
@@ -88,7 +88,6 @@ public final class ICalWorker {
      * response when a user is logged in, but they don't have the basic CRUD
      * permissions to perform an action. Returning a Forbidden status will
      * prevent the client from trying the operation again.
-     *
      * @param statusMessage Optional status message - usually <code>null</code>
      * for security reasons
      * @return Create an HTTP Forbidden response
@@ -101,7 +100,6 @@ public final class ICalWorker {
      * response when a user is not logged in, and basic CRUD permissions are
      * needed to perform an action. Returning an Unauthorized status will
      * force the client to authenticate the user, then try the operation again.
-     *
      * @param statusMessage Optional status message - usually <code>null</code>
      * for security reasons
      * @return Create an HTTP Unauthorized response
@@ -120,7 +118,6 @@ public final class ICalWorker {
 
     /** Create an HTTP Partial Content response. The calendar converter will use this
      * response when a calendar is only partially updated.
-     *
      * @param statusMessage A message describing which calendar components were
      * not updated
      * @return Create an HTTP Partial Content response.
@@ -193,11 +190,11 @@ public final class ICalWorker {
                 }
                 Element responseElement = helper.createResponseElement();
                 responseElement.appendChild(helper.createHrefElement("/" + workEffortId + "/"));
-                if (supportedProps.size() > 0) {
+                if (!supportedProps.isEmpty()) {
                     Element propElement = helper.createPropElement(supportedProps);
                     responseElement.appendChild(helper.createPropStatElement(propElement, ResponseHelper.STATUS_200));
                 }
-                if (unSupportedProps.size() > 0) {
+                if (!unSupportedProps.isEmpty()) {
                     Element propElement = helper.createPropElement(unSupportedProps);
                     responseElement.appendChild(helper.createPropStatElement(propElement, ResponseHelper.STATUS_404));
                 }
@@ -310,8 +307,8 @@ public final class ICalWorker {
 
     private static void writeResponse(ResponseProperties responseProps, HttpServletRequest request, HttpServletResponse response, ServletContext context) throws IOException {
         if (Debug.verboseOn()) {
-            Debug.logVerbose("Returning response: code = " + responseProps.statusCode +
-                    ", message = " + responseProps.statusMessage, MODULE);
+            Debug.logVerbose("Returning response: code = " + responseProps.statusCode
+                    + ", message = " + responseProps.statusMessage, MODULE);
         }
         response.setStatus(responseProps.statusCode);
         if (responseProps.statusCode == HttpServletResponse.SC_UNAUTHORIZED) {

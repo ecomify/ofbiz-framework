@@ -35,9 +35,9 @@ import java.util.Map;
  */
 public final class UtilPlist {
 
-    public static final String MODULE = UtilPlist.class.getName();
+    private static final String MODULE = UtilPlist.class.getName();
 
-    private UtilPlist() {}
+    private UtilPlist() { }
 
     /** simple 4 char indentation */
     private static final String indentFourString = "    ";
@@ -170,9 +170,7 @@ public final class UtilPlist {
 
     /**
      * Writes model information in the Apple EOModelBundle format.
-     *
      * For document structure and definition see: http://developer.apple.com/documentation/InternetWeb/Reference/WO_BundleReference/Articles/EOModelBundle.html
-     *
      * @param eoModelMap
      * @param eomodeldFullPath
      * @param filename

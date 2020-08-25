@@ -30,7 +30,6 @@ import org.w3c.dom.Element;
 
 /**
  * Implements the &lt;check-errors&gt; element.
- * 
  * @see <a href="https://cwiki.apache.org/confluence/display/OFBIZ/Mini+Language+-+minilang+-+simple-method+-+Reference">Mini-language Referenc</a>
  */
 public final class CheckErrors extends MethodOperation {
@@ -54,7 +53,7 @@ public final class CheckErrors extends MethodOperation {
             outputTraceMessage(methodContext, "Begin check-errors.");
         }
         List<Object> messages = methodContext.getEnv(this.errorListNameFse.expandString(methodContext.getEnvMap()));
-        if (messages != null && messages.size() > 0) {
+        if (messages != null && !messages.isEmpty()) {
             if (methodContext.getMethodType() == MethodContext.EVENT) {
                 methodContext.putEnv(simpleMethod.getEventErrorMessageListName(), messages);
                 methodContext.putEnv(this.simpleMethod.getEventResponseCodeName(), getErrorCode(methodContext));

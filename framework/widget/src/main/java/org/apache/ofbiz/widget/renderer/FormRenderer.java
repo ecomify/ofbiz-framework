@@ -66,15 +66,13 @@ public class FormRenderer {
      * ----------------------------------------------------------------------- *
      *                     DEVELOPERS PLEASE READ
      * ----------------------------------------------------------------------- *
-     *
      * An instance of this class is created by each thread for each form that
      * is rendered. If you need to keep track of things while rendering, then
      * this is the place to do it. In other words, feel free to modify this
      * object's state (except for the final fields of course).
-     *
      */
 
-    public static final String MODULE = FormRenderer.class.getName();
+    private static final String MODULE = FormRenderer.class.getName();
 
     public static String getCurrentContainerId(ModelForm modelForm, Map<String, Object> context) {
         Locale locale = UtilMisc.ensureLocale(context.get("locale"));
@@ -128,7 +126,7 @@ public class FormRenderer {
     }
 
     private static Predicate<ModelFormField> filteringIgnoredFields(Map<String, Object> context, Set<String> alreadyRendered) {
-       return  modelFormField -> {
+        return modelFormField -> {
             FieldInfo fieldInfo = modelFormField.getFieldInfo();
 
             // render hidden/ignored field widget
@@ -219,7 +217,6 @@ public class FormRenderer {
     /**
      * Renders this form to a writer, as defined with the
      * FormStringRenderer implementation.
-     *
      * @param writer The Writer that the form text will be written to
      * @param context Map containing the form context; the following are
      *   reserved words in this context: parameters (Map), isError (Boolean),
@@ -324,7 +321,7 @@ public class FormRenderer {
             for (ModelFormField modelFormField : mainFieldList) {
                 FieldInfo fieldInfo = modelFormField.getFieldInfo();
 
-                // if the field's title is explicitly set to "" (title="") then
+                // if the field's title is explicitly set to "" (title= "") then
                 // the header is not created for it; this is useful for position list
                 // where one line can be rendered with more than one row, and we
                 // only want to display the title header for the main row
@@ -373,7 +370,7 @@ public class FormRenderer {
 
                 innerFormFields.add(modelFormField);
             }
-            if (innerFormFields.size() > 0) {
+            if (!innerFormFields.isEmpty()) {
                 numOfColumns++;
             }
 
@@ -397,7 +394,7 @@ public class FormRenderer {
             List<ModelFormField> mainFieldList = listsMap.get("mainFieldList");
 
             int numOfCells = innerDisplayHyperlinkFieldsBegin.size() + innerDisplayHyperlinkFieldsEnd.size()
-                    + (innerFormFields.size() > 0 ? 1 : 0);
+                    + (!innerFormFields.isEmpty() ? 1 : 0);
             int numOfColumnsToSpan = maxNumOfColumns - numOfCells + 1;
             if (numOfColumnsToSpan < 1) {
                 numOfColumnsToSpan = 1;
@@ -420,7 +417,7 @@ public class FormRenderer {
                         formStringRenderer.renderFieldTitle(writer, context, modelFormField);
                         formStringRenderer.renderFormatHeaderRowCellClose(writer, context, modelForm, modelFormField);
                     }
-                    if (innerFormFields.size() > 0) {
+                    if (!innerFormFields.isEmpty()) {
                         // TODO: manage colspan
                         formStringRenderer.renderFormatHeaderRowFormCellOpen(writer, context, modelForm);
                         Iterator<ModelFormField> innerFormFieldsIt = innerFormFields.iterator();
@@ -525,7 +522,7 @@ public class FormRenderer {
             List<ModelFormField> innerDisplayHyperlinkFieldsEnd, List<ModelFormField> mainFieldList, int position,
             int numOfColumns) throws IOException {
         int numOfCells = innerDisplayHyperlinkFieldsBegin.size() + innerDisplayHyperlinkFieldsEnd.size()
-                + (innerFormFields.size() > 0 ? 1 : 0);
+                + (!innerFormFields.isEmpty() ? 1 : 0);
         int numOfColumnsToSpan = numOfColumns - numOfCells + 1;
         if (numOfColumnsToSpan < 1) {
             numOfColumnsToSpan = 1;
@@ -551,7 +548,7 @@ public class FormRenderer {
                 boolean cellOpen = false;
                 ModelFormField modelFormField = innerDisplayHyperlinkFieldIter.next();
 
-                if(modelFormField.shouldIgnore(localContext)) {
+                if (modelFormField.shouldIgnore(localContext)) {
                     continue;
                 }
 
@@ -584,7 +581,7 @@ public class FormRenderer {
             }
 
             // The form cell is rendered only if there is at least an input field
-            if (innerFormFields.size() > 0) {
+            if (!innerFormFields.isEmpty()) {
                 // render the "form" cell
                 formStringRenderer.renderFormatItemRowFormCellOpen(writer, localContext, modelForm); // TODO: colspan
 
@@ -868,8 +865,8 @@ public class FormRenderer {
                     // the fields in the three lists created in the preprocessing phase
                     // are now rendered: this will create a visual representation
                     // of one row (for the current position).
-                    if (innerDisplayHyperlinkFieldsBegin.size() > 0 || innerFormFields.size() > 0
-                            || innerDisplayHyperlinkFieldsEnd.size() > 0) {
+                    if (!innerDisplayHyperlinkFieldsBegin.isEmpty() || !innerFormFields.isEmpty()
+                            || !innerDisplayHyperlinkFieldsEnd.isEmpty()) {
                         this.renderItemRow(writer, localContext, formStringRenderer, formPerItem, hiddenIgnoredFieldList,
                                 innerDisplayHyperlinkFieldsBegin, innerFormFields, innerDisplayHyperlinkFieldsEnd,
                                 fieldListByPosition, currentPosition, numOfColumns);
@@ -911,7 +908,7 @@ public class FormRenderer {
         if (!modelForm.getHideHeader() && containsData) {
             numOfColumns = this.renderHeaderRow(writer, context);
         }
-        if (!containsData){
+        if (!containsData) {
             formStringRenderer.renderEmptyFormDataMessage(writer, context, modelForm);
         }
         // ===== render the item rows =====
@@ -940,7 +937,7 @@ public class FormRenderer {
         if (!modelForm.getHideHeader() && containsData) {
             numOfColumns = this.renderHeaderRow(writer, context);
         }
-        if (!containsData){
+        if (!containsData) {
             formStringRenderer.renderEmptyFormDataMessage(writer, context, modelForm);
         }
         // ===== render the item rows =====
@@ -1204,11 +1201,11 @@ public class FormRenderer {
         if (iter instanceof EntityListIterator) {
             EntityListIterator eli = (EntityListIterator) iter;
             try {
-                if(eli.getResultsSizeAfterPartialList() > 0){
+                if (eli.getResultsSizeAfterPartialList() > 0) {
                     itemIndex++;
                 }
             } catch (GenericEntityException gee) {
-                Debug.logError(gee,MODULE);
+                Debug.logError(gee, MODULE);
             }
         } else {
             while (iter.hasNext()) {

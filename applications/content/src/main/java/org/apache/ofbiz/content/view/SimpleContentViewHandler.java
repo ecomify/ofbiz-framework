@@ -53,7 +53,7 @@ import org.apache.ofbiz.webapp.website.WebSiteWorker;
 
 public class SimpleContentViewHandler extends AbstractViewHandler {
 
-    public static final String MODULE = SimpleContentViewHandler.class.getName();
+    private static final String MODULE = SimpleContentViewHandler.class.getName();
     private String rootDir = null;
     private String https = null;
 
@@ -83,8 +83,10 @@ public class SimpleContentViewHandler extends AbstractViewHandler {
         String webSiteId = WebSiteWorker.getWebSiteId(request);
 
         try {
-            if (Debug.verboseOn()) Debug.logVerbose("dataResourceId:" + dataResourceId, MODULE);
-            Delegator delegator = (Delegator)request.getAttribute("delegator");
+            if (Debug.verboseOn()) {
+                Debug.logVerbose("dataResourceId:" + dataResourceId, MODULE);
+            }
+            Delegator delegator = (Delegator) request.getAttribute("delegator");
             if (UtilValidate.isEmpty(dataResourceId)) {
                 if (UtilValidate.isEmpty(contentRevisionSeqId)) {
                     if (UtilValidate.isEmpty(mapKey) && UtilValidate.isEmpty(contentAssocTypeId)) {
@@ -92,7 +94,9 @@ public class SimpleContentViewHandler extends AbstractViewHandler {
                             GenericValue content = EntityQuery.use(delegator).from("Content").where("contentId", contentId).cache().queryOne();
                             dataResourceId = content.getString("dataResourceId");
                         }
-                        if (Debug.verboseOn()) Debug.logVerbose("dataResourceId:" + dataResourceId, MODULE);
+                        if (Debug.verboseOn()) {
+                            Debug.logVerbose("dataResourceId:" + dataResourceId, MODULE);
+                        }
                     } else {
                         Timestamp fromDate = null;
                         if (UtilValidate.isNotEmpty(fromDateStr)) {
@@ -108,7 +112,9 @@ public class SimpleContentViewHandler extends AbstractViewHandler {
                         }
                         GenericValue content = ContentWorker.getSubContent(delegator, contentId, mapKey, null, null, assocList, fromDate);
                         dataResourceId = content.getString("dataResourceId");
-                        if (Debug.verboseOn()) Debug.logVerbose("dataResourceId:" + dataResourceId, MODULE);
+                        if (Debug.verboseOn()) {
+                            Debug.logVerbose("dataResourceId:" + dataResourceId, MODULE);
+                        }
                     }
                 } else {
                     GenericValue contentRevisionItem = EntityQuery.use(delegator)
@@ -121,9 +127,15 @@ public class SimpleContentViewHandler extends AbstractViewHandler {
                                 + ", contentRevisionSeqId=" + contentRevisionSeqId + ", itemContentId=" + contentId);
                     }
                     dataResourceId = contentRevisionItem.getString("newDataResourceId");
-                    if (Debug.verboseOn()) Debug.logVerbose("contentRevisionItem:" + contentRevisionItem, MODULE);
-                    if (Debug.verboseOn()) Debug.logVerbose("contentId=" + rootContentId + ", contentRevisionSeqId=" + contentRevisionSeqId + ", itemContentId=" + contentId, MODULE);
-                    if (Debug.verboseOn()) Debug.logVerbose("dataResourceId:" + dataResourceId, MODULE);
+                    if (Debug.verboseOn()) {
+                        Debug.logVerbose("contentRevisionItem:" + contentRevisionItem, MODULE);
+                    }
+                    if (Debug.verboseOn()) {
+                        Debug.logVerbose("contentId=" + rootContentId + ", contentRevisionSeqId=" + contentRevisionSeqId + ", itemContentId=" + contentId, MODULE);
+                    }
+                    if (Debug.verboseOn()) {
+                        Debug.logVerbose("dataResourceId:" + dataResourceId, MODULE);
+                    }
                 }
             }
             if (UtilValidate.isNotEmpty(dataResourceId)) {
@@ -143,13 +155,13 @@ public class SimpleContentViewHandler extends AbstractViewHandler {
                     }
                 }
                 // setup content type
-                String contentType2 = UtilValidate.isNotEmpty(mimeTypeId) ? mimeTypeId + "; charset=" +charset : contentType;
+                String contentType2 = UtilValidate.isNotEmpty(mimeTypeId) ? mimeTypeId + "; charset=" + charset : contentType;
                 String fileName = null;
                 if (UtilValidate.isNotEmpty(dataResource.getString("dataResourceName"))) {
                     fileName = dataResource.getString("dataResourceName").replace(" ", "_"); // spaces in filenames can be a problem
                 }
 
-                // see if data resource is public or not
+                // see if data RESOURCE is public or not
                 String isPublic = dataResource.getString("isPublic");
                 if (UtilValidate.isEmpty(isPublic)) {
                     isPublic = "N";

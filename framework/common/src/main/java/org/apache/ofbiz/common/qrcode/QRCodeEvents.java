@@ -44,7 +44,7 @@ import org.apache.ofbiz.service.ServiceUtil;
  */
 public class QRCodeEvents {
 
-    public static final String MODULE = QRCodeEvents.class.getName();
+    private static final String MODULE = QRCodeEvents.class.getName();
 
     /** Streams QR Code to the output. */
     public static String serveQRCodeImage(HttpServletRequest request, HttpServletResponse response) {
@@ -143,7 +143,7 @@ public class QRCodeEvents {
                 return "error";
             }
         } catch (IOException | GenericServiceException e) {
-            String errMsg = UtilProperties.getMessage("QRCodeUiLabels", "ErrorGenerateQRCode", new Object[] { e.getMessage() }, locale);
+            String errMsg = UtilProperties.getMessage("QRCodeUiLabels", "ErrorGenerateQRCode", new Object[] {e.getMessage() }, locale);
             request.setAttribute("_ERROR_MESSAGE_", errMsg);
             return "error";
         }

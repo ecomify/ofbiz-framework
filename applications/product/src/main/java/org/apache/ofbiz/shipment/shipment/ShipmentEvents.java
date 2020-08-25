@@ -41,7 +41,7 @@ import org.apache.ofbiz.service.ServiceUtil;
  */
 public class ShipmentEvents {
 
-    public static final String MODULE = ShipmentEvents.class.getName();
+    private static final String MODULE = ShipmentEvents.class.getName();
 
     public static String viewShipmentPackageRouteSegLabelImage(HttpServletRequest request, HttpServletResponse response) {
 
@@ -92,7 +92,7 @@ public class ShipmentEvents {
 
     public static String checkForceShipmentReceived(HttpServletRequest request, HttpServletResponse response) {
         LocalDispatcher dispatcher = (LocalDispatcher) request.getAttribute("dispatcher");
-        GenericValue userLogin = (GenericValue)request.getSession().getAttribute("userLogin");
+        GenericValue userLogin = (GenericValue) request.getSession().getAttribute("userLogin");
 
         String shipmentId = request.getParameter("shipmentIdReceived");
         String forceShipmentReceived = request.getParameter("forceShipmentReceived");

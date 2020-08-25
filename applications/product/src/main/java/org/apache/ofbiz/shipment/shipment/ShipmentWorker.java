@@ -44,10 +44,10 @@ import org.apache.ofbiz.service.ServiceUtil;
  */
 public final class ShipmentWorker {
 
-    public static final String MODULE = ShipmentWorker.class.getName();
-    private static final MathContext generalRounding = new MathContext(10);
+    private static final String MODULE = ShipmentWorker.class.getName();
+    private static final MathContext GEN_ROUNDING = new MathContext(10);
 
-    private ShipmentWorker() {}
+    private ShipmentWorker() { }
 
     /*
      * Returns the value of a given ShipmentPackageContent record.  Calculated by working out the total value (from the OrderItems) of all ItemIssuances
@@ -123,9 +123,9 @@ public final class ShipmentWorker {
                 if (pieces < 1) {
                     pieces = 1; // can NEVER be less than one
                 }
-                BigDecimal weight = totalWeight.divide(BigDecimal.valueOf(pieces), generalRounding);
+                BigDecimal weight = totalWeight.divide(BigDecimal.valueOf(pieces), GEN_ROUNDING);
                 for (int z = 1; z <= totalQuantity.intValue(); z++) {
-                    BigDecimal partialQty = pieces > 1 ? BigDecimal.ONE.divide(BigDecimal.valueOf(pieces), generalRounding) : BigDecimal.ONE;
+                    BigDecimal partialQty = pieces > 1 ? BigDecimal.ONE.divide(BigDecimal.valueOf(pieces), GEN_ROUNDING) : BigDecimal.ONE;
                     for (long x = 0; x < pieces; x++) {
                         if (weight.compareTo(maxWeight) >= 0) {
                             Map<String, BigDecimal> newPackage = new HashMap<>();
@@ -133,8 +133,8 @@ public final class ShipmentWorker {
                             packages.add(newPackage);
                         } else if (totalWeight.compareTo(BigDecimal.ZERO) > 0) {
                             // create the first package
-                            if (packages.size() == 0) {
-                                packages.add(new HashMap<String, BigDecimal>());
+                            if (packages.isEmpty()) {
+                                packages.add(new HashMap<>());
                             }
 
                             // package loop
@@ -199,7 +199,7 @@ public final class ShipmentWorker {
                 if (result.get(ModelService.RESPONSE_MESSAGE).equals(ModelService.RESPOND_SUCCESS) && UtilValidate.isNotEmpty(result.get("convertedValue"))) {
                     productWeight = (BigDecimal) result.get("convertedValue");
                 } else {
-                    Debug.logError("Unsupported weightUom [" + weightUomId + "] for calcPackageWeight running productId " + productId + ", could not find a conversion factor to WT_lb",MODULE);
+                    Debug.logError("Unsupported weightUom [" + weightUomId + "] for calcPackageWeight running productId " + productId + ", could not find a conversion factor to WT_lb", MODULE);
                 }
             }
 

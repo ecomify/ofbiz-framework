@@ -42,7 +42,7 @@ import org.apache.ofbiz.webapp.control.JWTManager;
  */
 public final class SecurityUtil {
 
-    public static final String MODULE = SecurityUtil.class.getName();
+    private static final String MODULE = SecurityUtil.class.getName();
     private static final List<String> adminPermissions = UtilMisc.toList(
             "IMPERSONATE_ADMIN",
             "ARTIFACT_INFO_VIEW",
@@ -53,7 +53,6 @@ public final class SecurityUtil {
 
     /**
      * Return true if given userLogin possess at least one of the adminPermission
-     *
      * @param delegator
      * @param userLoginId
      * @return
@@ -76,7 +75,6 @@ public final class SecurityUtil {
 
     /**
      * Return the list of missing permission, if toUserLoginId has more permission thant userLoginId, emptyList either.
-     *
      * @param delegator
      * @param userLoginId
      * @param toUserLoginId
@@ -125,10 +123,8 @@ public final class SecurityUtil {
 
     /**
      * Return {@code true} if an admin permission is valid for the given list of permissions.
-     *
      * @param permissionIds List of admin permission value without "_ADMIN" suffix
      * @param permission permission to be checked with its suffix
-     *
      */
     static boolean checkMultiLevelAdminPermissionValidity(List<String> permissionIds, String permission) {
         while (permission.contains("_")) {
@@ -158,7 +154,7 @@ public final class SecurityUtil {
                 GenericValue userLogin = EntityQuery.use(delegator).from("UserLogin").where("userLoginId", userLoginId).queryOne();
                 Map<String, Object> claims = JWTManager.validateToken(delegator, jwtToken,
                         userLogin.getString("userLoginId") + userLogin.getString("currentPassword"));
-                return (! ServiceUtil.isError(claims)) && userLoginId.equals(claims.get("userLoginId"));
+                return (!ServiceUtil.isError(claims)) && userLoginId.equals(claims.get("userLoginId"));
             } catch (GenericEntityException e) {
                 Debug.logWarning("failed to validate a jwToken for user " + userLoginId, MODULE);
             }

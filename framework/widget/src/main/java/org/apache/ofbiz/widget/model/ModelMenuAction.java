@@ -45,13 +45,13 @@ import org.w3c.dom.Element;
  */
 public abstract class ModelMenuAction {
 
-    public static final String MODULE = ModelMenuAction.class.getName();
+    private static final String MODULE = ModelMenuAction.class.getName();
 
     public static List<ModelAction> readSubActions(ModelMenu modelMenu, Element parentElement) {
         List<? extends Element> actionElementList = UtilXml.childElementList(parentElement);
         List<ModelAction> actions = new ArrayList<>(actionElementList.size());
         for (Element actionElement : actionElementList) {
-            if ("set".equals(actionElement.getNodeName())) {
+            if ("set".equals(actionElement.getLocalName())) {
                 actions.add(new SetField(modelMenu, actionElement));
             } else {
                 actions.add(AbstractModelAction.newInstance(modelMenu, actionElement));
@@ -62,7 +62,6 @@ public abstract class ModelMenuAction {
 
     /**
      * Models the &lt;set&gt; element.
-     *
      * @see <code>widget-common.xsd</code>
      */
     @SuppressWarnings("serial")
@@ -102,9 +101,9 @@ public abstract class ModelMenuAction {
             if (this.fromScope != null && "user".equals(this.fromScope)) {
                 if (!this.fromField.isEmpty()) {
                     String originalName = this.fromField.getOriginalName();
-                    String currentWidgetTrail = (String)context.get("_WIDGETTRAIL_");
+                    String currentWidgetTrail = (String) context.get("_WIDGETTRAIL_");
                     String newKey = currentWidgetTrail + "|" + originalName;
-                    HttpSession session = (HttpSession)context.get("session");
+                    HttpSession session = (HttpSession) context.get("session");
                     newValue = session.getAttribute(newKey);
                     if (Debug.verboseOn()) {
                         Debug.logVerbose("In user getting value for field from [" + this.fromField.getOriginalName() + "]: " + newValue, MODULE);
@@ -116,9 +115,9 @@ public abstract class ModelMenuAction {
             } else if (this.fromScope != null && "application".equals(this.fromScope)) {
                 if (!this.fromField.isEmpty()) {
                     String originalName = this.fromField.getOriginalName();
-                    String currentWidgetTrail = (String)context.get("_WIDGETTRAIL_");
+                    String currentWidgetTrail = (String) context.get("_WIDGETTRAIL_");
                     String newKey = currentWidgetTrail + "|" + originalName;
-                    ServletContext servletContext = (ServletContext)context.get("application");
+                    ServletContext servletContext = (ServletContext) context.get("application");
                     newValue = servletContext.getAttribute(newKey);
                     if (Debug.verboseOn()) {
                         Debug.logVerbose("In application getting value for field from [" + this.fromField.getOriginalName() + "]: " + newValue, MODULE);
@@ -139,10 +138,10 @@ public abstract class ModelMenuAction {
             }
 
             // If newValue is still empty, use the default value
-               if (this.defaultExdr != null) {
-                   if (ObjectType.isEmpty(newValue)) {
+            if (this.defaultExdr != null) {
+                if (ObjectType.isEmpty(newValue)) {
                     newValue = this.defaultExdr.expandString(context);
-                   }
+                }
             }
 
             if (UtilValidate.isNotEmpty(this.type)) {
@@ -161,24 +160,24 @@ public abstract class ModelMenuAction {
                 }
             }
             if (this.toScope != null && "user".equals(this.toScope)) {
-                    String originalName = this.field.getOriginalName();
-                    String currentWidgetTrail = (String)context.get("_WIDGETTRAIL_");
-                    String newKey = currentWidgetTrail + "|" + originalName;
-                    HttpSession session = (HttpSession)context.get("session");
-                    session.setAttribute(newKey, newValue);
-                    if (Debug.verboseOn()) {
-                        Debug.logVerbose("In user setting value for field from [" + this.field.getOriginalName() + "]: " + newValue, MODULE);
-                    }
+                String originalName = this.field.getOriginalName();
+                String currentWidgetTrail = (String) context.get("_WIDGETTRAIL_");
+                String newKey = currentWidgetTrail + "|" + originalName;
+                HttpSession session = (HttpSession) context.get("session");
+                session.setAttribute(newKey, newValue);
+                if (Debug.verboseOn()) {
+                    Debug.logVerbose("In user setting value for field from [" + this.field.getOriginalName() + "]: " + newValue, MODULE);
+                }
 
             } else if (this.toScope != null && "application".equals(this.toScope)) {
-                    String originalName = this.field.getOriginalName();
-                    String currentWidgetTrail = (String)context.get("_WIDGETTRAIL_");
-                    String newKey = currentWidgetTrail + "|" + originalName;
-                    ServletContext servletContext = (ServletContext)context.get("application");
-                    servletContext.setAttribute(newKey, newValue);
-                    if (Debug.verboseOn()) {
-                        Debug.logVerbose("In application setting value for field from [" + this.field.getOriginalName() + "]: " + newValue, MODULE);
-                    }
+                String originalName = this.field.getOriginalName();
+                String currentWidgetTrail = (String) context.get("_WIDGETTRAIL_");
+                String newKey = currentWidgetTrail + "|" + originalName;
+                ServletContext servletContext = (ServletContext) context.get("application");
+                servletContext.setAttribute(newKey, newValue);
+                if (Debug.verboseOn()) {
+                    Debug.logVerbose("In application setting value for field from [" + this.field.getOriginalName() + "]: " + newValue, MODULE);
+                }
 
             } else {
                 if (Debug.verboseOn()) {

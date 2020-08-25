@@ -53,7 +53,7 @@ import org.w3c.dom.Document;
 @SuppressWarnings("serial")
 public class DispatchContext implements Serializable {
 
-    public static final String MODULE = DispatchContext.class.getName();
+    private static final String MODULE = DispatchContext.class.getName();
 
     private static final UtilCache<String, Map<String, ModelService>> modelServiceMapByModel = UtilCache.createUtilCache("service.ModelServiceMapByModel", 0, 0, false);
 
@@ -67,11 +67,9 @@ public class DispatchContext implements Serializable {
      * Creates new DispatchContext as an immutable object.
      * The "dispatcher" argument can be null if the "name" argument matches the name of a valid entity model reader.
      * The thread safety of a DispatchContext object is a consequence of its immutability.
-     *
      * @param name The immutable name of the DispatchContext
      * @param loader The immutable class loader
      * @param dispatcher The immutable dispatcher associated to the DispatchContext
-     *
      */
     public DispatchContext(String name, ClassLoader loader, LocalDispatcher dispatcher) {
         this.name = name;
@@ -185,14 +183,14 @@ public class DispatchContext implements Serializable {
             throw new GenericServiceException("Model service is null! Should never happen.");
         }
         switch (modeInt) {
-            case 1:
-                newContext = model.makeValid(context, ModelService.IN_PARAM, true, null);
-                break;
-            case 2:
-                newContext = model.makeValid(context, ModelService.OUT_PARAM, true, null);
-                break;
-            default:
-                throw new GenericServiceException("Invalid mode, should be either IN or OUT");
+        case 1:
+            newContext = model.makeValid(context, ModelService.IN_PARAM, true, null);
+            break;
+        case 2:
+            newContext = model.makeValid(context, ModelService.OUT_PARAM, true, null);
+            break;
+        default:
+            throw new GenericServiceException("Invalid mode, should be either IN or OUT");
         }
         return newContext;
     }

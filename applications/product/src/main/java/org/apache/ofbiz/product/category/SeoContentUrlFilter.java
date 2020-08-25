@@ -43,7 +43,7 @@ import org.apache.ofbiz.entity.util.EntityUtil;
 import org.apache.ofbiz.entity.util.EntityQuery;
 
 public class SeoContentUrlFilter implements Filter {
-    public final static String MODULE = SeoContentUrlFilter.class.getName();
+    private static final String MODULE = SeoContentUrlFilter.class.getName();
     protected static final String defaultLocaleString = null;
     protected static final String redirectUrl = null;
     private FilterConfig config;
@@ -66,11 +66,11 @@ public class SeoContentUrlFilter implements Filter {
             if (alternativeUrl.endsWith("-content")) {
                 try {
                     List<GenericValue> contentDataResourceViews = EntityQuery.use(delegator).from("ContentDataResourceView").where("drObjectInfo", alternativeUrl).queryList();
-                    if (contentDataResourceViews.size() > 0) {
+                    if (!contentDataResourceViews.isEmpty()) {
                         contentDataResourceViews = EntityUtil.orderBy(contentDataResourceViews, UtilMisc.toList("createdDate DESC"));
                         GenericValue contentDataResourceView = EntityUtil.getFirst(contentDataResourceViews);
                         List<GenericValue> contents = EntityQuery.use(delegator).from("ContentAssoc").where("contentAssocTypeId", "ALTERNATIVE_URL", "contentIdTo", contentDataResourceView.getString("contentId")).filterByDate().queryList();
-                        if (contents.size() > 0) {
+                        if (!contents.isEmpty()) {
                             GenericValue content = EntityUtil.getFirst(contents);
                             urlContentId = content.getString("contentId");
                         }

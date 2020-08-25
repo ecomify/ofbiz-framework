@@ -44,12 +44,12 @@ public class PerformFindTests extends OFBizTestCase {
 
     private static List<GenericValue> getCompleteList(Map<String, Object> context) {
         List<GenericValue> foundElements = new LinkedList<>();
-            try (EntityListIterator listIt = (EntityListIterator) context.get("listIt")) {
-                if (listIt != null) {
-                    foundElements = listIt.getCompleteList();
-                }
-            } catch (GenericEntityException e) {
-                Debug.logError(" Failed to extract values from EntityListIterator after a performFind service", MODULE);
+        try (EntityListIterator listIt = (EntityListIterator) context.get("listIt")) {
+            if (listIt != null) {
+                foundElements = listIt.getCompleteList();
+            }
+        } catch (GenericEntityException e) {
+            Debug.logError(" Failed to extract values from EntityListIterator after a performFind service", MODULE);
         }
         return foundElements;
     }
@@ -104,15 +104,15 @@ public class PerformFindTests extends OFBizTestCase {
      * @throws Exception
      */
     public void testPerformFind() throws Exception {
-         performFindConditionFieldEquals();
-         performFindConditionFieldLike();
-         performFindConditionDistinct();
-         performFindFilterByDate();
-         performFindFilterByDateWithDedicateDateField();
+        performFindConditionFieldEquals();
+        performFindConditionFieldLike();
+        performFindConditionDistinct();
+        performFindFilterByDate();
+        performFindFilterByDateWithDedicateDateField();
     }
 
     private void performFindConditionFieldEquals() throws Exception {
-        GenericValue userLogin = EntityQuery.use(delegator).from("UserLogin").where("userLoginId", "system").cache().queryOne();
+        GenericValue userLogin = getUserLogin("system");
         prepareData();
 
         Map<String, Object> inputFields = new HashMap<>();
@@ -149,7 +149,7 @@ public class PerformFindTests extends OFBizTestCase {
     }
 
     private void performFindConditionFieldLike() throws Exception {
-        GenericValue userLogin = EntityQuery.use(delegator).from("UserLogin").where("userLoginId", "system").cache().queryOne();
+        GenericValue userLogin = getUserLogin("system");
         prepareData();
 
         //first test like condition
@@ -186,7 +186,7 @@ public class PerformFindTests extends OFBizTestCase {
     }
 
     private void performFindConditionDistinct() throws Exception {
-        GenericValue userLogin = EntityQuery.use(delegator).from("UserLogin").where("userLoginId", "system").cache().queryOne();
+        GenericValue userLogin = getUserLogin("system");
         prepareData();
 
         //first test without distinct condition
@@ -207,7 +207,7 @@ public class PerformFindTests extends OFBizTestCase {
     }
 
     private void performFindFilterByDate() throws Exception {
-        GenericValue userLogin = EntityQuery.use(delegator).from("UserLogin").where("userLoginId", "system").cache().queryOne();
+        GenericValue userLogin = getUserLogin("system");
         prepareData();
 
         //first test without filterDate condition
@@ -227,7 +227,7 @@ public class PerformFindTests extends OFBizTestCase {
     }
 
     private void performFindFilterByDateWithDedicateDateField() throws Exception {
-        GenericValue userLogin = EntityQuery.use(delegator).from("UserLogin").where("userLoginId", "system").cache().queryOne();
+        GenericValue userLogin = getUserLogin("system");
         prepareData();
 
         //first test without filterDate condition

@@ -46,22 +46,22 @@ import java.util.Map;
  */
 public class FtpServices {
 
-    public static final String MODULE = FtpServices.class.getName();
-    public static final String resource = "ContentUiLabels";
+    private static final String MODULE = FtpServices.class.getName();
+    private static final String RESOURCE = "ContentUiLabels";
 
     private static FtpClientInterface createFtpClient(String serverType)
             throws GeneralException {
         FtpClientInterface ftpClient = null;
         switch (serverType) {
-            case "ftp":
-                ftpClient = new SimpleFtpClient();
-                break;
-            case "ftps":
-                //TODO : to implements
-                throw new GeneralException("Ftp secured transfer protocol not yet implemented");
-            case "sftp":
-                ftpClient = new SshFtpClient();
-                break;
+        case "ftp":
+            ftpClient = new SimpleFtpClient();
+            break;
+        case "ftps":
+            //TODO : to implements
+            throw new GeneralException("Ftp secured transfer protocol not yet implemented");
+        case "sftp":
+            ftpClient = new SshFtpClient();
+            break;
         }
         return ftpClient;
     }
@@ -95,7 +95,7 @@ public class FtpServices {
             //Validate content
             GenericValue content = EntityQuery.use(delegator).from("Content").where("contentId", contentId).cache().queryOne();
             if (null == content) {
-                return ServiceUtil.returnError(UtilProperties.getMessage(resource, "ContentNoContentFound", UtilMisc.toMap("contentId", contentId), locale));
+                return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE, "ContentNoContentFound", UtilMisc.toMap("contentId", contentId), locale));
             }
 
             //ftp redirection
@@ -168,7 +168,9 @@ public class FtpServices {
 
             //test if the file is correctly sent
             if (forceTransferControlSuccess) {
-                if (Debug.infoOn()) Debug.logInfo(" Control if service really success the transfer", MODULE);
+                if (Debug.infoOn()) {
+                    Debug.logInfo(" Control if service really success the transfer", MODULE);
+                }
 
                 //recreate the connection
                 ftpClient.closeConnection();
@@ -179,7 +181,9 @@ public class FtpServices {
 
                 //check the file name previously copy
                 List<String> fileNames = ftpClient.list(path);
-                if (Debug.infoOn()) Debug.logInfo(" For the path " + path + " we found " + fileNames, MODULE);
+                if (Debug.infoOn()) {
+                    Debug.logInfo(" For the path " + path + " we found " + fileNames, MODULE);
+                }
 
                 if (fileNames == null || !fileNames.contains(remoteFileName)) {
                     return ServiceUtil.returnError("DataResource " + content.getString("dataResourceId") + " return an empty stream");

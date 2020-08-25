@@ -45,7 +45,7 @@ import org.apache.ofbiz.entity.model.ModelFieldTypeReader;
 public class EntityListIterator implements AutoCloseable, ListIterator<GenericValue> {
 
     /** Module Name Used for debugging */
-    public static final String MODULE = EntityListIterator.class.getName();
+    private static final String MODULE = EntityListIterator.class.getName();
 
     protected SQLProcessor sqlp;
     protected ResultSet resultSet;
@@ -91,7 +91,6 @@ public class EntityListIterator implements AutoCloseable, ListIterator<GenericVa
 
     /**
      * Sets the cursor position to just after the last result so that previous() will return the last result.
-     * 
      * @throws GenericEntityException
      *             if a database error occurs.
      */
@@ -106,7 +105,6 @@ public class EntityListIterator implements AutoCloseable, ListIterator<GenericVa
 
     /**
      * Sets the cursor position to just before the first result so that next() will return the first result.
-     * 
      * @throws GenericEntityException
      *             if a database error occurs.
      */
@@ -121,7 +119,6 @@ public class EntityListIterator implements AutoCloseable, ListIterator<GenericVa
 
     /**
      * Sets the cursor position to last result.
-     * 
      * @return true if the result set is not empty.
      * @throws GenericEntityException
      *             if a database error occurs.
@@ -137,7 +134,6 @@ public class EntityListIterator implements AutoCloseable, ListIterator<GenericVa
 
     /**
      * Sets the cursor position to first result.
-     * 
      * @return true if the result set is not empty.
      * @throws GenericEntityException
      *             in case of a database error.
@@ -153,7 +149,6 @@ public class EntityListIterator implements AutoCloseable, ListIterator<GenericVa
 
     /**
      * Closes the iterator.
-     *
      * @throws GenericEntityException
      *             if the {@link EntityListIterator} cannot be closed.
      */
@@ -204,7 +199,6 @@ public class EntityListIterator implements AutoCloseable, ListIterator<GenericVa
 
     /**
      * Determines the current index of the cursor position.
-     *
      * @return the current index, 0 if there is none.
      * @throws GenericEntityException
      *             if an error with the database access occurs.
@@ -226,7 +220,6 @@ public class EntityListIterator implements AutoCloseable, ListIterator<GenericVa
      * if rowNum is negative, goes to that position relative to the end of the list;
      * a rowNum of 1 is the same as first();
      * a rowNum of -1 is the same as last()
-     *
      * @param rowNum
      *            the index of the row to set the cursor to.
      * @return true if the cursor moved to a row within the result set, false if it
@@ -253,7 +246,6 @@ public class EntityListIterator implements AutoCloseable, ListIterator<GenericVa
      * performs the same function as the {@link ResultSet#relative(int)} method.
      * if rows is positive, goes forward relative to the current position;
      * if rows is negative, goes backward relative to the current position;
-     * 
      * @param rows
      *            the amount of rows to move.
      * @return true if the cursor is on a row.
@@ -273,13 +265,11 @@ public class EntityListIterator implements AutoCloseable, ListIterator<GenericVa
 
     /**
      * PLEASE NOTE: Because of the nature of the JDBC ResultSet interface this method can be very inefficient.
-     * It is much better to just use next() until it returns null 
+     * It is much better to just use next() until it returns null
      * For example, you could use the following to iterate through the results in an EntityListIterator:
-     *
-     * GenericValue nextValue = null; 
+     * GenericValue nextValue = null;
      * while ((nextValue = (GenericValue)
      * this.next()) != null) { ... }
-     *
      */
     @Override
     public boolean hasNext() {
@@ -324,9 +314,7 @@ public class EntityListIterator implements AutoCloseable, ListIterator<GenericVa
     /**
      * Moves the cursor to the next position and returns the value for that position; For example, you could use the following to iterate through the results in an
      * EntityListIterator:
-     *
      * GenericValue nextValue = null; while ((nextValue = (GenericValue) this.next()) != null) { ... }
-     *
      * @return the next element or null, if there is no next element.
      */
     @Override
@@ -387,7 +375,6 @@ public class EntityListIterator implements AutoCloseable, ListIterator<GenericVa
 
     /**
      * Sets the fetch size of the result set to the given value.
-     * 
      * @param rows
      *            the fetch size
      * @throws GenericEntityException
@@ -404,7 +391,6 @@ public class EntityListIterator implements AutoCloseable, ListIterator<GenericVa
 
     /**
      * Gets all the elements of the {@link EntityListIterator} as a list.
-     *
      * @return a list of the elements.
      * @throws GenericEntityException
      *             if there is a problem with the database.
@@ -433,14 +419,13 @@ public class EntityListIterator implements AutoCloseable, ListIterator<GenericVa
     }
 
     /**
-     * Gets a partial list of results starting at start and containing at most number elements. 
+     * Gets a partial list of results starting at start and containing at most number elements.
      * Start is a one based value, i.e. 1 is the first element.
-     *
      * @param start
      *            the index from which on the elements should be retrieved. Is one based.
      * @param number
      *            the maximum number of elements to get after the start index.
-     * @return A list with the retrieved elements, with the size of number or less if the result set does not contain enough values. 
+     * @return A list with the retrieved elements, with the size of number or less if the result set does not contain enough values.
      *            Empty list in case of no values or an invalid start index.
      * @throws GenericEntityException
      *            if there is an issue with the database.
@@ -475,11 +460,9 @@ public class EntityListIterator implements AutoCloseable, ListIterator<GenericVa
 
     /**
      * Determines the possible result size.
-     *
      * If a {@link GenericDAO} is known, the result size will be counted by the
      * database. Otherwise the result size is the last index of the
      * {@link EntityListIterator}.
-     *
      * @return the result size or 0 if the result set is empty.
      * @throws GenericEntityException
      *             if there is an issue with the call to the database.
@@ -496,7 +479,6 @@ public class EntityListIterator implements AutoCloseable, ListIterator<GenericVa
 
     /**
      * Finds the size of the result.
-     *
      * @return count of elements returned by a query.
      * @throws GenericEntityException
      *             if there is an issue with the call to the database.
@@ -537,9 +519,7 @@ public class EntityListIterator implements AutoCloseable, ListIterator<GenericVa
 
     /**
      * Closes the {@link EntityListIterator} and logs a warning if it isn't already closed.
-     *
      * If you don't want to handle the {@link GenericEntityException} thrown by {@link #close()}, use {@link #tryCloseWithWarning()}.
-     *
      * @param warningMessage
      *            the warning to be logged.
      * @throws GenericEntityException
@@ -554,9 +534,7 @@ public class EntityListIterator implements AutoCloseable, ListIterator<GenericVa
 
     /**
      * Tries to close the {@link EntityListIterator} and logs a warning if it isn't already closed.
-     *
      * Catches the {@link GenericEntityException} thrown by {@link #close()} and logs it. If you want to handle the exception yourself, use {@link #closeWithWarning()}.
-     *
      * @param warningMessage
      *            the warning to be logged.
      */

@@ -40,7 +40,7 @@ import org.apache.ofbiz.base.util.UtilValidate;
 
 public class DataFile {
 
-    public static final String MODULE = DataFile.class.getName();
+    private static final String MODULE = DataFile.class.getName();
 
     /** List of record in the file, contains Record objects */
     protected List<Record> records = new ArrayList<>();
@@ -171,7 +171,6 @@ public class DataFile {
 
     /**
      * Writes the records in this DataFile object to a text data file
-     *
      * @param filename
      *            The filename to put the data into
      * @throws DataFileException
@@ -183,8 +182,7 @@ public class DataFile {
 
         try (FileOutputStream fos = new FileOutputStream(outFile);) {
             writeDataFile(fos);
-        }
-        catch (IOException e) {
+        } catch (IOException e) {
             throw new DataFileException("Error occured while writing data to file" + filename, e);
         }
     }
@@ -199,8 +197,7 @@ public class DataFile {
             writeDataFile(bos);
             outString = bos.toString("UTF-8");
 
-        }
-        catch (IOException e) {
+        } catch (IOException e) {
             Debug.logWarning(e, MODULE);
         }
         return outString;
@@ -220,8 +217,7 @@ public class DataFile {
 
             try {
                 outStream.write(line.getBytes(StandardCharsets.UTF_8));
-            }
-            catch (IOException e) {
+            } catch (IOException e) {
                 throw new DataFileException("Could not write to stream;", e);
             }
 

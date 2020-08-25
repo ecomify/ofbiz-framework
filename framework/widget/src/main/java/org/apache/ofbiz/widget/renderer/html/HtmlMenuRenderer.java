@@ -20,6 +20,7 @@ package org.apache.ofbiz.widget.renderer.html;
 
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.net.URI;
 import java.util.List;
 import java.util.Map;
 
@@ -48,20 +49,43 @@ import org.apache.ofbiz.widget.renderer.MenuStringRenderer;
  */
 public class HtmlMenuRenderer extends HtmlWidgetRenderer implements MenuStringRenderer {
 
-    HttpServletRequest request;
-    HttpServletResponse response;
-    protected String userLoginIdAtPermGrant;
-    protected String permissionErrorMessage = "";
+    private HttpServletRequest request;
+    private HttpServletResponse response;
 
-    public static final String MODULE = HtmlMenuRenderer.class.getName();
+    /**
+     * Gets request.
+     * @return the request
+     */
+    public HttpServletRequest getRequest() {
+        return request;
+    }
 
-    protected HtmlMenuRenderer() {}
+    /**
+     * Gets response.
+     * @return the response
+     */
+    public HttpServletResponse getResponse() {
+        return response;
+    }
+
+    private String userLoginIdAtPermGrant;
+    private String permissionErrorMessage = "";
+
+    protected static final String MODULE = HtmlMenuRenderer.class.getName();
+
+    protected HtmlMenuRenderer() { }
 
     public HtmlMenuRenderer(HttpServletRequest request, HttpServletResponse response) {
         this.request = request;
         this.response = response;
     }
 
+    /**
+     * Append ofbiz url.
+     * @param writer   the writer
+     * @param location the location
+     * @throws IOException the io exception
+     */
     public void appendOfbizUrl(Appendable writer, String location) throws IOException {
         ServletContext ctx = request.getServletContext();
         if (ctx == null) {
@@ -79,6 +103,12 @@ public class HtmlMenuRenderer extends HtmlWidgetRenderer implements MenuStringRe
         writer.append(s);
     }
 
+    /**
+     * Append content url.
+     * @param writer   the writer
+     * @param location the location
+     * @throws IOException the io exception
+     */
     public void appendContentUrl(Appendable writer, String location) throws IOException {
         ServletContext ctx = request.getServletContext();
         if (ctx == null) {
@@ -264,7 +294,7 @@ public class HtmlMenuRenderer extends HtmlWidgetRenderer implements MenuStringRe
         appendWhitespace(writer);
         renderEndingBoundaryComment(writer, "Menu Widget", modelMenu);
 
-        GenericValue userLogin = (GenericValue)request.getSession().getAttribute("userLogin");
+        GenericValue userLogin = (GenericValue) request.getSession().getAttribute("userLogin");
         if (userLogin != null) {
             String userLoginId = userLogin.getString("userLoginId");
             setUserLoginIdAtPermGrant(userLoginId);
@@ -281,10 +311,18 @@ public class HtmlMenuRenderer extends HtmlWidgetRenderer implements MenuStringRe
     public void renderFormatSimpleWrapperClose(Appendable writer, Map<String, Object> context, ModelMenu modelMenu) throws IOException {
     }
 
+    /**
+     * Sets request.
+     * @param request the request
+     */
     public void setRequest(HttpServletRequest request) {
         this.request = request;
     }
 
+    /**
+     * Sets response.
+     * @param response the response
+     */
     public void setResponse(HttpServletResponse response) {
         this.response = response;
     }
@@ -301,6 +339,12 @@ public class HtmlMenuRenderer extends HtmlWidgetRenderer implements MenuStringRe
         return this.userLoginIdAtPermGrant;
     }
 
+    /**
+     * Is hide if selected boolean.
+     * @param menuItem the menu item
+     * @param context  the context
+     * @return the boolean
+     */
     public boolean isHideIfSelected(ModelMenuItem menuItem, Map<String, Object> context) {
         ModelMenu menu = menuItem.getModelMenu();
         String currentMenuItemName = menu.getSelectedMenuItemContextFieldName(context);
@@ -309,19 +353,22 @@ public class HtmlMenuRenderer extends HtmlWidgetRenderer implements MenuStringRe
         return (hideIfSelected != null && hideIfSelected && currentMenuItemName != null && currentMenuItemName.equals(currentItemName));
     }
 
-
+    /**
+     * User login id has changed boolean.
+     * @return the boolean
+     */
     public boolean userLoginIdHasChanged() {
         boolean hasChanged = false;
-        GenericValue userLogin = (GenericValue)request.getSession().getAttribute("userLogin");
+        GenericValue userLogin = (GenericValue) request.getSession().getAttribute("userLogin");
         userLoginIdAtPermGrant = getUserLoginIdAtPermGrant();
         String userLoginId = null;
         if (userLogin != null) {
             userLoginId = userLogin.getString("userLoginId");
         }
         if ((userLoginId == null && userLoginIdAtPermGrant != null)
-           || (userLoginId != null && userLoginIdAtPermGrant == null)
-           || ((userLoginId != null && userLoginIdAtPermGrant != null)
-              && !userLoginId.equals(userLoginIdAtPermGrant))) {
+                || (userLoginId != null && userLoginIdAtPermGrant == null)
+                || ((userLoginId != null && userLoginIdAtPermGrant != null)
+                && !userLoginId.equals(userLoginIdAtPermGrant))) {
             hasChanged = true;
         } else {
             if (userLoginIdAtPermGrant != null) {
@@ -361,8 +408,10 @@ public class HtmlMenuRenderer extends HtmlWidgetRenderer implements MenuStringRe
                 writer.append("<form method=\"post\"");
                 writer.append(" action=\"");
                 // note that this passes null for the parameterList on purpose so they won't be put into the URL
-                WidgetWorker.buildHyperlinkUrl(writer, target, link.getUrlMode(), null, link.getPrefix(context),
-                        link.getFullPath(), link.getSecure(), link.getEncode(), request, response, context);
+                final URI uri = WidgetWorker.buildHyperlinkUri(target, link.getUrlMode(), null,
+                        link.getPrefix(context), link.getFullPath(), link.getSecure(), link.getEncode(),
+                        request, response);
+                writer.append(uri.toString());
                 writer.append("\"");
 
                 if (UtilValidate.isNotEmpty(targetWindow)) {
@@ -421,12 +470,14 @@ public class HtmlMenuRenderer extends HtmlWidgetRenderer implements MenuStringRe
 
             writer.append(" href=\"");
             if ("hidden-form".equals(linkType)) {
-                    writer.append("javascript:document.");
-                    writer.append(uniqueItemName);
-                    writer.append(".submit()");
+                writer.append("javascript:document.");
+                writer.append(uniqueItemName);
+                writer.append(".submit()");
             } else {
-                WidgetWorker.buildHyperlinkUrl(writer, target, link.getUrlMode(), link.getParameterMap(context), link.getPrefix(context),
-                        link.getFullPath(), link.getSecure(), link.getEncode(), request, response, context);
+                final URI uri = WidgetWorker.buildHyperlinkUri(target, link.getUrlMode(), link.getParameterMap(context),
+                        link.getPrefix(context), link.getFullPath(), link.getSecure(), link.getEncode(),
+                        request, response);
+                writer.append(uri.toString());
             }
             writer.append("\">");
         }

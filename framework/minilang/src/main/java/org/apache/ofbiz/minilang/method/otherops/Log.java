@@ -30,7 +30,6 @@ import org.w3c.dom.Element;
 
 /**
  * Implements the &lt;log&gt; element.
- * 
  * @see <a href="https://cwiki.apache.org/confluence/display/OFBIZ/Mini+Language+-+minilang+-+simple-method+-+Reference">Mini-language Reference</a>
  */
 public final class Log extends MethodOperation {
@@ -52,7 +51,7 @@ public final class Log extends MethodOperation {
         }
         this.messageFse = FlexibleStringExpander.getInstance(element.getAttribute("message"));
         String levelAttribute = UtilXml.getAttributeValueIgnorePrefix(element, "level");
-        if (levelAttribute.length() == 0) {
+        if (levelAttribute.isEmpty()) {
             levelAttribute = "info";
         }
         Integer levelInt = Debug.getLevelFromString(levelAttribute);

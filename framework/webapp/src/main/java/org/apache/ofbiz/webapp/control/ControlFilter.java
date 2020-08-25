@@ -24,7 +24,6 @@ import java.util.Collections;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import javax.servlet.Filter;
 import javax.servlet.FilterChain;
 import javax.servlet.FilterConfig;
 import javax.servlet.ServletException;
@@ -97,7 +96,6 @@ public class ControlFilter extends HttpFilter {
     /**
      * Converts {@code code} string to an integer.  If conversion fails, Return
      * {@code DEFAULT_HTTP_ERROR_STATUS} instead.
-     *
      * @param code an arbitrary string which can be {@code null}
      * @return the integer matching {@code code}
      */
@@ -113,7 +111,6 @@ public class ControlFilter extends HttpFilter {
 
     /**
      * Splits the paths defined by {@code paths}.
-     *
      * @param paths a string which can be either {@code null} or a list of
      * paths separated by ':'.
      * @return a set of string
@@ -125,8 +122,6 @@ public class ControlFilter extends HttpFilter {
 
     /**
      * Makes allowed paths pass through while redirecting the others to a fix location.
-     *
-     * @see Filter#doFilter
      */
     @Override
     public void doFilter(HttpServletRequest req, HttpServletResponse resp, FilterChain chain)
@@ -170,7 +165,6 @@ public class ControlFilter extends HttpFilter {
 
     /**
      * Sends an HTTP response redirecting to {@code redirectPath}.
-     *
      * @param resp The response to send
      * @param contextPath the prefix to add to the redirection when
      * {@code redirectPath} is a relative URI.

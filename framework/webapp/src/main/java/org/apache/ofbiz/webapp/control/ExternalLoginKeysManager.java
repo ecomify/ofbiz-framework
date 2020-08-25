@@ -18,19 +18,22 @@
  */
 package org.apache.ofbiz.webapp.control;
 
-import org.apache.ofbiz.base.util.Debug;
-import org.apache.ofbiz.entity.Delegator;
-import org.apache.ofbiz.entity.DelegatorFactory;
-import org.apache.ofbiz.entity.GenericValue;
-import org.apache.ofbiz.service.LocalDispatcher;
-import org.apache.ofbiz.webapp.WebAppUtil;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-import java.util.Map;
-import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
+
+import org.apache.ofbiz.base.util.Debug;
+import org.apache.ofbiz.base.util.UtilValidate;
+import org.apache.ofbiz.entity.Delegator;
+import org.apache.ofbiz.entity.DelegatorFactory;
+import org.apache.ofbiz.entity.GenericValue;
+import org.apache.ofbiz.entity.util.EntityUtilProperties;
+import org.apache.ofbiz.service.LocalDispatcher;
+import org.apache.ofbiz.webapp.WebAppUtil;
 
 /**
  * This class manages the single sign-on authentication through external login keys between OFBiz applications.
@@ -41,11 +44,13 @@ public class ExternalLoginKeysManager {
     // This Map is keyed by the randomly generated externalLoginKey and the value is a UserLogin GenericValue object
     private static final Map<String, GenericValue> externalLoginKeys = new ConcurrentHashMap<>();
 
+    // This variable is set to empty so we know need to read from the properties file.
+    private static String isExternalLoginKeyEnabled = "";
+
     /**
      * Gets (and creates if necessary) an authentication token to be used for an external login parameter.
      * When a new token is created, it is persisted in the web session and in the web request and map entry keyed by the
      * token and valued by a userLogin object is added to a map that is looked up for subsequent requests.
-     *
      * @param request - the http request in which the authentication token is searched and stored
      * @return the authentication token as persisted in the session and request objects
      */
@@ -83,7 +88,6 @@ public class ExternalLoginKeysManager {
 
     /**
      * Removes the authentication token, if any, from the session.
-     *
      * @param session - the http session from which the authentication token is removed
      */
     static void cleanupExternalLoginKey(HttpSession session) {
@@ -98,7 +102,6 @@ public class ExternalLoginKeysManager {
      * The method is designed to be used in a chain of controller preprocessor event: it always return "success"
      * even when the authentication token is missing or the authentication fails in order to move the processing to the
      * next event in the chain.
-     *
      * @param request - the http request object
      * @param response - the http response object
      * @return "success" in all the cases
@@ -152,7 +155,6 @@ public class ExternalLoginKeysManager {
 
         // make sure the autoUserLogin is set to the same and that the client cookie has the correct userLoginId
         LoginWorker.autoLoginSet(request, response);
-        
         return "success";
     }
 
@@ -163,6 +165,19 @@ public class ExternalLoginKeysManager {
      */
     private static boolean isAjax(HttpServletRequest request) {
        return "XMLHttpRequest".equals(request.getHeader("X-Requested-With"));
+    }
+
+    /**
+     * Check if using externalLoginKey
+     * @return
+     */
+    public static boolean isExternalLoginKeyEnabled (HttpServletRequest request) {
+        if (UtilValidate.isEmpty(isExternalLoginKeyEnabled)) {
+            isExternalLoginKeyEnabled = EntityUtilProperties.getPropertyValue("security",
+                    "security.login.externalLoginKey.enabled", "true",
+                    (Delegator) request.getAttribute("delegator"));
+        }
+        return "true".equals(isExternalLoginKeyEnabled);
     }
 
 }

@@ -26,7 +26,6 @@ import java.util.Map;
 
 import org.apache.ofbiz.base.util.UtilGenerics;
 import org.apache.ofbiz.entity.GenericValue;
-import org.apache.ofbiz.entity.util.EntityQuery;
 import org.apache.ofbiz.service.testtools.OFBizTestCase;
 
 /**
@@ -34,15 +33,8 @@ import org.apache.ofbiz.service.testtools.OFBizTestCase;
  */
 public class StockMovesTest extends OFBizTestCase {
 
-    protected GenericValue userLogin = null;
-
     public StockMovesTest(String name) {
         super(name);
-    }
-
-    @Override
-    protected void setUp() throws Exception {
-        userLogin = EntityQuery.use(delegator).from("UserLogin").where("userLoginId", "system").queryOne();
     }
 
     @Override
@@ -50,8 +42,9 @@ public class StockMovesTest extends OFBizTestCase {
     }
 
     public void testStockMoves() throws Exception {
+        GenericValue userLogin = getUserLogin("system");
         Map<String, Object> fsmnCtx = new HashMap<>();
-        Map<?,?> stockMoveHandled = null;
+        Map<?, ?> stockMoveHandled = null;
         List<?> warningList;
 
         fsmnCtx.put("facilityId", "WebStoreWarehouse");
@@ -71,7 +64,7 @@ public class StockMovesTest extends OFBizTestCase {
         Map<String, Object> ppsmCtx = new HashMap<>();
         ppsmCtx.put("productId", "GZ-2644");
         ppsmCtx.put("facilityId", "WebStoreWarehouse");
-        ppsmCtx.put("locationSeqId","TLTLTLUL01");
+        ppsmCtx.put("locationSeqId", "TLTLTLUL01");
         ppsmCtx.put("targetLocationSeqId", "TLTLTLLL01");
         ppsmCtx.put("quantityMoved", new BigDecimal("5"));
         ppsmCtx.put("userLogin", userLogin);

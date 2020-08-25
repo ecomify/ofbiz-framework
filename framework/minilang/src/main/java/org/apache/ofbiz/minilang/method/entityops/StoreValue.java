@@ -32,12 +32,11 @@ import org.w3c.dom.Element;
 
 /**
  * Implements the &lt;store-value&gt; element.
- * 
  * @see <a href="https://cwiki.apache.org/confluence/display/OFBIZ/Mini+Language+-+minilang+-+simple-method+-+Reference">Mini-language Reference</a>
  */
 public final class StoreValue extends MethodOperation {
 
-    public static final String MODULE = StoreValue.class.getName();
+    private static final String MODULE = StoreValue.class.getName();
     private final FlexibleMapAccessor<GenericValue> valueFma;
 
     public StoreValue(Element element, SimpleMethod simpleMethod) throws MiniLangException {

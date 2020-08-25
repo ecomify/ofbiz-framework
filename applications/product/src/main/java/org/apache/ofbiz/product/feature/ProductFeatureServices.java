@@ -49,8 +49,8 @@ import org.apache.ofbiz.service.ServiceUtil;
 
 public class ProductFeatureServices {
 
-    public static final String MODULE = ProductFeatureServices.class.getName();
-    public static final String resource = "ProductUiLabels";
+    private static final String MODULE = ProductFeatureServices.class.getName();
+    private static final String RESOURCE = "ProductUiLabels";
 
     /*
      * Parameters: productFeatureCategoryId, productFeatureGroupId, productId, productFeatureApplTypeId
@@ -87,7 +87,7 @@ public class ProductFeatureServices {
         }
 
         if (valueToSearch == null) {
-            return ServiceUtil.returnError(UtilProperties.getMessage(resource, "ProductFeatureByType", locale));
+            return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE, "ProductFeatureByType", locale));
         }
 
         try {
@@ -206,7 +206,7 @@ public class ProductFeatureServices {
                 List<Map<String, Object>> combinations;
 
                 // start with either existing combinations or from scratch
-                if (oldCombinations.size() > 0) {
+                if (!oldCombinations.isEmpty()) {
                     combinations = oldCombinations;
                 } else {
                     combinations = new LinkedList<>();
@@ -216,7 +216,7 @@ public class ProductFeatureServices {
                 // product feature and add it to the id code and product feature applications
                 // of the next variant.  just a matter of whether we're starting with an
                 // existing list of features and id code or from scratch.
-                if (combinations.size()==0) {
+                if (combinations.isEmpty()) {
                     for (GenericValue currentFeature: currentFeatures) {
                         if ("SELECTABLE_FEATURE".equals(currentFeature.getString("productFeatureApplTypeId"))) {
                             Map<String, Object> newCombination = new HashMap<>();
@@ -270,7 +270,7 @@ public class ProductFeatureServices {
             for (Map<String, Object> combination: oldCombinations) {
                 // Verify if the default code is already used, if so add a numeric suffix
                 if (defaultVariantProductIds.contains(combination.get("defaultVariantProductId"))) {
-                    combination.put("defaultVariantProductId", combination.get("defaultVariantProductId") + "-" + (defaultCodeCounter < 10? "0" + defaultCodeCounter: "" + defaultCodeCounter));
+                    combination.put("defaultVariantProductId", combination.get("defaultVariantProductId") + "-" + (defaultCodeCounter < 10 ? "0" + defaultCodeCounter : "" + defaultCodeCounter));
                     defaultCodeCounter++;
                 }
                 defaultVariantProductIds.add((String) combination.get("defaultVariantProductId"));
@@ -310,7 +310,7 @@ public class ProductFeatureServices {
         }
 
         List<GenericValue> memberProducts = UtilGenerics.cast(result.get("categoryMembers"));
-        if ((memberProducts != null) && (memberProducts.size() > 0)) {
+        if ((memberProducts != null) && (!memberProducts.isEmpty())) {
             // construct a Map of productFeatureTypeId -> productFeatureId from the productFeatures List
             Map<String, String> featuresByType = new HashMap<>();
             for (GenericValue nextFeature: productFeatures) {
@@ -329,15 +329,15 @@ public class ProductFeatureServices {
                 }
 
                 List<GenericValue> variantProducts = UtilGenerics.cast(result.get("products"));
-                if ((variantProducts != null) && (variantProducts.size() > 0)) {
+                if ((variantProducts != null) && (!variantProducts.isEmpty())) {
                     products.addAll(variantProducts);
                 } else {
                     Debug.logWarning("Product " + memberProduct.getString("productId") + " did not have any variants for the given features", MODULE);
                 }
             }
 
-            if (products.size() == 0) {
-                return ServiceUtil.returnError(UtilProperties.getMessage(resource, "ProductCategoryNoVariants", locale));
+            if (products.isEmpty()) {
+                return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE, "ProductCategoryNoVariants", locale));
             } else {
                 results = ServiceUtil.returnSuccess();
                 results.put("products", products);

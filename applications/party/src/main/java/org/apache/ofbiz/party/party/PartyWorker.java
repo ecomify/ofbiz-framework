@@ -50,9 +50,9 @@ import org.apache.ofbiz.entity.util.EntityUtil;
  */
 public class PartyWorker {
 
-    public static final String MODULE = PartyWorker.class.getName();
+    private static final String MODULE = PartyWorker.class.getName();
 
-    private PartyWorker() {}
+    private PartyWorker() { }
 
     public static Map<String, GenericValue> getPartyOtherValues(ServletRequest request, String partyId, String partyAttr, String personAttr, String partyGroupAttr) {
         Delegator delegator = (Delegator) request.getAttribute("delegator");
@@ -140,7 +140,7 @@ public class PartyWorker {
         GenericValue latestPostalAddress = findPartyLatestPostalAddress(partyId, delegator);
         if (latestPostalAddress  != null) {
             try {
-                GenericValue latestGeoPoint =  latestPostalAddress.getRelatedOne("GeoPoint", false);
+                GenericValue latestGeoPoint = latestPostalAddress.getRelatedOne("GeoPoint", false);
                 if (latestGeoPoint  != null) {
                     return latestGeoPoint;
                 }
@@ -219,10 +219,10 @@ public class PartyWorker {
             String firstName, String middleName, String lastName) throws GeneralException {
 
         List<GenericValue> matching = findMatchingPersonPostalAddresses(delegator, address1, address2, city, stateProvinceGeoId, postalCode,
-            postalCodeExt, countryGeoId, firstName, middleName, lastName);
+                postalCodeExt, countryGeoId, firstName, middleName, lastName);
         GenericValue v = EntityUtil.getFirst(matching);
         if (v != null) {
-            return new String[] { v.getString("partyId"), v.getString("contactMechId") };
+            return new String[] {v.getString("partyId"), v.getString("contactMechId") };
         }
         return null;
     }
@@ -231,7 +231,6 @@ public class PartyWorker {
      * The matching process is as follows:
      * 1. Calls {@link #findMatchingPartyPostalAddress(Delegator, String, String, String, String, String, String, String, String)} to retrieve a list of address matched PartyAndPostalAddress records.  Results are limited to Parties of type PERSON.
      * 2. For each matching PartyAndPostalAddress record, the Person record for the Party is then retrieved and an upper case comparison is performed against the supplied firstName, lastName and if provided, middleName.
-     *
      * @param delegator             Delegator instance
      * @param address1              PostalAddress.address1 to match against (Required).
      * @param address2              Optional PostalAddress.address2 to match against.
@@ -301,7 +300,6 @@ public class PartyWorker {
      * Finds all matching parties based on the values provided.  Excludes party records with a statusId of PARTY_DISABLED.  Results are ordered by descending PartyContactMech.fromDate.
      * 1. Candidate addresses are found by querying PartyAndPostalAddress using the supplied city and if provided, stateProvinceGeoId, postalCode, postalCodeExt and countryGeoId
      * 2. In-memory address line comparisons are then performed against the supplied address1 and if provided, address2.  Address lines are compared after the strings have been converted using {@link #makeMatchingString(Delegator, String)}.
-     *
      * @param delegator             Delegator instance
      * @param address1              PostalAddress.address1 to match against (Required).
      * @param address2              Optional PostalAddress.address2 to match against.
@@ -462,7 +460,7 @@ public class PartyWorker {
                     }
                     partyList.add(associatedParty);
                 }
-                associatedParties  = currentAssociatedParties;
+                associatedParties = currentAssociatedParties;
             }
             partyIds = EntityUtil.getFieldListFromEntityList(partyList, "partyIdTo", true);
         } catch (GenericEntityException e) {
@@ -509,7 +507,7 @@ public class PartyWorker {
             partiesFound = EntityQuery.use(delegator).from("PartyIdentificationAndParty").where(conditions).orderBy("partyId").cache(true).queryList();
         }
 
-        if (! searchPartyFirst) {
+        if (!searchPartyFirst) {
             party = EntityQuery.use(delegator).from("Party").where("partyId", idToFind).cache().queryOne();
         }
 
@@ -527,7 +525,7 @@ public class PartyWorker {
     }
 
     public static List<GenericValue> findPartiesById(Delegator delegator, String idToFind, String partyIdentificationTypeId)
-    throws GenericEntityException {
+        throws GenericEntityException {
         return findPartiesById(delegator, idToFind, partyIdentificationTypeId, true, false);
     }
 
@@ -557,14 +555,13 @@ public class PartyWorker {
             for (GenericValue party : partiesByIds) {
                 GenericValue partyToAdd = party;
                 //retreive party GV if the actual genericValue came from viewEntity
-                if (! "Party".equals(party.getEntityName())) {
+                if (!"Party".equals(party.getEntityName())) {
                     partyToAdd = EntityQuery.use(delegator).from("Party").where("partyId", party.get("partyId")).cache().queryOne();
                 }
 
                 if (UtilValidate.isEmpty(parties)) {
                     parties = UtilMisc.toList(partyToAdd);
-                }
-                else {
+                } else {
                     parties.add(partyToAdd);
                 }
             }

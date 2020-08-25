@@ -41,7 +41,7 @@ import org.apache.ofbiz.entity.util.EntityUtil;
 import org.apache.ofbiz.entity.util.EntityUtilProperties;
 
 public class WorkEffortKeywordIndex {
-    public static final String MODULE = WorkEffortKeywordIndex.class.getName();
+    private static final String MODULE = WorkEffortKeywordIndex.class.getName();
     public static void indexKeywords(GenericValue workEffort) throws GenericEntityException {
         if (workEffort == null) {
             return;
@@ -79,8 +79,8 @@ public class WorkEffortKeywordIndex {
             }
         }
         //WorkEffortAttribute
-        if (!"0".equals(EntityUtilProperties.getPropertyValue("workeffort", "index.weight.WorkEffortAttribute.attrName", "1", delegator)) ||
-                !"0".equals(EntityUtilProperties.getPropertyValue("workeffort", "index.weight.WorkEffortAttribute.attrValue", "1", delegator))) {
+        if (!"0".equals(EntityUtilProperties.getPropertyValue("workeffort", "index.weight.WorkEffortAttribute.attrName", "1", delegator))
+                || !"0".equals(EntityUtilProperties.getPropertyValue("workeffort", "index.weight.WorkEffortAttribute.attrValue", "1", delegator))) {
             List<GenericValue> workEffortAttributes = EntityQuery.use(delegator).from("WorkEffortAttribute").where("workEffortId", workEffortId).queryList();
             for (GenericValue workEffortAttribute : workEffortAttributes) {
                 addWeightedKeywordSourceString(workEffortAttribute, "attrName", strings);
@@ -119,7 +119,7 @@ public class WorkEffortKeywordIndex {
                 toBeStored.add(workEffortKeyword);
             }
         }
-        if (toBeStored.size() > 0) {
+        if (!toBeStored.isEmpty()) {
             if (Debug.verboseOn()) {
                 Debug.logVerbose("WorkEffortKeywordIndex indexKeywords Storing " + toBeStored.size() + " keywords for workEffortId " + workEffort.getString("workEffortId"), MODULE);
             }

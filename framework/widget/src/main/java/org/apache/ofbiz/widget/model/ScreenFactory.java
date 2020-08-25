@@ -46,7 +46,7 @@ import org.xml.sax.SAXException;
  */
 public class ScreenFactory {
 
-    public static final String MODULE = ScreenFactory.class.getName();
+    private static final String MODULE = ScreenFactory.class.getName();
 
     public static final UtilCache<String, Map<String, ModelScreen>> screenLocationCache = UtilCache.createUtilCache("widget.screen.locationResource", 0, 0, false);
     public static final UtilCache<String, Map<String, ModelScreen>> screenWebappCache = UtilCache.createUtilCache("widget.screen.webappResource", 0, 0, false);
@@ -121,7 +121,7 @@ public class ScreenFactory {
                     Document screenFileDoc = UtilXml.readXmlDocument(screenFileUrl, true, true);
                     modelScreenMap = readScreenDocument(screenFileDoc, resourceName);
                     screenLocationCache.put(resourceName, modelScreenMap);
-                    double totalSeconds = (System.currentTimeMillis() - startTime)/1000.0;
+                    double totalSeconds = (System.currentTimeMillis() - startTime) / 1000.0;
                     Debug.logInfo("Got " + modelScreenMap.size() + " screens in " + totalSeconds + "s from: " + screenFileUrl.toExternalForm(), MODULE);
                 }
             }

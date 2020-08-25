@@ -48,7 +48,7 @@ import org.apache.ofbiz.service.ServiceUtil;
  */
 public class OrderEvents {
 
-    public static final String MODULE = OrderEvents.class.getName();
+    private static final String MODULE = OrderEvents.class.getName();
 
     public static String downloadDigitalProduct(HttpServletRequest request, HttpServletResponse response) {
         HttpSession session = request.getSession();
@@ -99,15 +99,15 @@ public class OrderEvents {
         Locale locale = UtilHttp.getLocale(request);
 
         Map<String, Object> resultMap;
-        String  orderId = request.getParameter("orderId");
+        String orderId = request.getParameter("orderId");
         String[] selectedItems = request.getParameterValues("selectedItem");
 
         if (selectedItems != null) {
             for (String selectedItem : selectedItems) {
-                String [] orderItemSeqIdAndOrderItemShipGrpId = selectedItem.split(":");
+                String[] orderItemSeqIdAndOrderItemShipGrpId = selectedItem.split(":");
                 String orderItemSeqId = orderItemSeqIdAndOrderItemShipGrpId[0];
                 String shipGroupSeqId = orderItemSeqIdAndOrderItemShipGrpId[1];
-                BigDecimal cancelQuantity = new BigDecimal(request.getParameter("iqm_"+orderItemSeqId+":"+shipGroupSeqId));
+                BigDecimal cancelQuantity = new BigDecimal(request.getParameter("iqm_" + orderItemSeqId + ":" + shipGroupSeqId));
                 Map<String, Object> contextMap = new HashMap<>();
                 contextMap.put("orderId", orderId);
                 contextMap.put("orderItemSeqId", orderItemSeqId);

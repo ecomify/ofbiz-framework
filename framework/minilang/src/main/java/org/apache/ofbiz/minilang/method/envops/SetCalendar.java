@@ -42,26 +42,25 @@ import com.ibm.icu.util.Calendar;
 
 /**
  * Implements the &lt;set-calendar&gt; element.
- * 
  * @see <a href="https://cwiki.apache.org/confluence/display/OFBIZ/Mini+Language+-+minilang+-+simple-method+-+Reference">Mini-language Referenc</a>
  */
 public final class SetCalendar extends MethodOperation {
 
-    public static final String MODULE = SetCalendar.class.getName();
+    private static final String MODULE = SetCalendar.class.getName();
 
     // This method is needed only during the v1 to v2 transition
     private static boolean autoCorrect(Element element) {
         boolean elementModified = false;
         // Correct deprecated default-value attribute
         String defaultAttr = element.getAttribute("default-value");
-        if (defaultAttr.length() > 0) {
+        if (!defaultAttr.isEmpty()) {
             element.setAttribute("default", defaultAttr);
             element.removeAttribute("default-value");
             elementModified = true;
         }
         // Correct deprecated from-field attribute
         String fromAttr = element.getAttribute("from-field");
-        if (fromAttr.length() > 0) {
+        if (!fromAttr.isEmpty()) {
             element.setAttribute("from", fromAttr);
             element.removeAttribute("from-field");
             elementModified = true;

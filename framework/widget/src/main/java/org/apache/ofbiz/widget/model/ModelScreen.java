@@ -41,7 +41,7 @@ import org.w3c.dom.Element;
 @SuppressWarnings("serial")
 public class ModelScreen extends ModelWidget {
 
-    public static final String MODULE = ModelScreen.class.getName();
+    private static final String MODULE = ModelScreen.class.getName();
 
     private final String sourceLocation;
     private final FlexibleStringExpander transactionTimeoutExdr;
@@ -99,7 +99,6 @@ public class ModelScreen extends ModelWidget {
     /**
      * Renders this screen to a String, i.e. in a text format, as defined with the
      * ScreenStringRenderer implementation.
-     *
      * @param writer The Writer that the screen text will be written to
      * @param context Map containing the screen context; the following are
      *   reserved words in this context:

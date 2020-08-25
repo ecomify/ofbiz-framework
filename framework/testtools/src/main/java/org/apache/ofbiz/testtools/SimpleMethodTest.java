@@ -42,18 +42,17 @@ import junit.framework.TestResult;
 
 public class SimpleMethodTest extends OFBizTestCase {
 
-    public static final String MODULE = ServiceTest.class.getName();
+    private static final String MODULE = ServiceTest.class.getName();
 
-    protected String methodLocation;
-    protected String methodName;
-    
-    public static MockHttpServletRequest request = new MockHttpServletRequest();
-    public static MockHttpServletResponse response = new MockHttpServletResponse();
+    private String methodLocation;
+    private String methodName;
+    private static MockHttpServletRequest request = new MockHttpServletRequest();
+    private static MockHttpServletResponse response = new MockHttpServletResponse();
 
     /**
      * Tests of Simple Method
      * @param caseName test case name
-     * @param mainElement DOM main element 
+     * @param mainElement DOM main element
      */
     public SimpleMethodTest(String caseName, Element mainElement) {
         this(caseName, mainElement.getAttribute("location"), mainElement.getAttribute("name"));
@@ -73,7 +72,6 @@ public class SimpleMethodTest extends OFBizTestCase {
     @Override
     public void run(TestResult result) {
         result.startTest(this);
-        
         try {
             // define request
             Security security = SecurityFactory.getInstance(delegator);
@@ -107,9 +105,7 @@ public class SimpleMethodTest extends OFBizTestCase {
                 }
             }
 
-        } catch (MiniLangException e) {
-            result.addError(this, e);
-        } catch (SecurityConfigurationException e) {
+        } catch (MiniLangException | SecurityConfigurationException e) {
             result.addError(this, e);
         }
 

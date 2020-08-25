@@ -40,12 +40,11 @@ import org.w3c.dom.Element;
 
 /**
  * Implements the &lt;set-service-fields&gt; element.
- * 
  * @see <a href="https://cwiki.apache.org/confluence/display/OFBIZ/Mini+Language+-+minilang+-+simple-method+-+Reference">Mini-language Reference</a>
  */
 public final class SetServiceFields extends MethodOperation {
 
-    public static final String MODULE = SetServiceFields.class.getName();
+    private static final String MODULE = SetServiceFields.class.getName();
 
     // This method is needed only during the v1 to v2 transition
     private static boolean autoCorrect(Element element) {
@@ -105,7 +104,7 @@ public final class SetServiceFields extends MethodOperation {
         }
         List<Object> errorMessages = new LinkedList<>();
         Map<String, Object> validAttributes = modelService.makeValid(fromMap, mode, true, errorMessages, methodContext.getTimeZone(), methodContext.getLocale());
-        if (errorMessages.size() > 0) {
+        if (!errorMessages.isEmpty()) {
             for (Object obj : errorMessages) {
                 simpleMethod.addErrorMessage(methodContext, (String) obj);
             }

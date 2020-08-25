@@ -35,7 +35,7 @@ import com.ibm.icu.util.Calendar;
  */
 @SuppressWarnings("serial")
 public class TemporalExpressions implements Serializable {
-    public static final TemporalExpression NullExpression = new Null();
+    public static final TemporalExpression NULL_EXPRESSION = new Null();
     // Expressions are evaluated from smallest unit of time to largest.
     // When unit of time is the same, then they are evaluated from
     // least ambiguous to most. Frequency should always be first -
@@ -57,7 +57,7 @@ public class TemporalExpressions implements Serializable {
 
     /** A temporal expression that represents a range of dates. */
     public static class DateRange extends TemporalExpression {
-        public static final String MODULE = DateRange.class.getName();
+        private static final String MODULE = DateRange.class.getName();
         protected final org.apache.ofbiz.base.util.DateRange range;
 
         public DateRange(Date date) {
@@ -93,8 +93,7 @@ public class TemporalExpressions implements Serializable {
                 }
                 try {
                     return this.range.equals(((DateRange) obj).range);
-                }
-                catch (ClassCastException e) {
+                } catch (ClassCastException e) {
                     Debug.logInfo(e.getMessage(), MODULE);
                 }
             }
@@ -136,9 +135,9 @@ public class TemporalExpressions implements Serializable {
 
     /** A temporal expression that represents a day in the month. */
     public static class DayInMonth extends TemporalExpression {
-        public static final String MODULE = DayInMonth.class.getName();
-        protected final int dayOfWeek;
-        protected final int occurrence;
+        private static final String MODULE = DayInMonth.class.getName();
+        private final int dayOfWeek;
+        private final int occurrence;
 
         /**
          * @param dayOfWeek An integer in the range of <code>Calendar.SUNDAY</code>
@@ -171,6 +170,11 @@ public class TemporalExpressions implements Serializable {
             visitor.visit(this);
         }
 
+        /**
+         * Align day of week calendar.
+         * @param cal the cal
+         * @return the calendar
+         */
         protected Calendar alignDayOfWeek(Calendar cal) {
             cal.set(Calendar.DAY_OF_MONTH, 1);
             if (this.occurrence > 0) {
@@ -207,8 +211,7 @@ public class TemporalExpressions implements Serializable {
                 try {
                     DayInMonth that = (DayInMonth) obj;
                     return this.dayOfWeek == that.dayOfWeek && this.occurrence == that.occurrence;
-                }
-                catch (ClassCastException e) {
+                } catch (ClassCastException e) {
                     Debug.logInfo(e.getMessage(), MODULE);
                 }
             }
@@ -290,9 +293,9 @@ public class TemporalExpressions implements Serializable {
 
     /** A temporal expression that represents a day of month range. */
     public static class DayOfMonthRange extends TemporalExpression {
-        public static final String MODULE = DayOfMonthRange.class.getName();
-        protected final int end;
-        protected final int start;
+        private static final String MODULE = DayOfMonthRange.class.getName();
+        private final int end;
+        private final int start;
 
         public DayOfMonthRange(int dom) {
             this(dom, dom);
@@ -340,8 +343,7 @@ public class TemporalExpressions implements Serializable {
                 try {
                     DayOfMonthRange that = (DayOfMonthRange) obj;
                     return this.start == that.start && this.end == that.end;
-                }
-                catch (ClassCastException e) {
+                } catch (ClassCastException e) {
                     Debug.logInfo(e.getMessage(), MODULE);
                 }
             }
@@ -408,9 +410,9 @@ public class TemporalExpressions implements Serializable {
 
     /** A temporal expression that represents a day of week range. */
     public static class DayOfWeekRange extends TemporalExpression {
-        public static final String MODULE = DayOfWeekRange.class.getName();
-        protected final int end;
-        protected final int start;
+        private static final String MODULE = DayOfWeekRange.class.getName();
+        private final int end;
+        private final int start;
 
         public DayOfWeekRange(int dow) {
             this(dow, dow);
@@ -460,8 +462,7 @@ public class TemporalExpressions implements Serializable {
                 try {
                     DayOfWeekRange that = (DayOfWeekRange) obj;
                     return this.start == that.start && this.end == that.end;
-                }
-                catch (ClassCastException e) {
+                } catch (ClassCastException e) {
                     Debug.logInfo(e.getMessage(), MODULE);
                 }
             }
@@ -550,9 +551,9 @@ public class TemporalExpressions implements Serializable {
 
     /** A temporal expression that represents a difference of two temporal expressions. */
     public static class Difference extends TemporalExpression {
-        public static final String MODULE = Difference.class.getName();
-        protected final TemporalExpression excluded;
-        protected final TemporalExpression included;
+        private static final String MODULE = Difference.class.getName();
+        private final TemporalExpression excluded;
+        private final TemporalExpression included;
 
         public Difference(TemporalExpression included, TemporalExpression excluded) {
             if (included == null) {
@@ -597,8 +598,7 @@ public class TemporalExpressions implements Serializable {
                 try {
                     Difference that = (Difference) obj;
                     return this.included.equals(that.included) && this.excluded.equals(that.excluded);
-                }
-                catch (ClassCastException e) {
+                } catch (ClassCastException e) {
                     Debug.logInfo(e.getMessage(), MODULE);
                 }
             }
@@ -655,10 +655,10 @@ public class TemporalExpressions implements Serializable {
 
     /* A temporal expression that represents a frequency. */
     public static class Frequency extends TemporalExpression {
-        public static final String MODULE = Frequency.class.getName();
-        protected final int freqCount;
-        protected final int freqType;
-        protected final Date start;
+        private static final String MODULE = Frequency.class.getName();
+        private final int freqCount;
+        private final int freqType;
+        private final Date start;
 
         /**
          * @param start Starting date, defaults to current system time
@@ -713,8 +713,7 @@ public class TemporalExpressions implements Serializable {
                 try {
                     Frequency that = (Frequency) obj;
                     return this.start.equals(that.start) && this.freqType == that.freqType && this.freqCount == that.freqCount;
-                }
-                catch (ClassCastException e) {
+                } catch (ClassCastException e) {
                     Debug.logInfo(e.getMessage(), MODULE);
                 }
             }
@@ -779,6 +778,11 @@ public class TemporalExpressions implements Serializable {
             return next;
         }
 
+        /**
+         * Prepare cal calendar.
+         * @param cal the cal
+         * @return the calendar
+         */
         protected Calendar prepareCal(Calendar cal) {
             // Performs a "sane" skip forward in time - avoids time consuming loops
             // like incrementing every second from Jan 1 2000 until today
@@ -802,7 +806,7 @@ public class TemporalExpressions implements Serializable {
             }
             long units = deltaMillis / divisor;
             units -= units % this.freqCount;
-            skip.add(this.freqType, (int)units);
+            skip.add(this.freqType, (int) units);
             while (skip.after(cal)) {
                 skip.add(this.freqType, -this.freqCount);
             }
@@ -818,9 +822,9 @@ public class TemporalExpressions implements Serializable {
 
     /** A temporal expression that represents an hour range. */
     public static class HourRange extends TemporalExpression {
-        public static final String MODULE = HourRange.class.getName();
-        protected final int end;
-        protected final int start;
+        private static final String MODULE = HourRange.class.getName();
+        private final int end;
+        private final int start;
 
         /**
          * @param hour An integer in the range of 0 to 23.
@@ -871,8 +875,7 @@ public class TemporalExpressions implements Serializable {
                 try {
                     HourRange that = (HourRange) obj;
                     return this.start == that.start && this.end == that.end;
-                }
-                catch (ClassCastException e) {
+                } catch (ClassCastException e) {
                     Debug.logInfo(e.getMessage(), MODULE);
                 }
             }
@@ -895,6 +898,10 @@ public class TemporalExpressions implements Serializable {
             return this.end;
         }
 
+        /**
+         * Gets hour range as set.
+         * @return the hour range as set
+         */
         public Set<Integer> getHourRangeAsSet() {
             Set<Integer> rangeSet = new TreeSet<>();
             if (this.start == this.end) {
@@ -977,8 +984,8 @@ public class TemporalExpressions implements Serializable {
     /** A temporal expression that represents a mathematical intersection of all of its
      * member expressions. */
     public static class Intersection extends TemporalExpression {
-        public static final String MODULE = Intersection.class.getName();
-        protected final Set<TemporalExpression> expressionSet;
+        private static final String MODULE = Intersection.class.getName();
+        private final Set<TemporalExpression> expressionSet;
 
         public Intersection(Set<TemporalExpression> expressionSet) {
             if (expressionSet == null) {
@@ -988,7 +995,7 @@ public class TemporalExpressions implements Serializable {
             if (containsExpression(this)) {
                 throw new IllegalArgumentException("recursive expression");
             }
-            if (this.expressionSet.size() > 0) {
+            if (!this.expressionSet.isEmpty()) {
                 // Aggregate member expression sequences in a way that will
                 // ensure the proper evaluation sequence for the entire collection
                 int result = 0;
@@ -1035,8 +1042,7 @@ public class TemporalExpressions implements Serializable {
                 }
                 try {
                     return this.expressionSet.equals(((Intersection) obj).expressionSet);
-                }
-                catch (ClassCastException e) {
+                } catch (ClassCastException e) {
                     Debug.logInfo(e.getMessage(), MODULE);
                 }
             }
@@ -1106,9 +1112,9 @@ public class TemporalExpressions implements Serializable {
 
     /** A temporal expression that represents a minute range. */
     public static class MinuteRange extends TemporalExpression {
-        public static final String MODULE = MinuteRange.class.getName();
-        protected final int end;
-        protected final int start;
+        private static final String MODULE = MinuteRange.class.getName();
+        private final int end;
+        private final int start;
 
         /**
          * @param minute An integer in the range of 0 to 59.
@@ -1159,8 +1165,7 @@ public class TemporalExpressions implements Serializable {
                 try {
                     MinuteRange that = (MinuteRange) obj;
                     return this.start == that.start && this.end == that.end;
-                }
-                catch (ClassCastException e) {
+                } catch (ClassCastException e) {
                     Debug.logInfo(e.getMessage(), MODULE);
                 }
             }
@@ -1183,6 +1188,10 @@ public class TemporalExpressions implements Serializable {
             return this.end;
         }
 
+        /**
+         * Gets minute range as set.
+         * @return the minute range as set
+         */
         public Set<Integer> getMinuteRangeAsSet() {
             Set<Integer> rangeSet = new TreeSet<>();
             if (this.start == this.end) {
@@ -1264,9 +1273,9 @@ public class TemporalExpressions implements Serializable {
 
     /** A temporal expression that represents a month range. */
     public static class MonthRange extends TemporalExpression {
-        public static final String MODULE = MonthRange.class.getName();
-        protected final int end;
-        protected final int start;
+        private static final String MODULE = MonthRange.class.getName();
+        private final int end;
+        private final int start;
 
         public MonthRange(int month) {
             this(month, month);
@@ -1316,8 +1325,7 @@ public class TemporalExpressions implements Serializable {
                 try {
                     MonthRange that = (MonthRange) obj;
                     return this.start == that.start && this.end == that.end;
-                }
-                catch (ClassCastException e) {
+                } catch (ClassCastException e) {
                     Debug.logInfo(e.getMessage(), MODULE);
                 }
             }
@@ -1423,10 +1431,10 @@ public class TemporalExpressions implements Serializable {
 
     /** A temporal expression that provides a substitution for an excluded temporal expression. */
     public static class Substitution extends TemporalExpression {
-        public static final String MODULE = Substitution.class.getName();
-        protected final TemporalExpression excluded;
-        protected final TemporalExpression included;
-        protected final TemporalExpression substitute;
+        private static final String MODULE = Substitution.class.getName();
+        private final TemporalExpression excluded;
+        private final TemporalExpression included;
+        private final TemporalExpression substitute;
 
         public Substitution(TemporalExpression included, TemporalExpression excluded, TemporalExpression substitute) {
             if (included == null) {
@@ -1479,8 +1487,7 @@ public class TemporalExpressions implements Serializable {
                 try {
                     Substitution that = (Substitution) obj;
                     return this.included.equals(that.included) && this.excluded.equals(that.excluded) && this.substitute.equals(that.substitute);
-                }
-                catch (ClassCastException e) {
+                } catch (ClassCastException e) {
                     Debug.logInfo(e.getMessage(), MODULE);
                 }
             }
@@ -1545,8 +1552,8 @@ public class TemporalExpressions implements Serializable {
     /** A temporal expression that represents a mathematical union of all of its
      * member expressions. */
     public static class Union extends TemporalExpression {
-        public static final String MODULE = Union.class.getName();
-        protected final Set<TemporalExpression> expressionSet;
+        private static final String MODULE = Union.class.getName();
+        private final Set<TemporalExpression> expressionSet;
 
         public Union(Set<TemporalExpression> expressionSet) {
             if (expressionSet == null) {
@@ -1556,7 +1563,7 @@ public class TemporalExpressions implements Serializable {
             if (containsExpression(this)) {
                 throw new IllegalArgumentException("recursive expression");
             }
-            if (this.expressionSet.size() > 0) {
+            if (!this.expressionSet.isEmpty()) {
                 TemporalExpression that = this.expressionSet.iterator().next();
                 this.sequence = that.sequence;
             }
@@ -1596,8 +1603,7 @@ public class TemporalExpressions implements Serializable {
                 }
                 try {
                     return this.expressionSet.equals(((Union) obj).expressionSet);
-                }
-                catch (ClassCastException e) {
+                } catch (ClassCastException e) {
                     Debug.logInfo(e.getMessage(), MODULE);
                 }
             }

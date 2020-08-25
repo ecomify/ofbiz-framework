@@ -56,7 +56,7 @@ import org.w3c.dom.Node;
  */
 public final class MiniLangUtil {
 
-    public static final String MODULE = MiniLangUtil.class.getName();
+    private static final String MODULE = MiniLangUtil.class.getName();
 
     private static final Set<String> SCRIPT_PREFIXES;
 
@@ -68,7 +68,7 @@ public final class MiniLangUtil {
         SCRIPT_PREFIXES = Collections.unmodifiableSet(scriptPrefixes);
     }
 
-    private MiniLangUtil() {}
+    private MiniLangUtil() { }
 
     /**
      * Returns <code>true</code> if <code>str</code> contains a script.
@@ -76,7 +76,7 @@ public final class MiniLangUtil {
      * @return <code>true</code> if <code>str</code> contains a script
      */
     public static boolean containsScript(String str) {
-        if (str.length() > 0) {
+        if (!str.isEmpty()) {
             for (String scriptPrefix : SCRIPT_PREFIXES) {
                 if (str.contains(scriptPrefix)) {
                     return true;
@@ -202,7 +202,6 @@ public final class MiniLangUtil {
      * suitable for use with the conversion framework. If the argument is
      * <code>null</code> or a <code>String</code>, the method returns the
      * {@link PlainString} class.
-     * 
      * @param object
      * @return A <code>Class</code> that is
      * suitable for use with the conversion framework
@@ -226,13 +225,12 @@ public final class MiniLangUtil {
     /**
      * Returns <code>true</code> if <code>attributeValue</code> is a
      * constant value (it does not contain an expression).
-     * 
      * @param attributeValue The value to test
      * @return <code>true</code> if <code>attributeValue</code> is a
      * constant value
      */
     public static boolean isConstantAttribute(String attributeValue) {
-        if (attributeValue.length() > 0) {
+        if (!attributeValue.isEmpty()) {
             return !FlexibleStringExpander.containsExpression(FlexibleStringExpander.getInstance(attributeValue));
         }
         return true;
@@ -242,13 +240,12 @@ public final class MiniLangUtil {
      * Returns <code>true</code> if <code>attributeValue</code> is a
      * constant value (it does not contain an expression) or a constant
      * plus expression value.
-     * 
      * @param attributeValue The value to test
      * @return <code>true</code> if <code>attributeValue</code> is a
      * constant value or a constant plus expression value
      */
     public static boolean isConstantPlusExpressionAttribute(String attributeValue) {
-        if (attributeValue.length() > 0) {
+        if (!attributeValue.isEmpty()) {
             if (attributeValue.startsWith("${") && attributeValue.endsWith("}")) {
                 // A lot of existing code uses concatenated expressions, and they can be difficult
                 // to convert to a single expression, so we will allow them for now.
@@ -265,7 +262,6 @@ public final class MiniLangUtil {
 
     /**
      * Returns <code>true</code> if <code>document</code> contains corrections.
-     * 
      * @param document The document to test
      * @return  <code>true</code> if <code>document</code> contains corrections
      */
@@ -276,7 +272,6 @@ public final class MiniLangUtil {
     /**
      * Writes a Mini-language <code>Document</code> to disk. The XML file is styled by the
      * config/MiniLang.xslt style sheet.
-     * 
      * @param xmlURL
      * @param document
      */
@@ -301,6 +296,6 @@ public final class MiniLangUtil {
         }
     }
 
-    public static class PlainString {}
+    public static class PlainString { }
 
 }

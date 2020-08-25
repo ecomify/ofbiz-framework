@@ -54,10 +54,10 @@ import freemarker.template.TransformControl;
  */
 public class LimitedSubContentCacheTransform implements TemplateTransformModel {
 
-    public static final String MODULE = LimitedSubContentCacheTransform.class.getName();
+    private static final String MODULE = LimitedSubContentCacheTransform.class.getName();
 
-    static final String[] upSaveKeyNames = { "globalNodeTrail" };
-    static final String[] saveKeyNames = { "contentId", "subContentId", "entityList", "entityIndex",
+    static final String[] upSaveKeyNames = {"globalNodeTrail" };
+    static final String[] saveKeyNames = {"contentId", "subContentId", "entityList", "entityIndex",
             "subDataResourceTypeId", "mimeTypeId", "whenMap", "locale", "entityList", "viewSize", "viewIndex",
             "highIndex", "lowIndex", "listSize", "wrapTemplateId", "encloseWrapText", "nullThruDatesOnly",
             "globalNodeTrail", "outputIndex" };
@@ -225,8 +225,8 @@ public class LimitedSubContentCacheTransform implements TemplateTransformModel {
                 Boolean isReturnBeforeObj = (Boolean) trailNode.get("isReturnBefore");
                 Boolean isPickObj = (Boolean) trailNode.get("isPick");
                 Boolean isFollowObj = (Boolean) trailNode.get("isFollow");
-                if ((isReturnBeforeObj == null || !isReturnBeforeObj) && ((isPickObj != null &&
-                        isPickObj) || (isFollowObj != null && isFollowObj))) {
+                if ((isReturnBeforeObj == null || !isReturnBeforeObj) && ((isPickObj != null
+                        && isPickObj) || (isFollowObj != null && isFollowObj))) {
                     List<Map<String, ? extends Object>> globalNodeTrail = UtilGenerics.cast(ctx.get("globalNodeTrail"));
                     if (globalNodeTrail == null) {
                         globalNodeTrail = new LinkedList<>();
@@ -262,7 +262,7 @@ public class LimitedSubContentCacheTransform implements TemplateTransformModel {
                     Debug.logVerbose("in limited, lst:" + lst, "");
                 }
 
-                while (pickEntity == null && lst.size() > 0) {
+                while (pickEntity == null && !lst.isEmpty()) {
                     double randomValue = Math.random();
                     int idx = (int) (lst.size() * randomValue);
                     pickEntity = lst.get(idx);

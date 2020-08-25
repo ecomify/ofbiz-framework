@@ -55,9 +55,9 @@ import org.apache.ofbiz.entity.util.EntityUtilProperties;
  */
 public class ContactMechWorker {
 
-    public static final String MODULE = ContactMechWorker.class.getName();
+    private static final String MODULE = ContactMechWorker.class.getName();
 
-    private ContactMechWorker() {}
+    private ContactMechWorker() { }
 
     /**
      * Check the contactMechTypeId value on toAnalyzeFields map and if is a PostalAddress, a TelecomNumber or FtpAddress
@@ -70,18 +70,18 @@ public class ContactMechWorker {
         String entityName = null;
         String prefix = null;
         switch (contactMechTypeId) {
-            case "POSTAL_ADDRESS":
-                entityName = "PostalAddress";
-                prefix = "pa";
-                break;
-            case "TELECOM_NUMBER":
-                entityName = "TelecomNumber";
-                prefix = "tn";
-                break;
-            case "FTP_ADDRESS":
-                entityName = "FtpAddress";
-                prefix = "fa";
-                break;
+        case "POSTAL_ADDRESS":
+            entityName = "PostalAddress";
+            prefix = "pa";
+            break;
+        case "TELECOM_NUMBER":
+            entityName = "TelecomNumber";
+            prefix = "tn";
+            break;
+        case "FTP_ADDRESS":
+            entityName = "FtpAddress";
+            prefix = "fa";
+            break;
         }
         if (entityName != null) {
             GenericValue element = delegator.makeValue(entityName);
@@ -386,7 +386,7 @@ public class ContactMechWorker {
                     purposeTypes.add(contactMechPurposeType);
                 }
             }
-            if (purposeTypes.size() > 0) {
+            if (!purposeTypes.isEmpty()) {
                 target.put("purposeTypes", purposeTypes);
             }
         }
@@ -657,7 +657,7 @@ public class ContactMechWorker {
                     purposeTypes.add(contactMechPurposeType);
                 }
             }
-            if (purposeTypes.size() > 0) {
+            if (!purposeTypes.isEmpty()) {
                 target.put("purposeTypes", purposeTypes);
             }
         }
@@ -1009,7 +1009,6 @@ public class ContactMechWorker {
 
     /**
      * Returns a <b>PostalAddress</b> <code>GenericValue</code> as a URL encoded <code>String</code>.
-     *
      * @param postalAddress A <b>PostalAddress</b> <code>GenericValue</code>.
      * @return A URL encoded <code>String</code>.
      * @throws GenericEntityException

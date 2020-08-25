@@ -28,7 +28,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.RejectedExecutionException;
 
 import org.apache.ofbiz.base.config.GenericConfigException;
 import org.apache.ofbiz.base.util.Assert;
@@ -57,8 +56,6 @@ import org.apache.ofbiz.service.calendar.RecurrenceInfoException;
 import org.apache.ofbiz.service.config.ServiceConfigUtil;
 import org.apache.ofbiz.service.config.model.RunFromPool;
 
-import com.ibm.icu.util.Calendar;
-
 /**
  * Job manager. The job manager queues and manages jobs. Client code can queue a job to be run immediately
  * by calling the {@link #runJob(Job)} method, or schedule a job to be run later by calling the
@@ -71,7 +68,7 @@ import com.ibm.icu.util.Calendar;
  */
 public final class JobManager {
 
-    public static final String MODULE = JobManager.class.getName();
+    private static final String MODULE = JobManager.class.getName();
     public static final String instanceId = UtilProperties.getPropertyValue("general", "unique.instanceId", "ofbiz0");
     private static final ConcurrentHashMap<String, JobManager> registeredManagers = new ConcurrentHashMap<>();
     private static boolean isShutDown = false;
@@ -131,7 +128,6 @@ public final class JobManager {
 
     /**
      * Get a List of each threads current state.
-     *
      * @return List containing a Map of each thread's state.
      */
     public Map<String, Object> getPoolState() {
@@ -140,7 +136,6 @@ public final class JobManager {
 
     /**
      * Return true if the jobManager can run job.
-     *
      * @return boolean.
      */
     public boolean isAvailable() {
@@ -150,9 +145,7 @@ public final class JobManager {
                     EntityCondition.makeConditionDate("fromDate", "thruDate"),
                     EntityCondition.makeCondition(UtilMisc.toList(
                             EntityCondition.makeCondition("instanceId", instanceId),
-                            EntityCondition.makeCondition("instanceId", "_NA_"))
-                            , EntityJoinOperator.OR)
-                    ), EntityJoinOperator.AND);
+                            EntityCondition.makeCondition("instanceId", "_NA_")), EntityJoinOperator.OR)), EntityJoinOperator.AND);
             return delegator.findCountByCondition("JobManagerLock", condition, null, null) == 0;
         } catch (GenericEntityException e) {
             Debug.logWarning(e, "Exception thrown while check lock on JobManager : " + instanceId, MODULE);
@@ -362,7 +355,6 @@ public final class JobManager {
 
     /** Queues a Job to run now.
      * @throws IllegalStateException if the Job Manager is shut down.
-     * @throws RejectedExecutionException if the poller is stopped.
      */
     public void runJob(Job job) throws JobManagerException {
         assertIsRunning();
@@ -373,7 +365,6 @@ public final class JobManager {
 
     /**
      * Schedule a job to start at a specific time with specific recurrence info
-     *
      * @param serviceName
      *            The name of the service to invoke
      *@param context
@@ -381,7 +372,7 @@ public final class JobManager {
      *@param startTime
      *            The time in milliseconds the service should run
      *@param frequency
-     *            The frequency of the recurrence (HOURLY,DAILY,MONTHLY,etc)
+     *            The frequency of the recurrence (HOURLY, DAILY, MONTHLY etc)
      *@param interval
      *            The interval of the frequency recurrence
      *@param count
@@ -393,7 +384,6 @@ public final class JobManager {
 
     /**
      * Schedule a job to start at a specific time with specific recurrence info
-     *
      * @param serviceName
      *            The name of the service to invoke
      *@param context
@@ -401,7 +391,7 @@ public final class JobManager {
      *@param startTime
      *            The time in milliseconds the service should run
      *@param frequency
-     *            The frequency of the recurrence (HOURLY,DAILY,MONTHLY,etc)
+     *            The frequency of the recurrence (HOURLY, DAILY, MONTHLY etc)
      *@param interval
      *            The interval of the frequency recurrence
      *@param count
@@ -415,7 +405,6 @@ public final class JobManager {
 
     /**
      * Schedule a job to start at a specific time with specific recurrence info
-     *
      * @param serviceName
      *            The name of the service to invoke
      *@param context
@@ -423,7 +412,7 @@ public final class JobManager {
      *@param startTime
      *            The time in milliseconds the service should run
      *@param frequency
-     *            The frequency of the recurrence (HOURLY,DAILY,MONTHLY,etc)
+     *            The frequency of the recurrence (HOURLY, DAILY, MONTHLY etc)
      *@param interval
      *            The interval of the frequency recurrence
      *@param endTime
@@ -435,7 +424,6 @@ public final class JobManager {
 
     /**
      * Schedule a job to start at a specific time with specific recurrence info
-     *
      * @param poolName
      *            The name of the pool to run the service from
      *@param serviceName
@@ -445,7 +433,7 @@ public final class JobManager {
      *@param startTime
      *            The time in milliseconds the service should run
      *@param frequency
-     *            The frequency of the recurrence (HOURLY,DAILY,MONTHLY,etc)
+     *            The frequency of the recurrence (HOURLY, DAILY, MONTHLY etc)
      *@param interval
      *            The interval of the frequency recurrence
      *@param count
@@ -460,7 +448,6 @@ public final class JobManager {
 
     /**
      * Schedule a job to start at a specific time with specific recurrence info
-     *
      * @param poolName
      *            The name of the pool to run the service from
      *@param serviceName
@@ -476,7 +463,6 @@ public final class JobManager {
 
     /**
      * Schedule a job to start at a specific time with specific recurrence info
-     *
      * @param jobName
      *            The name of the job
      *@param poolName
@@ -488,7 +474,7 @@ public final class JobManager {
      *@param startTime
      *            The time in milliseconds the service should run
      *@param frequency
-     *            The frequency of the recurrence (HOURLY,DAILY,MONTHLY,etc)
+     *            The frequency of the recurrence (HOURLY, DAILY, MONTHLY etc)
      *@param interval
      *            The interval of the frequency recurrence
      *@param count
@@ -516,7 +502,6 @@ public final class JobManager {
 
     /**
      * Schedule a job to start at a specific time with specific recurrence info
-     *
      * @param jobName
      *            The name of the job
      *@param poolName
@@ -528,7 +513,7 @@ public final class JobManager {
      *@param startTime
      *            The time in milliseconds the service should run
      *@param frequency
-     *            The frequency of the recurrence (HOURLY,DAILY,MONTHLY,etc)
+     *            The frequency of the recurrence (HOURLY, DAILY, MONTHLY etc)
      *@param interval
      *            The interval of the frequency recurrence
      *@param count

@@ -68,12 +68,11 @@ import org.apache.ofbiz.webapp.website.WebSiteWorker;
  */
 public class ProductEvents {
 
-    public static final String MODULE = ProductEvents.class.getName();
-    public static final String resource = "ProductErrorUiLabels";
+    private static final String MODULE = ProductEvents.class.getName();
+    private static final String RESOURCE = "ProductErrorUiLabels";
 
     /**
      * Updates/adds keywords for all products
-     *
      * @param request HTTPRequest object for the current request
      * @param response HTTPResponse object for the current request
      * @return String specifying the exit status of this event
@@ -91,7 +90,7 @@ public class ProductEvents {
         // check permissions before moving on...
         if (!security.hasEntityPermission("CATALOG", "_" + updateMode, request.getSession())) {
             Map<String, String> messageMap = UtilMisc.toMap("updateMode", updateMode);
-            errMsg = UtilProperties.getMessage(resource,"productevents.not_sufficient_permissions", messageMap, UtilHttp.getLocale(request));
+            errMsg = UtilProperties.getMessage(RESOURCE, "productevents.not_sufficient_permissions", messageMap, UtilHttp.getLocale(request));
             request.setAttribute("_ERROR_MESSAGE_", errMsg);
             return "error";
         }
@@ -131,7 +130,7 @@ public class ProductEvents {
             } catch (GenericEntityException gee) {
                 Debug.logWarning(gee, gee.getMessage(), MODULE);
                 Map<String, String> messageMap = UtilMisc.toMap("gee", gee.toString());
-                errMsg = UtilProperties.getMessage(resource,"productevents.error_getting_product_list", messageMap, UtilHttp.getLocale(request));
+                errMsg = UtilProperties.getMessage(RESOURCE, "productevents.error_getting_product_list", messageMap, UtilHttp.getLocale(request));
                 request.setAttribute("_ERROR_MESSAGE_", errMsg);
                 return "error";
             }
@@ -175,13 +174,13 @@ public class ProductEvents {
 
         if (errProds == 0) {
             Map<String, String> messageMap = UtilMisc.toMap("numProds", Integer.toString(numProds));
-            errMsg = UtilProperties.getMessage(resource,"productevents.keyword_creation_complete_for_products", messageMap, UtilHttp.getLocale(request));
+            errMsg = UtilProperties.getMessage(RESOURCE, "productevents.keyword_creation_complete_for_products", messageMap, UtilHttp.getLocale(request));
             request.setAttribute("_EVENT_MESSAGE_", errMsg);
             return "success";
         } else {
             Map<String, String> messageMap = UtilMisc.toMap("numProds", Integer.toString(numProds));
             messageMap.put("errProds", Integer.toString(errProds));
-            errMsg = UtilProperties.getMessage(resource,"productevents.keyword_creation_complete_for_products_with_errors", messageMap, UtilHttp.getLocale(request));
+            errMsg = UtilProperties.getMessage(RESOURCE, "productevents.keyword_creation_complete_for_products_with_errors", messageMap, UtilHttp.getLocale(request));
             request.setAttribute("_ERROR_MESSAGE_", errMsg);
             return "error";
         }
@@ -189,7 +188,6 @@ public class ProductEvents {
 
     /**
      * Updates ProductAssoc information according to UPDATE_MODE parameter
-     *
      * @param request The HTTPRequest object for the current request
      * @param response The HTTPResponse object for the current request
      * @return String specifying the exit status of this event
@@ -203,7 +201,7 @@ public class ProductEvents {
         String updateMode = request.getParameter("UPDATE_MODE");
 
         if (UtilValidate.isEmpty(updateMode)) {
-            errMsg = UtilProperties.getMessage(resource,"productevents.updatemode_not_specified", UtilHttp.getLocale(request));
+            errMsg = UtilProperties.getMessage(RESOURCE, "productevents.updatemode_not_specified", UtilHttp.getLocale(request));
             request.setAttribute("_ERROR_MESSAGE_", errMsg);
             Debug.logWarning("[ProductEvents.updateProductAssoc] Update Mode was not specified, but is required", MODULE);
             return "error";
@@ -212,7 +210,7 @@ public class ProductEvents {
         // check permissions before moving on...
         if (!security.hasEntityPermission("CATALOG", "_" + updateMode, request.getSession())) {
             Map<String, String> messageMap = UtilMisc.toMap("updateMode", updateMode);
-            errMsg = UtilProperties.getMessage(resource,"productevents.not_sufficient_permissions", messageMap, UtilHttp.getLocale(request));
+            errMsg = UtilProperties.getMessage(RESOURCE, "productevents.not_sufficient_permissions", messageMap, UtilHttp.getLocale(request));
             request.setAttribute("_ERROR_MESSAGE_", errMsg);
             return "error";
         }
@@ -226,11 +224,11 @@ public class ProductEvents {
         try {
             if (EntityQuery.use(delegator).from("Product").where("productId", productId).queryOne() == null) {
                 Map<String, String> messageMap = UtilMisc.toMap("productId", productId);
-                errMsgList.add(UtilProperties.getMessage(resource,"productevents.product_with_id_not_found", messageMap, UtilHttp.getLocale(request)));
+                errMsgList.add(UtilProperties.getMessage(RESOURCE, "productevents.product_with_id_not_found", messageMap, UtilHttp.getLocale(request)));
             }
             if (EntityQuery.use(delegator).from("Product").where("productId", productIdTo).queryOne() == null) {
                 Map<String, String> messageMap = UtilMisc.toMap("productIdTo", productIdTo);
-                errMsgList.add(UtilProperties.getMessage(resource,"productevents.product_To_with_id_not_found", messageMap, UtilHttp.getLocale(request)));
+                errMsgList.add(UtilProperties.getMessage(RESOURCE, "productevents.product_To_with_id_not_found", messageMap, UtilHttp.getLocale(request)));
             }
         } catch (GenericEntityException e) {
             // if there is an exception for either, the other probably wont work
@@ -245,19 +243,19 @@ public class ProductEvents {
             }
         }
         if (UtilValidate.isEmpty(productId)) {
-            errMsgList.add(UtilProperties.getMessage(resource,"productevents.product_ID_missing", UtilHttp.getLocale(request)));
+            errMsgList.add(UtilProperties.getMessage(RESOURCE, "productevents.product_ID_missing", UtilHttp.getLocale(request)));
         }
         if (UtilValidate.isEmpty(productIdTo)) {
-            errMsgList.add(UtilProperties.getMessage(resource,"productevents.product_ID_To_missing", UtilHttp.getLocale(request)));
+            errMsgList.add(UtilProperties.getMessage(RESOURCE, "productevents.product_ID_To_missing", UtilHttp.getLocale(request)));
         }
         if (UtilValidate.isEmpty(productAssocTypeId)) {
-            errMsgList.add(UtilProperties.getMessage(resource,"productevents.association_type_ID_missing", UtilHttp.getLocale(request)));
+            errMsgList.add(UtilProperties.getMessage(RESOURCE, "productevents.association_type_ID_missing", UtilHttp.getLocale(request)));
         }
         // from date is only required if update mode is not CREATE
         if (!"CREATE".equals(updateMode) && UtilValidate.isEmpty(fromDateStr)) {
-            errMsgList.add(UtilProperties.getMessage(resource,"productevents.from_date_missing", UtilHttp.getLocale(request)));
+            errMsgList.add(UtilProperties.getMessage(RESOURCE, "productevents.from_date_missing", UtilHttp.getLocale(request)));
         }
-        if (errMsgList.size() > 0) {
+        if (!errMsgList.isEmpty()) {
             request.setAttribute("_ERROR_MESSAGE_LIST_", errMsgList);
             return "error";
         }
@@ -283,14 +281,14 @@ public class ProductEvents {
                 Debug.logWarning(e.getMessage(), MODULE);
             }
             if (productAssoc == null) {
-                errMsg = UtilProperties.getMessage(resource,"productevents.could_not_remove_product_association_exist", UtilHttp.getLocale(request));
+                errMsg = UtilProperties.getMessage(RESOURCE, "productevents.could_not_remove_product_association_exist", UtilHttp.getLocale(request));
                 request.setAttribute("_ERROR_MESSAGE_", errMsg);
                 return "error";
             }
             try {
                 productAssoc.remove();
             } catch (GenericEntityException e) {
-                errMsg = UtilProperties.getMessage(resource,"productevents.could_not_remove_product_association_write", UtilHttp.getLocale(request));
+                errMsg = UtilProperties.getMessage(RESOURCE, "productevents.could_not_remove_product_association_write", UtilHttp.getLocale(request));
                 request.setAttribute("_ERROR_MESSAGE_", errMsg);
                 Debug.logWarning("[ProductEvents.updateProductAssoc] Could not remove product association (write error); message: " + e.getMessage(), MODULE);
                 return "error";
@@ -311,24 +309,24 @@ public class ProductEvents {
             try {
                 thruDate = (Timestamp) ObjectType.simpleTypeOrObjectConvert(thruDateStr, "Timestamp", null, UtilHttp.getTimeZone(request), UtilHttp.getLocale(request), false);
             } catch (Exception e) {
-                errMsgList.add(UtilProperties.getMessage(resource,"productevents.thru_date_not_formatted_correctly", UtilHttp.getLocale(request)));
+                errMsgList.add(UtilProperties.getMessage(RESOURCE, "productevents.thru_date_not_formatted_correctly", UtilHttp.getLocale(request)));
             }
         }
         if (UtilValidate.isNotEmpty(quantityStr)) {
             try {
                 quantity = new BigDecimal(quantityStr);
             } catch (NumberFormatException e) {
-                errMsgList.add(UtilProperties.getMessage(resource,"productevents.quantity_not_formatted_correctly", UtilHttp.getLocale(request)));
+                errMsgList.add(UtilProperties.getMessage(RESOURCE, "productevents.quantity_not_formatted_correctly", UtilHttp.getLocale(request)));
             }
         }
         if (UtilValidate.isNotEmpty(sequenceNumStr)) {
             try {
                 sequenceNum = Long.valueOf(sequenceNumStr);
             } catch (Exception e) {
-                errMsgList.add(UtilProperties.getMessage(resource,"productevents.sequenceNum_not_formatted_correctly", UtilHttp.getLocale(request)));
+                errMsgList.add(UtilProperties.getMessage(RESOURCE, "productevents.sequenceNum_not_formatted_correctly", UtilHttp.getLocale(request)));
             }
         }
-        if (errMsgList.size() > 0) {
+        if (!errMsgList.isEmpty()) {
             request.setAttribute("_ERROR_MESSAGE_LIST_", errMsgList);
             return "error";
         }
@@ -355,14 +353,14 @@ public class ProductEvents {
                 productAssoc = null;
             }
             if (productAssoc != null) {
-                errMsg = UtilProperties.getMessage(resource,"productevents.could_not_create_product_association_exists", UtilHttp.getLocale(request));
+                errMsg = UtilProperties.getMessage(RESOURCE, "productevents.could_not_create_product_association_exists", UtilHttp.getLocale(request));
                 request.setAttribute("_ERROR_MESSAGE_", errMsg);
                 return "error";
             }
             try {
                 productAssoc = tempProductAssoc.create();
             } catch (GenericEntityException e) {
-                errMsg = UtilProperties.getMessage(resource,"productevents.could_not_create_product_association_write", UtilHttp.getLocale(request));
+                errMsg = UtilProperties.getMessage(RESOURCE, "productevents.could_not_create_product_association_write", UtilHttp.getLocale(request));
                 request.setAttribute("_ERROR_MESSAGE_", errMsg);
                 Debug.logWarning("[ProductEvents.updateProductAssoc] Could not create product association (write error); message: " + e.getMessage(), MODULE);
                 return "error";
@@ -371,14 +369,14 @@ public class ProductEvents {
             try {
                 tempProductAssoc.store();
             } catch (GenericEntityException e) {
-                errMsg = UtilProperties.getMessage(resource,"productevents.could_not_update_product_association_write", UtilHttp.getLocale(request));
+                errMsg = UtilProperties.getMessage(RESOURCE, "productevents.could_not_update_product_association_write", UtilHttp.getLocale(request));
                 request.setAttribute("_ERROR_MESSAGE_", errMsg);
                 Debug.logWarning("[ProductEvents.updateProductAssoc] Could not update product association (write error); message: " + e.getMessage(), MODULE);
                 return "error";
             }
         } else {
             Map<String, String> messageMap = UtilMisc.toMap("updateMode", updateMode);
-            errMsg = UtilProperties.getMessage(resource,"productevents.specified_update_mode_not_supported", messageMap, UtilHttp.getLocale(request));
+            errMsg = UtilProperties.getMessage(RESOURCE, "productevents.specified_update_mode_not_supported", messageMap, UtilHttp.getLocale(request));
             request.setAttribute("_ERROR_MESSAGE_", errMsg);
             return "error";
         }
@@ -552,7 +550,7 @@ public class ProductEvents {
         if (numberSpecified != null && !foundOneEqual) {
             String productFeatureId = null;
             List<GenericValue> existingProductFeatureList = EntityQuery.use(delegator).from("ProductFeature").where("productFeatureTypeId", productFeatureTypeId, "numberSpecified", numberSpecified, "uomId", uomId).queryList();
-            if (existingProductFeatureList.size() > 0) {
+            if (!existingProductFeatureList.isEmpty()) {
                 GenericValue existingProductFeature = existingProductFeatureList.get(0);
                 productFeatureId = existingProductFeature.getString("productFeatureId");
             } else {
@@ -664,7 +662,7 @@ public class ProductEvents {
 
         Set<String> descriptionsForThisType = new HashSet<>();
         List<GenericValue> productFeatureAndApplList = EntityQuery.use(delegator).from("ProductFeatureAndAppl").where("productId", productId, "productFeatureApplTypeId", productFeatureApplTypeId, "productFeatureTypeId", productFeatureTypeId).filterByDate().queryList();
-        if (productFeatureAndApplList.size() > 0) {
+        if (!productFeatureAndApplList.isEmpty()) {
             Iterator<GenericValue> productFeatureAndApplIter = productFeatureAndApplList.iterator();
             while (productFeatureAndApplIter.hasNext()) {
                 productFeatureAndAppl = productFeatureAndApplIter.next();
@@ -686,7 +684,7 @@ public class ProductEvents {
                                 GenericValue variant = variantIter.next();
                                 // get the selectable features for the variant
                                 List<GenericValue> variantProductFeatureAndAppls = variant.getRelated("ProductFeatureAndAppl", UtilMisc.toMap("productFeatureTypeId", productFeatureTypeId, "productFeatureApplTypeId", "STANDARD_FEATURE", "description", description), null, false);
-                                if (variantProductFeatureAndAppls.size() > 0) {
+                                if (!variantProductFeatureAndAppls.isEmpty()) {
                                     foundFeatureOnVariant = true;
                                 }
                             }
@@ -716,7 +714,7 @@ public class ProductEvents {
             // see if a feature exists with the type and description specified (if doesn't exist will create later)
             String productFeatureId = null;
             List<GenericValue> existingProductFeatureList = EntityQuery.use(delegator).from("ProductFeature").where("productFeatureTypeId", productFeatureTypeId, "description", description).queryList();
-            if (existingProductFeatureList.size() > 0) {
+            if (!existingProductFeatureList.isEmpty()) {
                 GenericValue existingProductFeature = existingProductFeatureList.get(0);
                 productFeatureId = existingProductFeature.getString("productFeatureId");
             } else {
@@ -742,7 +740,7 @@ public class ProductEvents {
             // check to see if the productFeatureId is already attached to the virtual or variant, if not attach them...
             List<GenericValue> specificProductFeatureApplList = EntityQuery.use(delegator).from("ProductFeatureAppl").where("productId", productId, "productFeatureApplTypeId", productFeatureApplTypeId, "productFeatureId", productFeatureId).filterByDate().queryList();
 
-            if (specificProductFeatureApplList.size() == 0) {
+            if (specificProductFeatureApplList.isEmpty()) {
                 delegator.create("ProductFeatureAppl",
                         UtilMisc.toMap("productId", productId,
                                 "productFeatureId", productFeatureId,
@@ -820,7 +818,7 @@ public class ProductEvents {
             for (String categoryId: categoryIds) {
                 try {
                     List<GenericValue> catMembs = EntityQuery.use(delegator).from("ProductCategoryMember").where("productCategoryId", categoryId, "productId", productId).filterByDate().queryList();
-                    if (catMembs.size() == 0) {
+                    if (catMembs.isEmpty()) {
                         delegator.create("ProductCategoryMember",
                                 UtilMisc.toMap("productCategoryId", categoryId, "productId", productId, "fromDate", fromDate));
                     }
@@ -840,12 +838,12 @@ public class ProductEvents {
         String productId = request.getParameter("productId");
         String productCategoryId = request.getParameter("productCategoryId");
         String thruDate = request.getParameter("thruDate");
-        if ((thruDate == null) || (thruDate.trim().length() == 0)) {
+        if ((thruDate == null) || (thruDate.trim().isEmpty())) {
             thruDate = UtilDateTime.nowTimestamp().toString();
         }
         try {
             List<GenericValue> prodCatMembs = EntityQuery.use(delegator).from("ProductCategoryMember").where("productCategoryId", productCategoryId, "productId", productId).filterByDate().queryList();
-            if (prodCatMembs.size() > 0) {
+            if (!prodCatMembs.isEmpty()) {
                 // there is one to modify
                 GenericValue prodCatMemb = prodCatMembs.get(0);
                 prodCatMemb.setString("thruDate", thruDate);
@@ -875,7 +873,7 @@ public class ProductEvents {
                 for (String productFeatureId: productFeatureIdArray) {
                     if (!"~~any~~".equals(productFeatureId)) {
                         List<GenericValue> featureAppls = EntityQuery.use(delegator).from("ProductFeatureAppl").where("productId", productId, "productFeatureId", productFeatureId, "productFeatureApplTypeId", productFeatureApplTypeId).queryList();
-                        if (featureAppls.size() == 0) {
+                        if (featureAppls.isEmpty()) {
                             // no existing application for this
                             delegator.create("ProductFeatureAppl",
                                     UtilMisc.toMap("productId", productId,
@@ -938,7 +936,6 @@ public class ProductEvents {
     /**
      * If ProductStore.requireCustomerRole == Y then the loggedin user must be associated with the store in the customer role.
      * This event method is called from the ProductEvents.storeCheckLogin and ProductEvents.storeLogin
-     *
      * @param request
      * @param response
      * @return String with response, maybe "success" or "error" if logged in user is not associated with the ProductStore in the CUSTOMER role.
@@ -1065,7 +1062,7 @@ public class ProductEvents {
         }
 
         if (product == null) {
-            String errMsg = UtilProperties.getMessage(resource, "productevents.product_with_id_not_found", UtilMisc.toMap("productId", productId), UtilHttp.getLocale(request));
+            String errMsg = UtilProperties.getMessage(RESOURCE, "productevents.product_with_id_not_found", UtilMisc.toMap("productId", productId), UtilHttp.getLocale(request));
             request.setAttribute("_ERROR_MESSAGE_", errMsg);
             return "error";
         }
@@ -1099,13 +1096,13 @@ public class ProductEvents {
             try {
                 product = ProductWorker.findProduct(delegator, productId);
             } catch (GenericEntityException e) {
-                productId =  null;
+                productId = null;
                 Debug.logError(e, MODULE);
             }
         }
 
         if (product == null) {
-            String errMsg = UtilProperties.getMessage(resource, "productevents.product_with_id_not_found", UtilMisc.toMap("productId", productId), UtilHttp.getLocale(request));
+            String errMsg = UtilProperties.getMessage(RESOURCE, "productevents.product_with_id_not_found", UtilMisc.toMap("productId", productId), UtilHttp.getLocale(request));
             request.setAttribute("_ERROR_MESSAGE_", errMsg);
             return "error";
         }
@@ -1139,7 +1136,7 @@ public class ProductEvents {
      * in fields where BigDecimal display. Blank meaning null, vs. 0 which means 0
      * @param bigDecimalString
      * @return a BigDecimal for the parsed value
-     * @throws GeneralException 
+     * @throws GeneralException
      */
     public static BigDecimal parseBigDecimalFromParameter(String bigDecimalString, HttpServletRequest request) throws GeneralException {
         Locale locale = UtilHttp.getLocale(request);
@@ -1169,11 +1166,11 @@ public class ProductEvents {
                 return "error";
             }
 
-            if(UtilValidate.isEmpty(statusId)) {
+            if (UtilValidate.isEmpty(statusId)) {
                 statusId = "KW_PENDING";
             }
 
-            if(UtilValidate.isNotEmpty(matchList)) {
+            if (UtilValidate.isNotEmpty(matchList)) {
                 for (String keywordStr : matchList) {
                     try {
                         dispatcher.runSync("createProductKeyword", UtilMisc.toMap("productId", productId, "keyword", keywordStr.trim(), "keywordTypeId", "KWT_TAG", "statusId", statusId, "userLogin", userLogin));

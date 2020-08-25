@@ -41,10 +41,10 @@ import org.apache.ofbiz.service.ServiceUtil;
 
 public class QuoteServices {
 
-    public static final String MODULE = QuoteServices.class.getName();
-    public static final String resource = "OrderUiLabels";
-    public static final String resource_error = "OrderErrorUiLabels";
-    public static final String resourceProduct = "ProductUiLabels";
+    private static final String MODULE = QuoteServices.class.getName();
+    private static final String RESOURCE = "OrderUiLabels";
+    private static final String RES_ERROR = "OrderErrorUiLabels";
+    private static final String RES_PRODUCT = "ProductUiLabels";
 
     public static Map<String, Object> sendQuoteReportMail(DispatchContext dctx, Map<String, ? extends Object> context) {
         LocalDispatcher dispatcher = dctx.getDispatcher();
@@ -69,8 +69,8 @@ public class QuoteServices {
         }
 
         if (quote == null) {
-            return ServiceUtil.returnError(UtilProperties.getMessage(resource, 
-                    "OrderOrderQuoteCannotBeFound", 
+            return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE,
+                    "OrderOrderQuoteCannotBeFound",
                     UtilMisc.toMap("quoteId", quoteId), locale));
         }
 
@@ -81,16 +81,16 @@ public class QuoteServices {
             Debug.logError(e, "Problem getting the ProductStoreEmailSetting for productStoreId=" + quote.get("productStoreId") + " and emailType=" + emailType, MODULE);
         }
         if (productStoreEmail == null) {
-            return ServiceUtil.returnFailure(UtilProperties.getMessage(resourceProduct, 
-                    "ProductProductStoreEmailSettingsNotValid", 
-                    UtilMisc.toMap("productStoreId", quote.get("productStoreId"), 
+            return ServiceUtil.returnFailure(UtilProperties.getMessage(RES_PRODUCT,
+                    "ProductProductStoreEmailSettingsNotValid",
+                    UtilMisc.toMap("productStoreId", quote.get("productStoreId"),
                             "emailType", emailType), locale));
         }
         String bodyScreenLocation = productStoreEmail.getString("bodyScreenLocation");
         if (UtilValidate.isEmpty(bodyScreenLocation)) {
-            return ServiceUtil.returnFailure(UtilProperties.getMessage(resourceProduct, 
-                    "ProductProductStoreEmailSettingsNotValidBodyScreenLocation", 
-                    UtilMisc.toMap("productStoreId", quote.get("productStoreId"), 
+            return ServiceUtil.returnFailure(UtilProperties.getMessage(RES_PRODUCT,
+                    "ProductProductStoreEmailSettingsNotValidBodyScreenLocation",
+                    UtilMisc.toMap("productStoreId", quote.get("productStoreId"),
                             "emailType", emailType), locale));
         }
         sendMap.put("bodyScreenUri", bodyScreenLocation);
@@ -98,7 +98,7 @@ public class QuoteServices {
         sendMap.put("xslfoAttachScreenLocation", xslfoAttachScreenLocation);
 
         if ((sendTo == null) || !UtilValidate.isEmail(sendTo)) {
-            return ServiceUtil.returnError(UtilProperties.getMessage(resourceProduct, 
+            return ServiceUtil.returnError(UtilProperties.getMessage(RES_PRODUCT,
                     "ProductProductStoreEmailSettingsNoSendToFound", locale));
         }
 
@@ -131,10 +131,7 @@ public class QuoteServices {
             }
         } catch (GenericServiceException e) {
             Debug.logError(e, MODULE);
-            return ServiceUtil.returnError(UtilProperties.getMessage(resource_error, "OrderServiceExceptionSeeLogs",locale));
-        } catch (Exception e) {
-            Debug.logError(e, MODULE);
-            return ServiceUtil.returnError(UtilProperties.getMessage(resource_error, "OrderServiceExceptionSeeLogs",locale));
+            return ServiceUtil.returnError(UtilProperties.getMessage(RES_ERROR, "OrderServiceExceptionSeeLogs", locale));
         }
 
         // check for errors
@@ -166,7 +163,7 @@ public class QuoteServices {
         List<GenericValue> quoteAdjustments = UtilGenerics.cast(context.get("quoteAdjustments"));
         Locale locale = (Locale) context.get("locale");
         Map<String, Object> serviceResult = new HashMap<>();
-        
+
         //TODO create Quote Terms still to be implemented
         //TODO create Quote Term Attributes still to be implemented
         Map<String, Object> result = new HashMap<>();
@@ -191,7 +188,7 @@ public class QuoteServices {
                 return ServiceUtil.returnError(ServiceUtil.getErrorMessage(quoteOut));
             }
             if (UtilValidate.isNotEmpty(quoteOut) && UtilValidate.isNotEmpty(quoteOut.get("quoteId"))) {
-                String quoteId = (String)quoteOut.get("quoteId");
+                String quoteId = (String) quoteOut.get("quoteId");
                 result.put("quoteId", quoteId);
 
                 // create Quote Items
@@ -278,7 +275,7 @@ public class QuoteServices {
                 //TODO create Quote Terms still to be implemented the base service createQuoteTerm
                 //TODO create Quote Term Attributes still to be implemented the base service createQuoteTermAttribute
             } else {
-                return ServiceUtil.returnFailure(UtilProperties.getMessage(resource, 
+                return ServiceUtil.returnFailure(UtilProperties.getMessage(RESOURCE,
                         "OrderOrderQuoteCannotBeStored", locale));
             }
         } catch (GenericServiceException e) {

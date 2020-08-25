@@ -40,12 +40,11 @@ import org.w3c.dom.Element;
 
 /**
  * Implements the &lt;create-object&gt; element.
- * 
  * @see <a href="https://cwiki.apache.org/confluence/display/OFBIZ/Mini+Language+-+minilang+-+simple-method+-+Reference">Mini-language Referenc</a>
  */
 public final class CreateObject extends MethodOperation {
 
-    public static final String MODULE = CreateObject.class.getName();
+    private static final String MODULE = CreateObject.class.getName();
 
     private final String className;
     private final Class<?> targetClass;
@@ -71,7 +70,7 @@ public final class CreateObject extends MethodOperation {
         this.targetClass = targetClass;
         fieldFma = FlexibleMapAccessor.getInstance(element.getAttribute("field"));
         List<? extends Element> parameterElements = UtilXml.childElementList(element);
-        if (parameterElements.size() > 0) {
+        if (!parameterElements.isEmpty()) {
             ArrayList<MethodObject<?>> parameterList = new ArrayList<>(parameterElements.size());
             for (Element parameterElement : parameterElements) {
                 if ("string".equals(parameterElement.getNodeName())) {
@@ -112,7 +111,7 @@ public final class CreateObject extends MethodOperation {
         }
         try {
             Constructor<?> constructor = targetClass.getConstructor(parameterTypes);
-            fieldFma.put(methodContext.getEnvMap(),constructor.newInstance(args));
+            fieldFma.put(methodContext.getEnvMap(), constructor.newInstance(args));
         } catch (Exception e) {
             throw new MiniLangRuntimeException(e, this);
         }

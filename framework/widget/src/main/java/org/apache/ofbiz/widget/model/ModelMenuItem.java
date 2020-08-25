@@ -52,17 +52,14 @@ public class ModelMenuItem extends ModelWidget {
      * ----------------------------------------------------------------------- *
      *                     DEVELOPERS PLEASE READ
      * ----------------------------------------------------------------------- *
-     *
      * This model is intended to be a read-only data structure that represents
      * an XML element. Outside of object construction, the class should not
      * have any behaviors.
-     *
      * Instances of this class will be shared by multiple threads - therefore
      * it is immutable. DO NOT CHANGE THE OBJECT'S STATE AT RUN TIME!
-     *
      */
 
-    public static final String MODULE = ModelMenuItem.class.getName();
+    private static final String MODULE = ModelMenuItem.class.getName();
 
     private final List<ModelAction> actions;
     private final String align;

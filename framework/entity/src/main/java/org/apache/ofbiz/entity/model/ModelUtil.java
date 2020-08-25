@@ -34,10 +34,10 @@ import org.apache.ofbiz.entity.model.ModelViewEntity.ModelAlias;
  */
 public final class ModelUtil {
 
-    public static final String MODULE = ModelUtil.class.getName();
+    private static final String MODULE = ModelUtil.class.getName();
     private static final String vowelBag = "aeiouyAEIOUY";
 
-    private ModelUtil () {}
+    private ModelUtil() { }
 
     /**
      * Changes the first letter of the passed String to upper case.
@@ -55,7 +55,6 @@ public final class ModelUtil {
 
     /**
      * Changes the first letter of the passed String to lower case.
-     *
      * @param string The passed String
      * @return A String with a lower case first letter
      */
@@ -100,7 +99,7 @@ public final class ModelUtil {
         StringBuilder fieldName = new StringBuilder(columnName.length());
 
         boolean toUpper = false;
-        for (int i=0; i < columnName.length(); i++) {
+        for (int i = 0; i < columnName.length(); i++) {
             char ch = columnName.charAt(i);
             if (ch == '_') {
                 toUpper = true;
@@ -147,7 +146,6 @@ public final class ModelUtil {
     }
 
     /**  Start by removing all vowels, then pull 1 letter at a time off the end of each _ separated segment, go until it is less than or equal to the desired length
-     *
      * @param dbName
      * @param desiredLength
      * @return shortened String
@@ -279,8 +277,8 @@ public final class ModelUtil {
             return "very-long";
         } else if ("TEXT".equalsIgnoreCase(sqlTypeName)) {
             return "very-long";
-        } else if ("INT".equalsIgnoreCase(sqlTypeName) || "SMALLINT".equalsIgnoreCase(sqlTypeName) ||
-                "DECIMAL".equalsIgnoreCase(sqlTypeName) || "NUMERIC".equalsIgnoreCase(sqlTypeName)) {
+        } else if ("INT".equalsIgnoreCase(sqlTypeName) || "SMALLINT".equalsIgnoreCase(sqlTypeName)
+                || "DECIMAL".equalsIgnoreCase(sqlTypeName) || "NUMERIC".equalsIgnoreCase(sqlTypeName)) {
             if (length > 18 || precision > 6) return "invalid-" + sqlTypeName + ":" + length + ":" + precision;
             if (precision == 0) return "numeric";
             if (precision == 2) return "currency-amount";
