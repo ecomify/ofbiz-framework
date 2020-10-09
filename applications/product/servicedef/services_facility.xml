@@ -458,8 +458,8 @@ under the License.
         </attribute>
     </service>
 
-    <service name="reserveAnInventoryItem" engine="simple"
-            location="component://product/minilang/product/inventory/InventoryReserveServices.xml" invoke="reserveAnInventoryItem" auth="true">
+    <service name="reserveAnInventoryItem" engine="groovy"
+            location="component://product/groovyScripts/product/inventory/InventoryReserveServices.groovy" invoke="reserveAnInventoryItem" auth="true">
         <description></description>
         <attribute name="inventoryItemId" type="String" mode="INOUT" optional="false">
             <type-validate>
@@ -507,8 +507,8 @@ under the License.
         <attribute name="priority" type="String" mode="IN" optional="true"/>
     </service>
 
-    <service name="reserveProductInventory" engine="simple"
-            location="component://product/minilang/product/inventory/InventoryReserveServices.xml" invoke="reserveProductInventory" auth="true">
+    <service name="reserveProductInventory" engine="groovy"
+            location="component://product/groovyScripts/product/inventory/InventoryReserveServices.groovy" invoke="reserveProductInventory" auth="true">
         <description>Reserve Inventory for a Product.
             If requireInventory is Y the quantity not reserved is returned, if N then a negative
             availableToPromise will be used to track quantity ordered beyond what is in stock.
@@ -652,8 +652,8 @@ under the License.
         <attribute name="sequenceId" type="Long" mode="IN" optional="true"/>
         <attribute name="quantityNotReserved" type="BigDecimal" mode="OUT" optional="false"/>
     </service>
-    <service name="reserveOrderItemInventory" engine="simple"
-                location="component://product/minilang/product/inventory/InventoryReserveServices.xml" invoke="reserveOrderItemInventory" auth="true">
+    <service name="reserveOrderItemInventory" engine="groovy"
+                location="component://product/groovyScripts/product/inventory/InventoryReserveServices.groovy" invoke="reserveOrderItemInventory" auth="true">
         <description>Create OrderItemShipGrpInvRes or increment existing reserved quantity.</description>
         <auto-attributes mode="IN" entity-name="OrderItemShipGrpInvRes" include="pk" optional="false"/>
         <auto-attributes mode="IN" entity-name="OrderItemShipGrpInvRes" include="nonpk" optional="true">
@@ -662,8 +662,8 @@ under the License.
         <attribute name="priority" type="String" mode="IN"  optional="true"/>
         <override name="quantity" optional="false"/>
     </service>
-    <service name="cancelOrderInventoryReservation" engine="simple"
-                location="component://product/minilang/product/inventory/InventoryReserveServices.xml" invoke="cancelOrderInventoryReservation" auth="true">
+    <service name="cancelOrderInventoryReservation" engine="groovy"
+                location="component://product/groovyScripts/product/inventory/InventoryReserveServices.groovy" invoke="cancelOrderInventoryReservation" auth="true">
         <description>
             Iterates through each OrderItemShipGrpInvRes on each OrderItem for the order
             with the given orderId and cancels the reservation by changing the status
@@ -695,8 +695,8 @@ under the License.
         <attribute name="shipGroupSeqId" type="String" mode="IN" optional="true"/>
         <attribute name="cancelQuantity" type="BigDecimal" mode="IN" optional="true"/>
     </service>
-    <service name="cancelOrderItemShipGrpInvRes" engine="simple"
-                location="component://product/minilang/product/inventory/InventoryReserveServices.xml" invoke="cancelOrderItemShipGrpInvRes" auth="true">
+    <service name="cancelOrderItemShipGrpInvRes" engine="groovy"
+                location="component://product/groovyScripts/product/inventory/InventoryReserveServices.groovy" invoke="cancelOrderItemShipGrpInvRes" auth="true">
         <description>Cancels an inventory reservation</description>
         <auto-attributes entity-name="OrderItemShipGrpInvRes" include="pk" mode="IN" optional="false"/>
         <attribute name="cancelQuantity" type="BigDecimal" mode="IN" optional="true"/>
