@@ -38,7 +38,7 @@ import org.apache.ofbiz.service.ServiceUtil;
 
 public class TelecomServices {
 
-    public final static String module = TelecomServices.class.getName();
+    private static final String MODULE = TelecomServices.class.getName();
 
     public static Map<String, Object> sendTelecomMessage(DispatchContext ctx, Map<String, ? extends Object> context) {
         Delegator delegator = ctx.getDelegator();
@@ -52,11 +52,12 @@ public class TelecomServices {
         String telecomGatewayConfigId = (String) context.get("telecomGatewayConfigId");
         List<String> numbers = checkCollection(context.get("numbers"), String.class);
         String message = (String) context.get("message");
-        
         String telecomEnabled = EntityUtilProperties.getPropertyValue("general", "telecom.notifications.enabled", delegator);
         if (!"Y".equals(telecomEnabled)) {
-            Debug.logImportant("Telecom message not sent to " + numbers.toString() +" because telecom.notifications.enabled property is set to N or empty", module);
-            return ServiceUtil.returnSuccess("Telecom message not sent to " + numbers.toString() +" because sms.notifications.enabled property is set to N or empty");
+            Debug.logImportant("Telecom message not sent to " + numbers.toString()
+                    + " because telecom.notifications.enabled property is set to N or empty", MODULE);
+            return ServiceUtil.returnSuccess("Telecom message not sent to " + numbers.toString()
+                    + " because sms.notifications.enabled property is set to N or empty");
         }
 
         String redirectNumber = EntityUtilProperties.getPropertyValue("general", "telecom.notifications.redirectTo", delegator);
@@ -64,7 +65,6 @@ public class TelecomServices {
             numbers.clear();
             numbers.add(redirectNumber);
         }
-
 
         try {
             Map<String, Object> createCommEventCtx = new HashMap<>();
@@ -76,7 +76,7 @@ public class TelecomServices {
             createCommEventCtx.put("toString", numbers.toString());
             Map<String, Object> createCommEventResult = dispatcher.runSync("createCommunicationEvent", createCommEventCtx);
             if (!ServiceUtil.isSuccess(createCommEventResult)) {
-                Debug.logError(ServiceUtil.getErrorMessage(createCommEventResult), module);
+                Debug.logError(ServiceUtil.getErrorMessage(createCommEventResult), MODULE);
                 return ServiceUtil.returnError(ServiceUtil.getErrorMessage(createCommEventResult));
             }
             String communicationEventId = (String) createCommEventResult.get("communicationEventId");
@@ -99,14 +99,15 @@ public class TelecomServices {
                     Map<String, Object> customMethodResult = dispatcher.runSync(customMethod.getString("customMethodName"), serviceCtx);
                     if (ServiceUtil.isError(customMethodResult) || ServiceUtil.isFailure(customMethodResult)) {
                         String errorMessage = ServiceUtil.getErrorMessage(customMethodResult);
-                        Debug.logError(errorMessage, module);
+                        Debug.logError(errorMessage, MODULE);
                         return ServiceUtil.returnError(errorMessage);
                     }
 
                     createCommEventCtx.clear();
                     createCommEventCtx.put("communicationEventId", communicationEventId);
-                    if (UtilValidate.isNotEmpty(createCommEventResult.get("response")))
+                    if (UtilValidate.isNotEmpty(createCommEventResult.get("response"))) {
                         createCommEventCtx.put("note", customMethodResult.get("response"));
+                    }
                     createCommEventCtx.put("statusId", "COM_COMPLETE");
                     createCommEventCtx.put("userLogin", userLogin);
                     dispatcher.runSync("updateCommunicationEvent", createCommEventCtx);
@@ -115,7 +116,7 @@ public class TelecomServices {
                 return ServiceUtil.returnError("Not sending SMS as no ProductStoreEmailSetting found for the passed inputs.");
             }
         } catch (GenericEntityException | GenericServiceException e) {
-            Debug.logError(e.getMessage(), module);
+            Debug.logError(e.getMessage(), MODULE);
             return ServiceUtil.returnError(e.getMessage());
         }
 

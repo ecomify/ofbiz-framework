@@ -48,22 +48,24 @@ import org.apache.ofbiz.service.GenericServiceException;
  */
 public class ExampleRemoteClient {
 
-    public static final String module = ExampleRemoteClient.class.getName();
-    protected final static String RMI_URL = "rmi://localhost:1099/RMIDispatcher"; // change to match the remote server
-    protected RemoteDispatcher rd = null;
+    private static final String MODULE = ExampleRemoteClient.class.getName();
+    protected static final String RMI_URL = "rmi://localhost:1099/RMIDispatcher"; // change to match the remote server
+    private RemoteDispatcher rd = null;
 
     public ExampleRemoteClient() {
         try {
             rd = (RemoteDispatcher) Naming.lookup(RMI_URL);
-        } catch (NotBoundException e) {
-            e.printStackTrace();
-        } catch (MalformedURLException e) {
-            e.printStackTrace();
-        } catch (RemoteException e) {
+        } catch (NotBoundException | RemoteException | MalformedURLException e) {
             e.printStackTrace();
         }
     }
 
+    /**
+     * Run test service map.
+     * @return the map
+     * @throws RemoteException the remote exception
+     * @throws GenericServiceException the generic service exception
+     */
     public Map<String, Object> runTestService() throws RemoteException, GenericServiceException {
         Map<String, Object> context = new HashMap<>();
         context.put("message", "Remote Service Test");
@@ -73,6 +75,6 @@ public class ExampleRemoteClient {
     public static void main(String[] args) throws Exception {
         ExampleRemoteClient rm = new ExampleRemoteClient();
         Map<String, Object> result = rm.runTestService();
-        Debug.logInfo("Service Result Map: " + result, module);
+        Debug.logInfo("Service Result Map: " + result, MODULE);
     }
 }

@@ -32,11 +32,11 @@ import org.apache.xmlrpc.client.XmlRpcTransportFactory;
  */
 public class XmlRpcClient extends org.apache.xmlrpc.client.XmlRpcClient {
 
-    public static final String module = XmlRpcClient.class.getName();
+    private static final String MODULE = XmlRpcClient.class.getName();
 
-    protected String keyStoreComponent;
-    protected String keyStoreName;
-    protected String keyAlias;
+    private String keyStoreComponent;
+    private String keyStoreName;
+    private String keyAlias;
 
     public XmlRpcClient(XmlRpcClientConfig config, String keyStoreComponent, String keyStoreName, String keyAlias) {
         this(config);
@@ -51,6 +51,10 @@ public class XmlRpcClient extends org.apache.xmlrpc.client.XmlRpcClient {
         this.setConfig(config);
     }
 
+    /**
+     * Gets client transport factory.
+     * @return the client transport factory
+     */
     public XmlRpcTransportFactory getClientTransportFactory() {
         if (keyStoreComponent == null || keyStoreName == null || keyAlias == null) {
             return this.getTransportFactory();
@@ -61,7 +65,7 @@ public class XmlRpcClient extends org.apache.xmlrpc.client.XmlRpcClient {
         try {
             keyStore = KeyStoreUtil.getStore(ks.createResourceHandler().getURL(), ks.getPassword(), ks.getType());
         } catch (Exception e) {
-            Debug.logError(e, "Unable to load keystore: " + keyStoreName, module);
+            Debug.logError(e, "Unable to load keystore: " + keyStoreName, MODULE);
         }
 
         return new AliasSupportedTransportFactory(this, keyStore, ks.getPassword(), keyAlias);

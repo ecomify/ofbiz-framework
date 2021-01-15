@@ -44,12 +44,12 @@ import org.apache.ofbiz.service.ServiceUtil;
 
 public class SagePayPaymentServices {
 
-    public static final String module = SagePayPaymentServices.class.getName();
-    public final static String resource = "AccountingUiLabels";
+    private static final String MODULE = SagePayPaymentServices.class.getName();
+    private static final String RESOURCE = "AccountingUiLabels";
 
     private static Map<String, String> buildCustomerBillingInfo(Map<String, Object> context) {
-        Debug.logInfo("SagePay - Entered buildCustomerBillingInfo", module);
-        Debug.logInfo("SagePay buildCustomerBillingInfo context : " + context, module);
+        Debug.logInfo("SagePay - Entered buildCustomerBillingInfo", MODULE);
+        Debug.logInfo("SagePay buildCustomerBillingInfo context : " + context, MODULE);
 
         Map<String, String> billingInfo = new HashMap<>();
 
@@ -81,7 +81,7 @@ public class SagePayPaymentServices {
                     GenericValue billingAddress = (GenericValue) context.get("billingAddress");
                     postalCode = billingAddress.getString("postalCode");
                     String address2 = billingAddress.getString("address2");
-                    if (address2 == null){
+                    if (address2 == null) {
                         address2 = "";
                     }
                     address = billingAddress.getString("address1") + " " + address2;
@@ -91,7 +91,7 @@ public class SagePayPaymentServices {
                     String firstName = creditCard.getString("firstNameOnCard");
                     String middleName = creditCard.getString("middleNameOnCard");
                     String lastName = creditCard.getString("lastNameOnCard");
-                    if (middleName == null){
+                    if (middleName == null) {
                         middleName = "";
                     }
                     nameOnCard = firstName + " " + middleName + " " + lastName;
@@ -111,26 +111,26 @@ public class SagePayPaymentServices {
                         }
                     }
                     expireDate = creditCard.getString("expireDate");
-                    String month = expireDate.substring(0,2);
+                    String month = expireDate.substring(0, 2);
                     String year = expireDate.substring(5);
                     expireDate = month + year;
 
                     //getting order details
                     orderId = UtilFormatOut.checkNull((String) context.get("orderId"));
-                    processAmount =  (BigDecimal) context.get("processAmount");
+                    processAmount = (BigDecimal) context.get("processAmount");
                     currency = (String) context.get("currency");
 
                 } else {
-                    Debug.logWarning("Payment preference " + opp + " is not a credit card", module);
+                    Debug.logWarning("Payment preference " + opp + " is not a credit card", MODULE);
                 }
             }
         } catch (GenericEntityException ex) {
-            Debug.logError("Cannot build customer information for " + context + " due to error: " + ex.getMessage(), module);
+            Debug.logError("Cannot build customer information for " + context + " due to error: " + ex.getMessage(), MODULE);
             return null;
         }
 
         billingInfo.put("orderId", orderId);
-        if(processAmount != null){
+        if (processAmount != null) {
             billingInfo.put("amount", processAmount.toString());
         } else {
             billingInfo.put("amount", "");
@@ -138,47 +138,43 @@ public class SagePayPaymentServices {
         billingInfo.put("currency", currency);
         billingInfo.put("description", orderId);
         billingInfo.put("cardNumber", cardNumber);
-        billingInfo.put("cardHolder",  nameOnCard);
+        billingInfo.put("cardHolder", nameOnCard);
         billingInfo.put("expiryDate", expireDate);
         billingInfo.put("cardType", cardType);
         billingInfo.put("cv2", securityCode);
         billingInfo.put("billingPostCode", postalCode);
         billingInfo.put("billingAddress", address);
 
-        Debug.logInfo("SagePay billingInfo : " + billingInfo, module);
-        Debug.logInfo("SagePay - Exiting buildCustomerBillingInfo", module);
+        Debug.logInfo("SagePay billingInfo : " + billingInfo, MODULE);
+        Debug.logInfo("SagePay - Exiting buildCustomerBillingInfo", MODULE);
 
         return billingInfo;
     }
 
     public static Map<String, Object> ccAuth(DispatchContext dctx, Map<String, Object> context) {
-        Debug.logInfo("SagePay - Entered ccAuth", module);
-        Debug.logInfo("SagePay ccAuth context : " + context, module);
+        Debug.logInfo("SagePay - Entered ccAuth", MODULE);
+        Debug.logInfo("SagePay ccAuth context : " + context, MODULE);
         Map<String, Object> response = null;
         String orderId = (String) context.get("orderId");
         Locale locale = (Locale) context.get("locale");
         GenericValue orderPaymentPreference = (GenericValue) context.get("orderPaymentPreference");
-        
         if (orderPaymentPreference == null) {
-            response = ServiceUtil.returnError(UtilProperties.getMessage(resource, "AccountingSagePayOrderPaymenPreferenceIsNull", UtilMisc.toMap("orderId", orderId, "orderPaymentPreference", null), locale));
+            response = ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE, "AccountingSagePayOrderPaymenPreferenceIsNull",
+                    UtilMisc.toMap("orderId", orderId, "orderPaymentPreference", null), locale));
         } else {
             response = processCardAuthorisationPayment(dctx, context);
         }
-        Debug.logInfo("SagePay ccAuth response : " + response, module);
-        Debug.logInfo("SagePay - Exiting ccAuth", module);
+        Debug.logInfo("SagePay ccAuth response : " + response, MODULE);
+        Debug.logInfo("SagePay - Exiting ccAuth", MODULE);
         return response;
     }
-
-
     private static Map<String, Object> processCardAuthorisationPayment(DispatchContext ctx, Map<String, Object> context) {
         Map<String, Object> result = ServiceUtil.returnSuccess();
         LocalDispatcher dispatcher = ctx.getDispatcher();
         Locale locale = (Locale) context.get("locale");
         Map<String, String> billingInfo = buildCustomerBillingInfo(context);
         String paymentGatewayConfigId = (String) context.get("paymentGatewayConfigId");
-
         try {
-
             Map<String, Object> paymentResult = dispatcher.runSync("SagePayPaymentAuthentication",
                     UtilMisc.toMap(
                             "paymentGatewayConfigId", paymentGatewayConfigId,
@@ -192,11 +188,9 @@ public class SagePayPaymentServices {
                             "amount", billingInfo.get("amount"),
                             "currency", billingInfo.get("currency"),
                             "billingAddress", billingInfo.get("billingAddress"),
-                            "billingPostCode", billingInfo.get("billingPostCode")
-                        )
-                    );
+                            "billingPostCode", billingInfo.get("billingPostCode")));
 
-            Debug.logInfo("SagePay - SagePayPaymentAuthentication result : " + paymentResult, module);
+            Debug.logInfo("SagePay - SagePayPaymentAuthentication result : " + paymentResult, MODULE);
 
             String transactionType = (String) paymentResult.get("transactionType");
             String status = (String) paymentResult.get("status");
@@ -208,45 +202,53 @@ public class SagePayPaymentServices {
             String amount = (String) paymentResult.get("amount");
 
             if (status != null && "OK".equals(status)) {
-                Debug.logInfo("SagePay - Payment authorized for order : " + vendorTxCode, module);
-                result = SagePayUtil.buildCardAuthorisationPaymentResponse(Boolean.TRUE, txAuthNo, securityKey, new BigDecimal(amount), vpsTxId, vendorTxCode, statusDetail);
+                Debug.logInfo("SagePay - Payment authorized for order : " + vendorTxCode, MODULE);
+                result = SagePayUtil.buildCardAuthorisationPaymentResponse(Boolean.TRUE, txAuthNo, securityKey, new BigDecimal(amount), vpsTxId,
+                        vendorTxCode, statusDetail);
                 if ("PAYMENT".equals(transactionType)) {
-                    Map<String,Object> captureResult = SagePayUtil.buildCardCapturePaymentResponse(Boolean.TRUE, txAuthNo, securityKey, new BigDecimal(amount), vpsTxId, vendorTxCode, statusDetail);
+                    Map<String, Object> captureResult = SagePayUtil.buildCardCapturePaymentResponse(Boolean.TRUE, txAuthNo, securityKey,
+                            new BigDecimal(amount), vpsTxId, vendorTxCode, statusDetail);
                     result.putAll(captureResult);
                 }
             } else if (status != null && "INVALID".equals(status)) {
-                Debug.logInfo("SagePay - Invalid authorisation request for order : " + vendorTxCode, module);
-                result = SagePayUtil.buildCardAuthorisationPaymentResponse(Boolean.FALSE, null, null, BigDecimal.ZERO, "INVALID", vendorTxCode, statusDetail);
+                Debug.logInfo("SagePay - Invalid authorisation request for order : " + vendorTxCode, MODULE);
+                result = SagePayUtil.buildCardAuthorisationPaymentResponse(Boolean.FALSE, null, null, BigDecimal.ZERO, "INVALID",
+                        vendorTxCode, statusDetail);
             } else if (status != null && "MALFORMED".equals(status)) {
-                Debug.logInfo("SagePay - Malformed authorisation request for order : " + vendorTxCode, module);
-                result = SagePayUtil.buildCardAuthorisationPaymentResponse(Boolean.FALSE, null, null, BigDecimal.ZERO, "MALFORMED", vendorTxCode, statusDetail);
+                Debug.logInfo("SagePay - Malformed authorisation request for order : " + vendorTxCode, MODULE);
+                result = SagePayUtil.buildCardAuthorisationPaymentResponse(Boolean.FALSE, null, null, BigDecimal.ZERO, "MALFORMED",
+                        vendorTxCode, statusDetail);
             } else if (status != null && "NOTAUTHED".equals(status)) {
-                Debug.logInfo("SagePay - NotAuthed authorisation request for order : " + vendorTxCode, module);
-                result = SagePayUtil.buildCardAuthorisationPaymentResponse(Boolean.FALSE, null, securityKey, BigDecimal.ZERO, vpsTxId, vendorTxCode, statusDetail);
+                Debug.logInfo("SagePay - NotAuthed authorisation request for order : " + vendorTxCode, MODULE);
+                result = SagePayUtil.buildCardAuthorisationPaymentResponse(Boolean.FALSE, null, securityKey, BigDecimal.ZERO, vpsTxId, vendorTxCode,
+                        statusDetail);
             } else if (status != null && "REJECTED".equals(status)) {
-                Debug.logInfo("SagePay - Rejected authorisation request for order : " + vendorTxCode, module);
-                result = SagePayUtil.buildCardAuthorisationPaymentResponse(Boolean.FALSE, null, securityKey, new BigDecimal(amount), vpsTxId, vendorTxCode, statusDetail);
+                Debug.logInfo("SagePay - Rejected authorisation request for order : " + vendorTxCode, MODULE);
+                result = SagePayUtil.buildCardAuthorisationPaymentResponse(Boolean.FALSE, null, securityKey, new BigDecimal(amount), vpsTxId,
+                        vendorTxCode, statusDetail);
             } else {
-                Debug.logInfo("SagePay - Invalid status " + status + " received for order : " + vendorTxCode, module);
-                result = SagePayUtil.buildCardAuthorisationPaymentResponse(Boolean.FALSE, null, null, BigDecimal.ZERO, "ERROR", vendorTxCode, statusDetail);
+                Debug.logInfo("SagePay - Invalid status " + status + " received for order : " + vendorTxCode, MODULE);
+                result = SagePayUtil.buildCardAuthorisationPaymentResponse(Boolean.FALSE, null, null, BigDecimal.ZERO, "ERROR",
+                        vendorTxCode, statusDetail);
             }
-        } catch(GenericServiceException e) {
-            Debug.logError(e, "Error in calling SagePayPaymentAuthentication", module);
-            result = ServiceUtil.returnError(UtilProperties.getMessage(resource, "AccountingSagePayPaymentAuthorisationException", UtilMisc.toMap("errorString", e.getMessage()), locale));
+        } catch (GenericServiceException e) {
+            Debug.logError(e, "Error in calling SagePayPaymentAuthentication", MODULE);
+            result = ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE, "AccountingSagePayPaymentAuthorisationException",
+                    UtilMisc.toMap("errorString", e.getMessage()), locale));
         }
         return result;
     }
 
     public static Map<String, Object> ccCapture(DispatchContext ctx, Map<String, Object> context) {
-        Debug.logInfo("SagePay - Entered ccCapture", module);
-        Debug.logInfo("SagePay ccCapture context : " + context, module);
+        Debug.logInfo("SagePay - Entered ccCapture", MODULE);
+        Debug.logInfo("SagePay ccCapture context : " + context, MODULE);
         GenericValue orderPaymentPreference = (GenericValue) context.get("orderPaymentPreference");
         GenericValue authTransaction = PaymentGatewayServices.getAuthTransaction(orderPaymentPreference);
         context.put("authTransaction", authTransaction);
         Map<String, Object> response = processCardCapturePayment(ctx, context);
 
-        Debug.logInfo("SagePay ccCapture response : " + response, module);
-        Debug.logInfo("SagePay - Exiting ccCapture", module);
+        Debug.logInfo("SagePay ccCapture response : " + response, MODULE);
+        Debug.logInfo("SagePay - Exiting ccCapture", MODULE);
 
         return response;
     }
@@ -272,44 +274,47 @@ public class SagePayPaymentServices {
                             "vpsTxId", vpsTxId,
                             "securityKey", securityKey,
                             "txAuthNo", txAuthCode,
-                            "amount", amount.toString()
-                        )
-                    );
-            Debug.logInfo("SagePay - SagePayPaymentAuthorisation result : " + paymentResult, module);
+                            "amount", amount.toString()));
+            Debug.logInfo("SagePay - SagePayPaymentAuthorisation result : " + paymentResult, MODULE);
             String status = (String) paymentResult.get("status");
             String statusDetail = (String) paymentResult.get("statusDetail");
             if (status != null && "OK".equals(status)) {
-                Debug.logInfo("SagePay Payment Released for Order : " + vendorTxCode, module);
-                result = SagePayUtil.buildCardCapturePaymentResponse(Boolean.TRUE, txAuthCode, securityKey, amount, vpsTxId, vendorTxCode, statusDetail);
+                Debug.logInfo("SagePay Payment Released for Order : " + vendorTxCode, MODULE);
+                result = SagePayUtil.buildCardCapturePaymentResponse(Boolean.TRUE, txAuthCode, securityKey, amount, vpsTxId, vendorTxCode,
+                        statusDetail);
             } else {
-                Debug.logInfo("SagePay - Invalid status " + status + " received for order : " + vendorTxCode, module);
-                result = SagePayUtil.buildCardCapturePaymentResponse(Boolean.FALSE, txAuthCode, securityKey, amount, vpsTxId, vendorTxCode, statusDetail);
+                Debug.logInfo("SagePay - Invalid status " + status + " received for order : " + vendorTxCode, MODULE);
+                result = SagePayUtil.buildCardCapturePaymentResponse(Boolean.FALSE, txAuthCode, securityKey, amount, vpsTxId, vendorTxCode,
+                        statusDetail);
             }
-        } catch(GenericServiceException e) {
-            Debug.logError(e, "Error in calling SagePayPaymentAuthorisation", module);
-            result = ServiceUtil.returnError(UtilProperties.getMessage(resource, "AccountingSagePayPaymentAuthorisationException", UtilMisc.toMap("errorString", e.getMessage()), locale));
+        } catch (GenericServiceException e) {
+            Debug.logError(e, "Error in calling SagePayPaymentAuthorisation", MODULE);
+            result = ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE, "AccountingSagePayPaymentAuthorisationException",
+                    UtilMisc.toMap("errorString", e.getMessage()), locale));
         }
         return result;
     }
 
     public static Map<String, Object> ccRefund(DispatchContext ctx, Map<String, Object> context) {
-        Debug.logInfo("SagePay - Entered ccRefund", module);
-        Debug.logInfo("SagePay ccRefund context : " + context, module);
+        Debug.logInfo("SagePay - Entered ccRefund", MODULE);
+        Debug.logInfo("SagePay ccRefund context : " + context, MODULE);
         Locale locale = (Locale) context.get("locale");
         GenericValue orderPaymentPreference = (GenericValue) context.get("orderPaymentPreference");
         GenericValue captureTransaction = PaymentGatewayServices.getCaptureTransaction(orderPaymentPreference);
         if (captureTransaction == null) {
-            return ServiceUtil.returnError(UtilProperties.getMessage(resource, "AccountingPaymentTransactionAuthorizationNotFoundCannotRefund", locale));
+            return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE, "AccountingPaymentTransactionAuthorizationNotFoundCannotRefund",
+                    locale));
         }
-        Debug.logInfo("SagePay ccRefund captureTransaction : " + captureTransaction, module);
+        Debug.logInfo("SagePay ccRefund captureTransaction : " + captureTransaction, MODULE);
         GenericValue creditCard = null;
         try {
             creditCard = orderPaymentPreference.getRelatedOne("CreditCard", false);
         } catch (GenericEntityException e) {
-            Debug.logError(e, "Error getting CreditCard for OrderPaymentPreference : " + orderPaymentPreference, module);
-            return ServiceUtil.returnError(UtilProperties.getMessage(resource, "AccountingPaymentUnableToGetCCInfo", locale) + " " + orderPaymentPreference);
+            Debug.logError(e, "Error getting CreditCard for OrderPaymentPreference : " + orderPaymentPreference, MODULE);
+            return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE, "AccountingPaymentUnableToGetCCInfo", locale)
+                    + " " + orderPaymentPreference);
         }
-        context.put("creditCard",creditCard);
+        context.put("creditCard", creditCard);
         context.put("captureTransaction", captureTransaction);
 
         List<GenericValue> authTransactions = PaymentGatewayServices.getAuthTransactions(orderPaymentPreference);
@@ -334,7 +339,7 @@ public class SagePayPaymentServices {
         Map<String, Object> response = null;
 
         if (authCal.before(yesterday)) {
-            Debug.logInfo("SagePay - Calling Refund for Refund", module);
+            Debug.logInfo("SagePay - Calling Refund for Refund", MODULE);
             response = processCardRefundPayment(ctx, context);
         } else {
 
@@ -342,15 +347,15 @@ public class SagePayPaymentServices {
             cal.set(nowCal.get(Calendar.YEAR), nowCal.get(Calendar.MONTH), nowCal.get(Calendar.DATE), 23, 49, 59);
 
             if (authCal.before(cal)) {
-                Debug.logInfo("SagePay - Calling Void for Refund", module);
+                Debug.logInfo("SagePay - Calling Void for Refund", MODULE);
                 response = processCardVoidPayment(ctx, context);
             } else {
-                Debug.logInfo("SagePay - Calling Refund for Refund", module);
+                Debug.logInfo("SagePay - Calling Refund for Refund", MODULE);
                 response = processCardRefundPayment(ctx, context);
             }
         }
 
-        Debug.logInfo("SagePay ccRefund response : " + response, module);
+        Debug.logInfo("SagePay ccRefund response : " + response, MODULE);
         return response;
     }
 
@@ -377,10 +382,8 @@ public class SagePayPaymentServices {
                             "relatedVPSTxId", captureTransaction.get("referenceNum"),
                             "relatedVendorTxCode", captureTransaction.get("altReference"),
                             "relatedSecurityKey", captureTransaction.get("gatewayFlag"),
-                            "relatedTxAuthNo", captureTransaction.get("gatewayCode")
-                        )
-                    );
-            Debug.logInfo("SagePay - SagePayPaymentRefund result : " + paymentResult, module);
+                            "relatedTxAuthNo", captureTransaction.get("gatewayCode")));
+            Debug.logInfo("SagePay - SagePayPaymentRefund result : " + paymentResult, MODULE);
 
             String status = (String) paymentResult.get("status");
             String statusDetail = (String) paymentResult.get("statusDetail");
@@ -388,16 +391,17 @@ public class SagePayPaymentServices {
             String txAuthNo = (String) paymentResult.get("txAuthNo");
 
             if (status != null && "OK".equals(status)) {
-                Debug.logInfo("SagePay Payment Refunded for Order : " + orderId, module);
+                Debug.logInfo("SagePay Payment Refunded for Order : " + orderId, MODULE);
                 result = SagePayUtil.buildCardRefundPaymentResponse(Boolean.TRUE, txAuthNo, amount, vpsTxId, orderId, statusDetail);
             } else {
-                Debug.logInfo("SagePay - Invalid status " + status + " received for order : " + orderId, module);
+                Debug.logInfo("SagePay - Invalid status " + status + " received for order : " + orderId, MODULE);
                 result = SagePayUtil.buildCardRefundPaymentResponse(Boolean.FALSE, null, BigDecimal.ZERO, status, orderId, statusDetail);
             }
 
-        } catch(GenericServiceException e) {
-            Debug.logError(e, "Error in calling SagePayPaymentRefund", module);
-            result = ServiceUtil.returnError(UtilProperties.getMessage(resource, "AccountingSagePayPaymentRefundException", UtilMisc.toMap("errorString", e.getMessage()), locale));
+        } catch (GenericServiceException e) {
+            Debug.logError(e, "Error in calling SagePayPaymentRefund", MODULE);
+            result = ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE, "AccountingSagePayPaymentRefundException",
+                    UtilMisc.toMap("errorString", e.getMessage()), locale));
         }
 
         return result;
@@ -419,50 +423,50 @@ public class SagePayPaymentServices {
                             "vendorTxCode", captureTransaction.get("altReference"),
                             "vpsTxId", captureTransaction.get("referenceNum"),
                             "securityKey", captureTransaction.get("gatewayFlag"),
-                            "txAuthNo", captureTransaction.get("gatewayCode")
-                        )
-                    );
+                            "txAuthNo", captureTransaction.get("gatewayCode")));
 
-            Debug.logInfo("SagePay - SagePayPaymentVoid result : " + paymentResult, module);
+            Debug.logInfo("SagePay - SagePayPaymentVoid result : " + paymentResult, MODULE);
 
             String status = (String) paymentResult.get("status");
             String statusDetail = (String) paymentResult.get("statusDetail");
 
             if (status != null && "OK".equals(status)) {
-                Debug.logInfo("SagePay Payment Voided for Order : " + orderId, module);
+                Debug.logInfo("SagePay Payment Voided for Order : " + orderId, MODULE);
                 result = SagePayUtil.buildCardVoidPaymentResponse(Boolean.TRUE, amount, "SUCCESS", orderId, statusDetail);
             } else if (status != null && "MALFORMED".equals(status)) {
-                Debug.logInfo("SagePay - Malformed void request for order : " + orderId, module);
+                Debug.logInfo("SagePay - Malformed void request for order : " + orderId, MODULE);
                 result = SagePayUtil.buildCardVoidPaymentResponse(Boolean.FALSE, BigDecimal.ZERO, "MALFORMED", orderId, statusDetail);
-            } else if (status != null && "INVALID".equals(status)){
-                Debug.logInfo("SagePay - Invalid void request for order : " + orderId, module);
+            } else if (status != null && "INVALID".equals(status)) {
+                Debug.logInfo("SagePay - Invalid void request for order : " + orderId, MODULE);
                 result = SagePayUtil.buildCardVoidPaymentResponse(Boolean.FALSE, BigDecimal.ZERO, "INVALID", orderId, statusDetail);
-            } else if (status != null && "ERROR".equals(status)){
-                Debug.logInfo("SagePay - Error in void request for order : " + orderId, module);
+            } else if (status != null && "ERROR".equals(status)) {
+                Debug.logInfo("SagePay - Error in void request for order : " + orderId, MODULE);
                 result = SagePayUtil.buildCardVoidPaymentResponse(Boolean.FALSE, BigDecimal.ZERO, "ERROR", orderId, statusDetail);
             }
 
-        } catch(GenericServiceException e) {
-            Debug.logError(e, "Error in calling SagePayPaymentVoid", module);
-            result = ServiceUtil.returnError(UtilProperties.getMessage(resource, "AccountingSagePayPaymentVoidException", UtilMisc.toMap("errorString", e.getMessage()), locale));
+        } catch (GenericServiceException e) {
+            Debug.logError(e, "Error in calling SagePayPaymentVoid", MODULE);
+            result = ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE, "AccountingSagePayPaymentVoidException",
+                    UtilMisc.toMap("errorString", e.getMessage()), locale));
         }
         return result;
     }
 
     public static Map<String, Object> ccRelease(DispatchContext ctx, Map<String, Object> context) {
-        Debug.logInfo("SagePay - Entered ccRelease", module);
-        Debug.logInfo("SagePay ccRelease context : " + context, module);
+        Debug.logInfo("SagePay - Entered ccRelease", MODULE);
+        Debug.logInfo("SagePay ccRelease context : " + context, MODULE);
         Locale locale = (Locale) context.get("locale");
         GenericValue orderPaymentPreference = (GenericValue) context.get("orderPaymentPreference");
 
         GenericValue authTransaction = PaymentGatewayServices.getAuthTransaction(orderPaymentPreference);
         if (authTransaction == null) {
-            return ServiceUtil.returnError(UtilProperties.getMessage(resource, "AccountingPaymentTransactionAuthorizationNotFoundCannotRelease", locale));
+            return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE, "AccountingPaymentTransactionAuthorizationNotFoundCannotRelease",
+                    locale));
         }
         context.put("authTransaction", authTransaction);
 
         Map<String, Object> response = processCardReleasePayment(ctx, context);
-        Debug.logInfo("SagePay ccRelease response : " + response, module);
+        Debug.logInfo("SagePay ccRelease response : " + response, MODULE);
         return response;
     }
 
@@ -486,26 +490,25 @@ public class SagePayPaymentServices {
                             "releaseAmount", amount.toString(),
                             "vpsTxId", refNum,
                             "securityKey", authTransaction.get("gatewayFlag"),
-                            "txAuthNo", authTransaction.get("gatewayCode")
-                        )
-                    );
+                            "txAuthNo", authTransaction.get("gatewayCode")));
 
-            Debug.logInfo("SagePay - SagePayPaymentRelease result : " + paymentResult, module);
+            Debug.logInfo("SagePay - SagePayPaymentRelease result : " + paymentResult, MODULE);
 
             String status = (String) paymentResult.get("status");
             String statusDetail = (String) paymentResult.get("statusDetail");
 
             if (status != null && "OK".equals(status)) {
-                Debug.logInfo("SagePay Payment Released for Order : " + orderId, module);
+                Debug.logInfo("SagePay Payment Released for Order : " + orderId, MODULE);
                 result = SagePayUtil.buildCardReleasePaymentResponse(Boolean.TRUE, null, amount, refNum, orderId, statusDetail);
             } else {
-                Debug.logInfo("SagePay - Invalid status " + status + " received for order : " + orderId, module);
+                Debug.logInfo("SagePay - Invalid status " + status + " received for order : " + orderId, MODULE);
                 result = SagePayUtil.buildCardReleasePaymentResponse(Boolean.FALSE, null, amount, refNum, orderId, statusDetail);
             }
 
-        } catch(GenericServiceException e) {
-            Debug.logError(e, "Error in calling SagePayPaymentRelease", module);
-            result = ServiceUtil.returnError(UtilProperties.getMessage(resource, "AccountingSagePayPaymentReleaseException", UtilMisc.toMap("errorString", e.getMessage()), locale));
+        } catch (GenericServiceException e) {
+            Debug.logError(e, "Error in calling SagePayPaymentRelease", MODULE);
+            result = ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE, "AccountingSagePayPaymentReleaseException",
+                    UtilMisc.toMap("errorString", e.getMessage()), locale));
         }
 
         return result;

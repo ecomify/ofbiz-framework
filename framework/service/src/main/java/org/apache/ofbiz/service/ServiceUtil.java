@@ -18,7 +18,6 @@
  *******************************************************************************/
 package org.apache.ofbiz.service;
 
-import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -28,9 +27,7 @@ import java.util.Map;
 import java.util.TimeZone;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.transaction.Transaction;
 
-import org.apache.ofbiz.base.config.GenericConfigException;
 import org.apache.ofbiz.base.util.Debug;
 import org.apache.ofbiz.base.util.UtilDateTime;
 import org.apache.ofbiz.base.util.UtilGenerics;
@@ -40,37 +37,29 @@ import org.apache.ofbiz.base.util.UtilValidate;
 import org.apache.ofbiz.entity.Delegator;
 import org.apache.ofbiz.entity.GenericEntityException;
 import org.apache.ofbiz.entity.GenericValue;
-import org.apache.ofbiz.entity.condition.EntityCondition;
-import org.apache.ofbiz.entity.condition.EntityExpr;
-import org.apache.ofbiz.entity.condition.EntityOperator;
-import org.apache.ofbiz.entity.transaction.GenericTransactionException;
-import org.apache.ofbiz.entity.transaction.TransactionUtil;
-import org.apache.ofbiz.entity.util.EntityListIterator;
 import org.apache.ofbiz.entity.util.EntityQuery;
 import org.apache.ofbiz.security.Security;
-import org.apache.ofbiz.service.config.ServiceConfigUtil;
 
-import com.ibm.icu.util.Calendar;
 
 /**
  * Generic Service Utility Class
  */
 public final class ServiceUtil {
 
-    public static final String module = ServiceUtil.class.getName();
-    private static final String resource = "ServiceErrorUiLabels";
+    private static final String MODULE = ServiceUtil.class.getName();
+    private static final String RESOURCE = "ServiceErrorUiLabels";
 
-    private ServiceUtil () {}
+    private ServiceUtil() { }
 
     /** A little short-cut method to check to see if a service returned an error */
     public static boolean isError(Map<String, ? extends Object> results) {
-        return !(results == null || results.get(ModelService.RESPONSE_MESSAGE) == null) &&
-                ModelService.RESPOND_ERROR.equals(results.get(ModelService.RESPONSE_MESSAGE));
+        return !(results == null || results.get(ModelService.RESPONSE_MESSAGE) == null)
+                && ModelService.RESPOND_ERROR.equals(results.get(ModelService.RESPONSE_MESSAGE));
     }
 
     public static boolean isFailure(Map<String, ? extends Object> results) {
-        return !(results == null || results.get(ModelService.RESPONSE_MESSAGE) == null) &&
-                ModelService.RESPOND_FAIL.equals(results.get(ModelService.RESPONSE_MESSAGE));
+        return !(results == null || results.get(ModelService.RESPONSE_MESSAGE) == null)
+                && ModelService.RESPOND_FAIL.equals(results.get(ModelService.RESPONSE_MESSAGE));
     }
 
     /** A little short-cut method to check to see if a service was successful (neither error or failed) */
@@ -105,12 +94,15 @@ public final class ServiceUtil {
         return returnProblem(ModelService.RESPOND_FAIL, null, null, null, null);
     }
 
-    /** A small routine used all over to improve code efficiency, make a result map with the message and the error response code, also forwards any error messages from the nestedResult */
-    public static Map<String, Object> returnError(String errorMessage, List<? extends Object> errorMessageList, Map<String, ? extends Object> errorMessageMap, Map<String, ? extends Object> nestedResult) {
+    /** A small routine used all over to improve code efficiency, make a result map with the message and the error response code,
+     * also forwards any error messages from the nestedResult */
+    public static Map<String, Object> returnError(String errorMessage, List<? extends Object> errorMessageList, Map<String, ? extends Object>
+            errorMessageMap, Map<String, ? extends Object> nestedResult) {
         return returnProblem(ModelService.RESPOND_ERROR, errorMessage, errorMessageList, errorMessageMap, nestedResult);
     }
 
-    public static Map<String, Object> returnProblem(String returnType, String errorMessage, List<? extends Object> errorMessageList, Map<String, ? extends Object> errorMessageMap, Map<String, ? extends Object> nestedResult) {
+    public static Map<String, Object> returnProblem(String returnType, String errorMessage, List<? extends Object> errorMessageList,
+                                                    Map<String, ? extends Object> errorMessageMap, Map<String, ? extends Object> nestedResult) {
         Map<String, Object> result = new HashMap<>();
         result.put(ModelService.RESPONSE_MESSAGE, returnType);
         if (errorMessage != null) {
@@ -139,13 +131,13 @@ public final class ServiceUtil {
             }
         }
 
-        if (errorList.size() > 0) {
+        if (!errorList.isEmpty()) {
             result.put(ModelService.ERROR_MESSAGE_LIST, errorList);
         }
-        if (errorMap.size() > 0) {
+        if (!errorMap.isEmpty()) {
             result.put(ModelService.ERROR_MESSAGE_MAP, errorMap);
         }
-        Debug.logError(result.toString(), module);
+        Debug.logError(result.toString(), MODULE);
         return result;
     }
 
@@ -184,10 +176,13 @@ public final class ServiceUtil {
     /** A small routine used all over to improve code efficiency, get the partyId and does a security check
      *<b>security check</b>: userLogin partyId must equal partyId, or must have [secEntity][secOperation] permission
      */
-    public static String getPartyIdCheckSecurity(GenericValue userLogin, Security security, Map<String, ? extends Object> context, Map<String, Object> result, String secEntity, String secOperation) {
+    public static String getPartyIdCheckSecurity(GenericValue userLogin, Security security, Map<String, ? extends Object> context,
+                                                 Map<String, Object> result, String secEntity, String secOperation) {
         return getPartyIdCheckSecurity(userLogin, security, context, result, secEntity, secOperation, null, null);
     }
-    public static String getPartyIdCheckSecurity(GenericValue userLogin, Security security, Map<String, ? extends Object> context, Map<String, Object> result, String secEntity, String secOperation, String adminSecEntity, String adminSecOperation) {
+    public static String getPartyIdCheckSecurity(GenericValue userLogin, Security security, Map<String, ? extends Object> context,
+                                                 Map<String, Object> result, String secEntity, String secOperation, String adminSecEntity,
+                                                 String adminSecOperation) {
         String partyId = (String) context.get("partyId");
         Locale locale = getLocale(context);
         if (UtilValidate.isEmpty(partyId)) {
@@ -197,16 +192,17 @@ public final class ServiceUtil {
         // partyId might be null, so check it
         if (UtilValidate.isEmpty(partyId)) {
             result.put(ModelService.RESPONSE_MESSAGE, ModelService.RESPOND_ERROR);
-            String errMsg = UtilProperties.getMessage(ServiceUtil.resource, "serviceUtil.party_id_missing", locale) + ".";
+            String errMsg = UtilProperties.getMessage(ServiceUtil.RESOURCE, "serviceUtil.party_id_missing", locale) + ".";
             result.put(ModelService.ERROR_MESSAGE, errMsg);
             return partyId;
         }
 
         // <b>security check</b>: userLogin partyId must equal partyId, or must have either of the two permissions
         if (!partyId.equals(userLogin.getString("partyId"))) {
-            if (!security.hasEntityPermission(secEntity, secOperation, userLogin) && !(adminSecEntity != null && adminSecOperation != null && security.hasEntityPermission(adminSecEntity, adminSecOperation, userLogin))) {
+            if (!security.hasEntityPermission(secEntity, secOperation, userLogin) && !(adminSecEntity != null && adminSecOperation != null
+                    && security.hasEntityPermission(adminSecEntity, adminSecOperation, userLogin))) {
                 result.put(ModelService.RESPONSE_MESSAGE, ModelService.RESPOND_ERROR);
-                String errMsg = UtilProperties.getMessage(ServiceUtil.resource, "serviceUtil.no_permission_to_operation", locale) + ".";
+                String errMsg = UtilProperties.getMessage(ServiceUtil.RESOURCE, "serviceUtil.no_permission_to_operation", locale) + ".";
                 result.put(ModelService.ERROR_MESSAGE, errMsg);
                 return partyId;
             }
@@ -234,7 +230,7 @@ public final class ServiceUtil {
     }
 
     public static void getMessages(HttpServletRequest request, Map<String, ? extends Object> result, String defaultMessage,
-                                   String msgPrefix, String msgSuffix, String errorPrefix, String errorSuffix, String successPrefix, String successSuffix) {
+            String msgPrefix, String msgSuffix, String errorPrefix, String errorSuffix, String successPrefix, String successSuffix) {
         String errorMessage = ServiceUtil.makeErrorMessage(result, msgPrefix, msgSuffix, errorPrefix, errorSuffix);
         String successMessage = ServiceUtil.makeSuccessMessage(result, msgPrefix, msgSuffix, successPrefix, successSuffix);
         setMessages(request, errorMessage, successMessage, defaultMessage);
@@ -262,9 +258,10 @@ public final class ServiceUtil {
         return errorMessage.toString();
     }
 
-    public static String makeErrorMessage(Map<String, ? extends Object> result, String msgPrefix, String msgSuffix, String errorPrefix, String errorSuffix) {
+    public static String makeErrorMessage(Map<String, ? extends Object> result, String msgPrefix, String msgSuffix,
+                                          String errorPrefix, String errorSuffix) {
         if (result == null) {
-            Debug.logWarning("A null result map was passed", module);
+            Debug.logWarning("A null result map was passed", MODULE);
             return null;
         }
         String errorMsg = (String) result.get(ModelService.ERROR_MESSAGE);
@@ -309,7 +306,8 @@ public final class ServiceUtil {
         return null;
     }
 
-    public static String makeSuccessMessage(Map<String, ? extends Object> result, String msgPrefix, String msgSuffix, String successPrefix, String successSuffix) {
+    public static String makeSuccessMessage(Map<String, ? extends Object> result, String msgPrefix, String msgSuffix,
+                                            String successPrefix, String successSuffix) {
         if (result == null) {
             return "";
         }
@@ -367,7 +365,6 @@ public final class ServiceUtil {
      * Takes the result of an invocation and extracts any error messages
      * and adds them to the targetList or targetMap. This will handle both List and String
      * error messags.
-     *
      * @param targetList    The List to add the error messages to
      * @param targetMap The Map to add any Map error messages to
      * @param callResult The result from an invocation
@@ -392,233 +389,6 @@ public final class ServiceUtil {
             errorMsgMap = UtilGenerics.cast(callResult.get(ModelService.ERROR_MESSAGE_MAP));
             targetMap.putAll(errorMsgMap);
         }
-    }
-
-    public static Map<String, Object> purgeOldJobs(DispatchContext dctx, Map<String, ? extends Object> context) {
-         Locale locale = (Locale)context.get("locale");
-        Debug.logWarning("purgeOldJobs service invoked. This service is obsolete - the Job Scheduler will purge old jobs automatically.", module);
-        String sendPool = null;
-        Calendar cal = Calendar.getInstance();
-        try {
-            sendPool = ServiceConfigUtil.getServiceEngine().getThreadPool().getSendToPool();
-            int daysToKeep = ServiceConfigUtil.getServiceEngine().getThreadPool().getPurgeJobDays();
-            cal.add(Calendar.DAY_OF_YEAR, -daysToKeep);
-        } catch (GenericConfigException e) {
-            Debug.logWarning(e, "Exception thrown while getting service configuration: ", module);
-            return returnError(UtilProperties.getMessage(ServiceUtil.resource, "ServiceExceptionThrownWhileGettingServiceConfiguration", UtilMisc.toMap("errorString", e), locale));
-        }
-        Delegator delegator = dctx.getDelegator();
-
-        Timestamp purgeTime = new Timestamp(cal.getTimeInMillis());
-
-        // create the conditions to query
-        EntityCondition pool = EntityCondition.makeCondition("poolId", sendPool);
-
-        List<EntityExpr> finExp = UtilMisc.toList(EntityCondition.makeCondition("finishDateTime", EntityOperator.NOT_EQUAL, null));
-        finExp.add(EntityCondition.makeCondition("finishDateTime", EntityOperator.LESS_THAN, purgeTime));
-
-        List<EntityExpr> canExp = UtilMisc.toList(EntityCondition.makeCondition("cancelDateTime", EntityOperator.NOT_EQUAL, null));
-        canExp.add(EntityCondition.makeCondition("cancelDateTime", EntityOperator.LESS_THAN, purgeTime));
-
-        EntityCondition cancelled = EntityCondition.makeCondition(canExp);
-        EntityCondition finished = EntityCondition.makeCondition(finExp);
-
-        EntityCondition doneCond = EntityCondition.makeCondition(UtilMisc.toList(cancelled, finished), EntityOperator.OR);
-
-        // always suspend the current transaction; use the one internally
-        Transaction parent = null;
-        try {
-            if (TransactionUtil.getStatus() != TransactionUtil.STATUS_NO_TRANSACTION) {
-                parent = TransactionUtil.suspend();
-            }
-
-            // lookup the jobs - looping 1000 at a time to avoid problems with cursors
-            // also, using unique transaction to delete as many as possible even with errors
-            boolean noMoreResults = false;
-            boolean beganTx1 = false;
-            while (!noMoreResults) {
-                // current list of records
-                List<GenericValue> curList = null;
-                try {
-                    // begin this transaction
-                    beganTx1 = TransactionUtil.begin();
-                    EntityQuery eq = EntityQuery.use(delegator)
-                            .select("jobId")
-                            .from("JobSandbox")
-                            .where(EntityCondition.makeCondition(UtilMisc.toList(doneCond, pool)))
-                            .cursorScrollInsensitive()
-                            .maxRows(1000);
-
-                    try (EntityListIterator foundJobs = eq.queryIterator()) {
-                        curList = foundJobs.getPartialList(1, 1000);
-                    }
-
-                } catch (GenericEntityException e) {
-                    Debug.logError(e, "Cannot obtain job data from datasource", module);
-                    try {
-                        TransactionUtil.rollback(beganTx1, e.getMessage(), e);
-                    } catch (GenericTransactionException e1) {
-                        Debug.logWarning(e1, module);
-                    }
-                    return ServiceUtil.returnError(e.getMessage());
-                } finally {
-                    try {
-                        TransactionUtil.commit(beganTx1);
-                    } catch (GenericTransactionException e) {
-                        Debug.logWarning(e, module);
-                    }
-                }
-                // remove each from the list in its own transaction
-                if (UtilValidate.isNotEmpty(curList)) {
-                    for (GenericValue job: curList) {
-                        String jobId = job.getString("jobId");
-                        boolean beganTx2 = false;
-                        try {
-                            beganTx2 = TransactionUtil.begin();
-                            job.remove();
-                        } catch (GenericEntityException e) {
-                            Debug.logInfo("Cannot remove job data for ID: " + jobId, module);
-                            try {
-                                TransactionUtil.rollback(beganTx2, e.getMessage(), e);
-                            } catch (GenericTransactionException e1) {
-                                Debug.logWarning(e1, module);
-                            }
-                        } finally {
-                            try {
-                                TransactionUtil.commit(beganTx2);
-                            } catch (GenericTransactionException e) {
-                                Debug.logWarning(e, module);
-                            }
-                        }
-                    }
-                } else {
-                    noMoreResults = true;
-                }
-            }
-
-            // Now JobSandbox data is cleaned up. Now process Runtime data and remove the whole data in single shot that is of no need.
-            boolean beganTx3 = false;
-            GenericValue runtimeData = null;
-            List<GenericValue> runtimeDataToDelete = new LinkedList<>();
-            long jobsandBoxCount = 0;
-            try {
-                // begin this transaction
-                beganTx3 = TransactionUtil.begin();
-
-                EntityQuery eq =EntityQuery.use(delegator).select("runtimeDataId").from("RuntimeData");
-                try (EntityListIterator  runTimeDataIt = eq.queryIterator()) {
-                    while ((runtimeData = runTimeDataIt.next()) != null) {
-                        EntityCondition whereCondition = EntityCondition.makeCondition(UtilMisc.toList(EntityCondition.makeCondition("runtimeDataId", EntityOperator.NOT_EQUAL, null),
-                                EntityCondition.makeCondition("runtimeDataId", EntityOperator.EQUALS, runtimeData.getString("runtimeDataId"))), EntityOperator.AND);
-                        jobsandBoxCount = EntityQuery.use(delegator).from("JobSandbox").where(whereCondition).queryCount();
-                        if (BigDecimal.ZERO.compareTo(BigDecimal.valueOf(jobsandBoxCount)) == 0) {
-                            runtimeDataToDelete.add(runtimeData);
-                        }
-                    }
-                }
-                // Now we are ready to delete runtimeData, we can safely delete complete list that we have recently fetched i.e runtimeDataToDelete.
-                delegator.removeAll(runtimeDataToDelete);
-            } catch (GenericEntityException e) {
-                Debug.logError(e, "Cannot obtain runtime data from datasource", module);
-                try {
-                    TransactionUtil.rollback(beganTx3, e.getMessage(), e);
-                } catch (GenericTransactionException e1) {
-                    Debug.logWarning(e1, module);
-                }
-                return ServiceUtil.returnError(e.getMessage());
-            } finally {
-                try {
-                    TransactionUtil.commit(beganTx3);
-                } catch (GenericTransactionException e) {
-                    Debug.logWarning(e, module);
-                }
-            }
-        } catch (GenericTransactionException e) {
-            Debug.logError(e, "Unable to suspend transaction; cannot purge jobs!", module);
-            return ServiceUtil.returnError(e.getMessage());
-        } finally {
-            if (parent != null) {
-                try {
-                    TransactionUtil.resume(parent);
-                } catch (GenericTransactionException e) {
-                    Debug.logWarning(e, module);
-                }
-            }
-        }
-
-        return ServiceUtil.returnSuccess();
-    }
-
-    public static Map<String, Object> cancelJob(DispatchContext dctx, Map<String, ? extends Object> context) {
-        Delegator delegator = dctx.getDelegator();
-        Security security = dctx.getSecurity();
-        GenericValue userLogin = (GenericValue) context.get("userLogin");
-        Locale locale = getLocale(context);
-
-        if (!security.hasPermission("SERVICE_INVOKE_ANY", userLogin)) {
-            String errMsg = UtilProperties.getMessage(ServiceUtil.resource, "serviceUtil.no_permission_to_run", locale) + ".";
-            return ServiceUtil.returnError(errMsg);
-        }
-
-        String jobId = (String) context.get("jobId");
-        Map<String, Object> fields = UtilMisc.<String, Object>toMap("jobId", jobId);
-
-        GenericValue job = null;
-        try {
-            job = EntityQuery.use(delegator).from("JobSandbox").where("jobId", jobId).queryOne();
-            if (job != null) {
-                job.set("cancelDateTime", UtilDateTime.nowTimestamp());
-                job.set("statusId", "SERVICE_CANCELLED");
-                job.store();
-            }
-        } catch (GenericEntityException e) {
-            Debug.logError(e, module);
-            String errMsg = UtilProperties.getMessage(ServiceUtil.resource, "serviceUtil.unable_to_cancel_job", locale) + " : " + fields;
-            return ServiceUtil.returnError(errMsg);
-        }
-
-        if (job != null) {
-            Timestamp cancelDate = job.getTimestamp("cancelDateTime");
-            Map<String, Object> result = ServiceUtil.returnSuccess();
-            result.put("cancelDateTime", cancelDate);
-            result.put("statusId", "SERVICE_PENDING"); // To more easily see current pending jobs and possibly cancel some others
-            return result;
-        }
-        String errMsg = UtilProperties.getMessage(ServiceUtil.resource, "serviceUtil.unable_to_cancel_job", locale) + " : " + null;
-        return ServiceUtil.returnError(errMsg);
-    }
-
-    public static Map<String, Object> cancelJobRetries(DispatchContext dctx, Map<String, ? extends Object> context) {
-        Delegator delegator = dctx.getDelegator();
-        Security security = dctx.getSecurity();
-        GenericValue userLogin = (GenericValue) context.get("userLogin");
-        Locale locale = getLocale(context);
-        if (!security.hasPermission("SERVICE_INVOKE_ANY", userLogin)) {
-            String errMsg = UtilProperties.getMessage(ServiceUtil.resource, "serviceUtil.no_permission_to_run", locale) + ".";
-            return ServiceUtil.returnError(errMsg);
-        }
-
-        String jobId = (String) context.get("jobId");
-        Map<String, Object> fields = UtilMisc.<String, Object>toMap("jobId", jobId);
-
-        GenericValue job = null;
-        try {
-            job = EntityQuery.use(delegator).from("JobSandbox").where("jobId", jobId).queryOne();
-            if (job != null) {
-                job.set("maxRetry", 0L);
-                job.store();
-            }
-        } catch (GenericEntityException e) {
-            Debug.logError(e, module);
-            String errMsg = UtilProperties.getMessage(ServiceUtil.resource, "serviceUtil.unable_to_cancel_job_retries", locale) + " : " + fields;
-            return ServiceUtil.returnError(errMsg);
-        }
-
-        if (job != null) {
-            return ServiceUtil.returnSuccess();
-        }
-        String errMsg = UtilProperties.getMessage(ServiceUtil.resource, "serviceUtil.unable_to_cancel_job_retries", locale) + " : " + null;
-        return ServiceUtil.returnError(errMsg);
     }
 
     public static Map<String, Object> genericDateCondition(DispatchContext dctx, Map<String, ? extends Object> context) {
@@ -649,13 +419,13 @@ public final class ServiceUtil {
                     userLogin = runAs;
                 }
             } catch (GenericEntityException e) {
-                Debug.logError(e, module);
+                Debug.logError(e, MODULE);
             }
         }
         return userLogin;
     }
 
-    private static Locale getLocale(Map<String, ? extends Object> context) {
+    public static Locale getLocale(Map<String, ? extends Object> context) {
         Locale locale = (Locale) context.get("locale");
         if (locale == null) {
             locale = Locale.getDefault();
@@ -676,51 +446,10 @@ public final class ServiceUtil {
         return UtilGenerics.cast(UtilMisc.toMap(args));
     }
 
-    public static Map<String, Object> resetJob(DispatchContext dctx, Map<String, Object> context) {
-        Delegator delegator = dctx.getDelegator();
-        Security security = dctx.getSecurity();
-        GenericValue userLogin = (GenericValue) context.get("userLogin");
-        Locale locale = getLocale(context);
-
-        if (!security.hasPermission("SERVICE_INVOKE_ANY", userLogin)) {
-            String errMsg = UtilProperties.getMessage(ServiceUtil.resource, "serviceUtil.no_permission_to_run", locale) + ".";
-            return ServiceUtil.returnError(errMsg);
-        }
-
-        String jobId = (String) context.get("jobId");
-        GenericValue job;
-        try {
-            job = EntityQuery.use(delegator).from("JobSandbox").where("jobId", jobId).cache().queryOne();
-        } catch (GenericEntityException e) {
-            Debug.logError(e, module);
-            return ServiceUtil.returnError(e.getMessage());
-        }
-
-        // update the job
-        if (job != null) {
-            job.set("statusId", "SERVICE_PENDING");
-            job.set("startDateTime", null);
-            job.set("finishDateTime", null);
-            job.set("cancelDateTime", null);
-            job.set("runByInstanceId", null);
-
-            // save the job
-            try {
-                job.store();
-            } catch (GenericEntityException e) {
-                Debug.logError(e, module);
-                return ServiceUtil.returnError(e.getMessage());
-            }
-        }
-
-        return ServiceUtil.returnSuccess();
-    }
-
     /**
      * Checks all incoming service attributes and look for fields with the same
      * name in the incoming map and copy those onto the outgoing map. Also
      * includes a userLogin if service requires one.
-     *
      * @param dispatcher
      * @param serviceName
      * @param fromMap
@@ -731,8 +460,8 @@ public final class ServiceUtil {
      * @return filled Map or null on error
      * @throws GeneralServiceException
      */
-    public static Map<String, Object> setServiceFields(LocalDispatcher dispatcher, String serviceName, Map<String, Object> fromMap, GenericValue userLogin,
-            TimeZone timeZone, Locale locale) throws GeneralServiceException {
+    public static Map<String, Object> setServiceFields(LocalDispatcher dispatcher, String serviceName, Map<String, Object> fromMap,
+            GenericValue userLogin, TimeZone timeZone, Locale locale) throws GeneralServiceException {
         Map<String, Object> outMap = new HashMap<>();
 
         ModelService modelService = null;
@@ -740,12 +469,12 @@ public final class ServiceUtil {
             modelService = dispatcher.getDispatchContext().getModelService(serviceName);
         } catch (GenericServiceException e) {
             String errMsg = "Could not get service definition for service name [" + serviceName + "]: ";
-            Debug.logError(e, errMsg, module);
+            Debug.logError(e, errMsg, MODULE);
             throw new GeneralServiceException(e);
         }
         outMap.putAll(modelService.makeValid(fromMap, ModelService.IN_PARAM, true, null, timeZone, locale));
 
-        if (userLogin != null && modelService.auth) {
+        if (userLogin != null && modelService.isAuth()) {
             outMap.put("userLogin", userLogin);
         }
 
@@ -753,6 +482,6 @@ public final class ServiceUtil {
     }
 
     public static String getResource() {
-        return resource;
+        return RESOURCE;
     }
 }

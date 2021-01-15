@@ -38,7 +38,7 @@ public final class UtilObject {
     private UtilObject() {
     }
 
-    public static final String module = UtilObject.class.getName();
+    private static final String MODULE = UtilObject.class.getName();
 
     /** Serialize an object to a byte array */
     public static byte[] getBytes(Object obj) {
@@ -47,7 +47,7 @@ public final class UtilObject {
             oos.writeObject(obj);
             data = bos.toByteArray();
         } catch (IOException e) {
-            Debug.logError(e, module);
+            Debug.logError(e, MODULE);
         }
         return data;
     }
@@ -77,15 +77,18 @@ public final class UtilObject {
         Object obj = null;
         try {
             obj = getObjectException(bytes);
+            // DiskFileItem, FileItemHeadersImpl are not serializable. So SafeObjectInputStream::resolveClass return null
+            if (obj == null) {
+                return null;
+            }
         } catch (ClassNotFoundException | IOException e) {
-            Debug.logError(e, module);
+            Debug.logError(e, MODULE);
         }
         return obj;
     }
 
     /**
      * Deserializes a byte array back to an object.
-     *
      * @param bytes  the array of bytes
      * @return the deserialized object.
      * @throws ClassNotFoundException when the class can not be deserialized.

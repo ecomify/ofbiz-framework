@@ -40,7 +40,7 @@ import org.apache.ofbiz.widget.model.ModelForm;
  */
 public final class Paginator {
 
-    public static final String module = Paginator.class.getName();
+    private static final String MODULE = Paginator.class.getName();
 
     public static int getActualPageSize(Map<String, Object> context) {
         Integer value = (Integer) context.get("actualPageSize");
@@ -60,21 +60,22 @@ public final class Paginator {
         int highIndex = 0;
         int listSize = modelForm.getOverrideListSize(context);
         if (listSize > 0) {
+            Debug.logVerbose("If listSize > 0, do nothing", MODULE);
         } else if (entryList instanceof EntityListIterator) {
             EntityListIterator iter = (EntityListIterator) entryList;
             try {
                 listSize = iter.getResultsSizeAfterPartialList();
             } catch (GenericEntityException e) {
-                Debug.logError(e, "Error getting list size", module);
+                Debug.logError(e, "Error getting list size", MODULE);
                 listSize = 0;
             }
         } else if (entryList instanceof List<?>) {
             List<?> items = (List<?>) entryList;
             listSize = items.size();
-            if(context.containsKey("result")){
+            if (context.containsKey("result")) {
                 Map<String, Object> resultMap = UtilGenerics.cast(context.get("result"));
-                if(resultMap.containsKey("listSize")){
-                    listSize = (int)resultMap.get("listSize");
+                if (resultMap.containsKey("listSize")) {
+                    listSize = (int) resultMap.get("listSize");
                 }
             }
         } else if (entryList instanceof PagedList) {
@@ -136,7 +137,7 @@ public final class Paginator {
                 viewIndex = Integer.parseInt((String) value);
             }
         } catch (Exception e) {
-            Debug.logWarning(e, "Error getting paginate view index: " + e.toString(), module);
+            Debug.logWarning(e, "Error getting paginate view index: " + e.toString(), MODULE);
         }
         return viewIndex;
     }
@@ -168,7 +169,7 @@ public final class Paginator {
                 viewSize = Integer.parseInt((String) value);
             }
         } catch (Exception e) {
-            Debug.logWarning(e, "Error getting paginate view size: " + e.toString(), module);
+            Debug.logWarning(e, "Error getting paginate view size: " + e.toString(), MODULE);
         }
         return viewSize;
     }
@@ -177,13 +178,13 @@ public final class Paginator {
 
         String lookupName = modelForm.getListName();
         if (UtilValidate.isEmpty(lookupName)) {
-            Debug.logError("No value for list or iterator name found.", module);
+            Debug.logError("No value for list or iterator name found.", MODULE);
             return;
         }
         Object obj = context.get(lookupName);
         if (obj == null) {
             if (Debug.verboseOn()) {
-                 Debug.logVerbose("No object for list or iterator name [" + lookupName + "] found, so not running pagination.", module);
+                Debug.logVerbose("No object for list or iterator name [" + lookupName + "] found, so not running pagination.", MODULE);
             }
             return;
         }
@@ -236,7 +237,7 @@ public final class Paginator {
             try {
                 ((EntityListIterator) iter).beforeFirst();
             } catch (GenericEntityException e) {
-                Debug.logError(e, "Error rewinding list form render EntityListIterator: " + e.toString(), module);
+                Debug.logError(e, "Error rewinding list form render EntityListIterator: " + e.toString(), MODULE);
             }
         }
     }

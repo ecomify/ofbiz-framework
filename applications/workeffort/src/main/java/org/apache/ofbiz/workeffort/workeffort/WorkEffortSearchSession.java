@@ -39,15 +39,15 @@ import org.apache.ofbiz.workeffort.workeffort.WorkEffortSearch.WorkEffortSearchC
 
 public class WorkEffortSearchSession {
 
-    public static final String module = WorkEffortSearchSession.class.getName();
+    private static final String MODULE = WorkEffortSearchSession.class.getName();
 
     @SuppressWarnings("serial")
     public static class WorkEffortSearchOptions implements java.io.Serializable {
-        protected List<WorkEffortSearchConstraint> constraintList = null;
-        protected ResultSortOrder resultSortOrder = null;
-        protected Integer viewIndex = null;
-        protected Integer viewSize = null;
-        protected boolean changed = false;
+        private List<WorkEffortSearchConstraint> constraintList = null;
+        private ResultSortOrder resultSortOrder = null;
+        private Integer viewIndex = null;
+        private Integer viewSize = null;
+        private boolean changed = false;
         public WorkEffortSearchOptions() { }
 
         /** Basic copy constructor */
@@ -59,6 +59,10 @@ public class WorkEffortSearchSession {
             this.changed = workEffortSearchOptions.changed;
         }
 
+        /**
+         * Gets constraint list.
+         * @return the constraint list
+         */
         public List<WorkEffortSearchConstraint> getConstraintList() {
             return this.constraintList;
         }
@@ -76,6 +80,10 @@ public class WorkEffortSearchSession {
             }
         }
 
+        /**
+         * Gets result sort order.
+         * @return the result sort order
+         */
         public ResultSortOrder getResultSortOrder() {
             if (this.resultSortOrder == null) {
                 this.resultSortOrder = new SortKeywordRelevancy();
@@ -99,6 +107,9 @@ public class WorkEffortSearchSession {
             workEffortSearchOptions.resultSortOrder = null;
         }
 
+        /**
+         * Clear view info.
+         */
         public void clearViewInfo() {
             this.viewIndex = null;
             this.viewSize = null;
@@ -129,6 +140,13 @@ public class WorkEffortSearchSession {
             this.viewSize = viewSize;
         }
 
+        /**
+         * Search get constraint strings list.
+         * @param detailed  the detailed
+         * @param delegator the delegator
+         * @param locale    the locale
+         * @return the list
+         */
         public List<String> searchGetConstraintStrings(boolean detailed, Delegator delegator, Locale locale) {
             List<WorkEffortSearchConstraint> workEffortSearchConstraintList = this.getConstraintList();
             List<String> constraintStrings = new LinkedList<>();
@@ -180,7 +198,7 @@ public class WorkEffortSearchSession {
                     searchRemoveConstraint(Integer.parseInt(removeConstraint), session);
                     constraintsChanged = true;
                 } catch (Exception e) {
-                    Debug.logError(e, "Error removing constraint [" + removeConstraint + "]", module);
+                    Debug.logError(e, "Error removing constraint [" + removeConstraint + "]", MODULE);
                 }
             }
         }
@@ -193,17 +211,18 @@ public class WorkEffortSearchSession {
         }
 //      add a Work Effort Assoc Type to the search
         if (UtilValidate.isNotEmpty(parameters.get("SEARCH_WORK_EFFORT_ID"))) {
-            String workEffortId=(String) parameters.get("SEARCH_WORK_EFFORT_ID");
-            String workEffortAssocTypeId=(String) parameters.get("workEffortAssocTypeId");
-            boolean includeAllSubWorkEfforts =!"N".equalsIgnoreCase((String) parameters.get("SEARCH_SUB_WORK_EFFORTS"));
-            searchAddConstraint(new WorkEffortSearch.WorkEffortAssocConstraint(workEffortId,workEffortAssocTypeId,includeAllSubWorkEfforts), session);
+            String workEffortId = (String) parameters.get("SEARCH_WORK_EFFORT_ID");
+            String workEffortAssocTypeId = (String) parameters.get("workEffortAssocTypeId");
+            boolean includeAllSubWorkEfforts = !"N".equalsIgnoreCase((String) parameters.get("SEARCH_SUB_WORK_EFFORTS"));
+            searchAddConstraint(new WorkEffortSearch.WorkEffortAssocConstraint(workEffortId, workEffortAssocTypeId, includeAllSubWorkEfforts),
+                    session);
             constraintsChanged = true;
         }
-//      add a Work Effort Party Assignment to the search
+        //      add a Work Effort Party Assignment to the search
         if (UtilValidate.isNotEmpty(parameters.get("partyId"))) {
-            String partyId=(String) parameters.get("partyId");
-            String roleTypeId=(String) parameters.get("roleTypeId");
-            searchAddConstraint(new WorkEffortSearch.PartyAssignmentConstraint(partyId,roleTypeId), session);
+            String partyId = (String) parameters.get("partyId");
+            String roleTypeId = (String) parameters.get("roleTypeId");
+            searchAddConstraint(new WorkEffortSearch.PartyAssignmentConstraint(partyId, roleTypeId), session);
             constraintsChanged = true;
         }
 
@@ -220,16 +239,16 @@ public class WorkEffortSearchSession {
 
 //      add a WorkEfort fromDate thruDate  to the search
         if (UtilValidate.isNotEmpty(parameters.get("fromDate")) || UtilValidate.isNotEmpty(parameters.get("thruDate"))) {
-            Timestamp fromDate =null;
+            Timestamp fromDate = null;
             if (UtilValidate.isNotEmpty(parameters.get("fromDate"))) {
-                fromDate=Timestamp.valueOf((String) parameters.get("fromDate"));
+                fromDate = Timestamp.valueOf((String) parameters.get("fromDate"));
             }
 
             Timestamp thruDate = null;
             if (UtilValidate.isNotEmpty(parameters.get("thruDate"))) {
                 thruDate = Timestamp.valueOf((String) parameters.get("thruDate"));
             }
-            searchAddConstraint(new WorkEffortSearch.LastUpdatedRangeConstraint(fromDate,thruDate), session);
+            searchAddConstraint(new WorkEffortSearch.LastUpdatedRangeConstraint(fromDate, thruDate), session);
             constraintsChanged = true;
         }
 
@@ -239,7 +258,8 @@ public class WorkEffortSearchSession {
             String searchOperator = (String) parameters.get("SEARCH_OPERATOR");
             // defaults to true/Y, ie anything but N is true/Y
             boolean anyPrefixSuffix = !"N".equals(parameters.get("SEARCH_ANYPRESUF"));
-            searchAddConstraint(new WorkEffortSearch.KeywordConstraint(keywordString, anyPrefixSuffix, anyPrefixSuffix, null, "AND".equals(searchOperator)), session);
+            searchAddConstraint(new WorkEffortSearch.KeywordConstraint(keywordString, anyPrefixSuffix, anyPrefixSuffix, null,
+                    "AND".equals(searchOperator)), session);
             constraintsChanged = true;
         }
         // set the sort order
@@ -266,7 +286,7 @@ public class WorkEffortSearchSession {
             try {
                 workEffortSearchOptions.setViewIndex(Integer.valueOf(viewIndexStr));
             } catch (Exception e) {
-                Debug.logError(e, "Error formatting VIEW_INDEX, setting to 0", module);
+                Debug.logError(e, "Error formatting VIEW_INDEX, setting to 0", MODULE);
                 // we could just do nothing here, but we know something was specified so we don't want to use the previous value from the session
                 workEffortSearchOptions.setViewIndex(0);
             }
@@ -277,7 +297,7 @@ public class WorkEffortSearchSession {
             try {
                 workEffortSearchOptions.setViewSize(Integer.valueOf(viewSizeStr));
             } catch (Exception e) {
-                Debug.logError(e, "Error formatting VIEW_SIZE, setting to 20", module);
+                Debug.logError(e, "Error formatting VIEW_SIZE, setting to 20", MODULE);
                 workEffortSearchOptions.setViewSize(20);
             }
         }

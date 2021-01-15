@@ -42,12 +42,11 @@ import org.w3c.dom.Element;
 
 /**
  * Implements the &lt;iterate&gt; element.
- * 
  * @see <a href="https://cwiki.apache.org/confluence/display/OFBIZ/Mini+Language+-+minilang+-+simple-method+-+Reference">Mini-language Referenc</a>
  */
 public final class Iterate extends MethodOperation {
 
-    public static final String module = Iterate.class.getName();
+    private static final String MODULE = Iterate.class.getName();
 
     private final FlexibleMapAccessor<Object> entryFma;
     private final FlexibleMapAccessor<Object> listFma;
@@ -69,7 +68,7 @@ public final class Iterate extends MethodOperation {
     public boolean exec(MethodContext methodContext) throws MiniLangException {
         if (listFma.isEmpty()) {
             if (Debug.verboseOn()) {
-                 Debug.logVerbose("Collection not found, doing nothing: " + this, module);
+                Debug.logVerbose("Collection not found, doing nothing: " + this, MODULE);
             }
             return true;
         }
@@ -101,9 +100,9 @@ public final class Iterate extends MethodOperation {
             }
         } else if (objList instanceof Collection<?>) {
             Collection<Object> theCollection = UtilGenerics.cast(objList);
-            if (theCollection.size() == 0) {
+            if (theCollection.isEmpty()) {
                 if (Debug.verboseOn()) {
-                     Debug.logVerbose("Collection has zero entries, doing nothing: " + this, module);
+                    Debug.logVerbose("Collection has zero entries, doing nothing: " + this, MODULE);
                 }
                 return true;
             }
@@ -129,7 +128,7 @@ public final class Iterate extends MethodOperation {
             Iterator<Object> theIterator = UtilGenerics.cast(objList);
             if (!theIterator.hasNext()) {
                 if (Debug.verboseOn()) {
-                     Debug.logVerbose("Iterator has zero entries, doing nothing: " + this, module);
+                    Debug.logVerbose("Iterator has zero entries, doing nothing: " + this, MODULE);
                 }
                 return true;
             }
@@ -156,7 +155,7 @@ public final class Iterate extends MethodOperation {
             if (Debug.verboseOn()) {
                 Debug.logVerbose("Cannot iterate over a "
                         + (objList == null ? "null object" : objList.getClass().getName())
-                        + ", doing nothing: " + this, module);
+                        + ", doing nothing: " + this, MODULE);
             }
             return true;
         }

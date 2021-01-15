@@ -51,10 +51,10 @@ import com.sun.syndication.feed.synd.SyndFeedImpl;
  */
 public class BlogRssServices {
 
-    public static final String module = BlogRssServices.class.getName();
-    public static final String resource = "ContentUiLabels";
-    public static final String mimeTypeId = "text/html";
-    public static final String mapKey = "SUMMARY";
+    private static final String MODULE = BlogRssServices.class.getName();
+    private static final String RESOURCE = "ContentUiLabels";
+    public static final String MIME_TYPE_ID = "text/html";
+    public static final String MAP_KEY = "SUMMARY";
 
     public static Map<String, Object> generateBlogRssFeed(DispatchContext dctx, Map<String, ? extends Object> context) {
         GenericValue userLogin = (GenericValue) context.get("userLogin");
@@ -75,12 +75,12 @@ public class BlogRssServices {
         try {
             content = EntityQuery.use(delegator).from("Content").where("contentId", contentId).queryOne();
         } catch (GenericEntityException e) {
-            Debug.logError(e, module);
+            Debug.logError(e, MODULE);
         }
 
         if (content == null) {
-            return ServiceUtil.returnError(UtilProperties.getMessage(resource,
-                    "ContentCannotGenerateBlogRssFeed", 
+            return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE,
+                    "ContentCannotGenerateBlogRssFeed",
                     UtilMisc.toMap("contentId", contentId), locale));
         }
 
@@ -98,7 +98,8 @@ public class BlogRssServices {
         return resp;
     }
 
-    public static List<SyndEntry> generateEntryList(LocalDispatcher dispatcher, Delegator delegator, String contentId, String entryLink, Locale locale, GenericValue userLogin) {
+    public static List<SyndEntry> generateEntryList(LocalDispatcher dispatcher, Delegator delegator, String contentId,
+                                                    String entryLink, Locale locale, GenericValue userLogin) {
         List<SyndEntry> entries = new LinkedList<>();
 
         List<GenericValue> contentRecs = null;
@@ -109,7 +110,7 @@ public class BlogRssServices {
                            "statusId", "CTNT_PUBLISHED")
                     .orderBy("-caFromDate").queryList();
         } catch (GenericEntityException e) {
-            Debug.logError(e, module);
+            Debug.logError(e, MODULE);
         }
 
         if (contentRecs != null) {
@@ -117,11 +118,9 @@ public class BlogRssServices {
                 String sub = null;
                 try {
                     Map<String, Object> dummy = new HashMap<>();
-                    sub = ContentWorker.renderSubContentAsText(dispatcher, v.getString("contentId"), mapKey, dummy, locale, mimeTypeId, true);
-                } catch (GeneralException e) {
-                    Debug.logError(e, module);
-                } catch (IOException e) {
-                    Debug.logError(e, module);
+                    sub = ContentWorker.renderSubContentAsText(dispatcher, v.getString("contentId"), MAP_KEY, dummy, locale, MIME_TYPE_ID, true);
+                } catch (GeneralException | IOException e) {
+                    Debug.logError(e, MODULE);
                 }
                 if (sub != null) {
                     String thisLink = entryLink + "?articleContentId=" + v.getString("contentId") + "&blogContentId=" + contentId;

@@ -48,13 +48,13 @@ import org.apache.ofbiz.entity.jdbc.ConnectionFactoryLoader;
  */
 public class JNDITransactionFactory implements TransactionFactory {
 
-    // Debug module name
-    public static final String module = JNDITransactionFactory.class.getName();
+    // Debug MODULE name
+    private static final String MODULE = JNDITransactionFactory.class.getName();
 
-    volatile TransactionManager transactionManager = null;
-    volatile UserTransaction userTransaction = null;
+    private volatile TransactionManager transactionManager = null;
+    private volatile UserTransaction userTransaction = null;
 
-    protected static final ConcurrentHashMap<String, DataSource> dsCache = new ConcurrentHashMap<>();
+    protected static final ConcurrentHashMap<String, DataSource> DS_CACHE = new ConcurrentHashMap<>();
 
     @Override
     public TransactionManager getTransactionManager() {
@@ -74,15 +74,15 @@ public class JNDITransactionFactory implements TransactionFactory {
                                     transactionManager = (TransactionManager) ic.lookup(jndiName);
                                 }
                             } catch (NamingException ne) {
-                                Debug.logWarning(ne, "NamingException while finding TransactionManager named " + jndiName + " in JNDI.", module);
+                                Debug.logWarning(ne, "NamingException while finding TransactionManager named " + jndiName + " in JNDI.", MODULE);
                                 transactionManager = null;
                             }
                             if (transactionManager == null) {
-                                Debug.logWarning("Failed to find TransactionManager named " + jndiName + " in JNDI.", module);
+                                Debug.logWarning("Failed to find TransactionManager named " + jndiName + " in JNDI.", MODULE);
                             }
                         }
                     } catch (GeneralException e) {
-                        Debug.logError(e, module);
+                        Debug.logError(e, MODULE);
                         transactionManager = null;
                     }
                 }
@@ -110,15 +110,15 @@ public class JNDITransactionFactory implements TransactionFactory {
                                     userTransaction = (UserTransaction) ic.lookup(jndiName);
                                 }
                             } catch (NamingException ne) {
-                                Debug.logWarning(ne, "NamingException while finding UserTransaction named " + jndiName + " in JNDI.", module);
+                                Debug.logWarning(ne, "NamingException while finding UserTransaction named " + jndiName + " in JNDI.", MODULE);
                                 userTransaction = null;
                             }
                             if (userTransaction == null) {
-                                Debug.logWarning("Failed to find UserTransaction named " + jndiName + " in JNDI.", module);
+                                Debug.logWarning("Failed to find UserTransaction named " + jndiName + " in JNDI.", MODULE);
                             }
                         }
                     } catch (GeneralException e) {
-                        Debug.logError(e, module);
+                        Debug.logError(e, MODULE);
                         transactionManager = null;
                     }
                 }
@@ -144,7 +144,6 @@ public class JNDITransactionFactory implements TransactionFactory {
             if (con != null) {
                 return TransactionUtil.getCursorConnection(helperInfo, con);
             }
-        } else {
         }
 
         if (datasourceInfo.getInlineJdbc() != null) {
@@ -156,7 +155,7 @@ public class JNDITransactionFactory implements TransactionFactory {
     }
 
     public static Connection getJndiConnection(String jndiName, String jndiServerName) throws SQLException, GenericEntityException {
-        DataSource ds = dsCache.get(jndiName);
+        DataSource ds = DS_CACHE.get(jndiName);
         if (ds != null) {
             if (ds instanceof XADataSource) {
                 XADataSource xads = (XADataSource) ds;
@@ -167,27 +166,27 @@ public class JNDITransactionFactory implements TransactionFactory {
         }
         try {
             if (Debug.infoOn()) {
-                Debug.logInfo("Doing JNDI lookup for name " + jndiName, module);
+                Debug.logInfo("Doing JNDI lookup for name " + jndiName, MODULE);
             }
             InitialContext ic = JNDIContextFactory.getInitialContext(jndiServerName);
 
             if (ic != null) {
                 ds = (DataSource) ic.lookup(jndiName);
             } else {
-                Debug.logWarning("Initial Context returned was NULL for server name " + jndiServerName, module);
+                Debug.logWarning("Initial Context returned was NULL for server name " + jndiServerName, MODULE);
             }
 
             if (ds != null) {
                 if (Debug.verboseOn()) {
-                     Debug.logVerbose("Got a Datasource object.", module);
+                    Debug.logVerbose("Got a Datasource object.", MODULE);
                 }
-                dsCache.putIfAbsent(jndiName, ds);
-                ds = dsCache.get(jndiName);
+                DS_CACHE.putIfAbsent(jndiName, ds);
+                ds = DS_CACHE.get(jndiName);
                 Connection con;
 
                 if (ds instanceof XADataSource) {
                     if (Debug.infoOn()) {
-                        Debug.logInfo("Got XADataSource for name " + jndiName, module);
+                        Debug.logInfo("Got XADataSource for name " + jndiName, MODULE);
                     }
                     XADataSource xads = (XADataSource) ds;
                     XAConnection xac = xads.getXAConnection();
@@ -195,16 +194,17 @@ public class JNDITransactionFactory implements TransactionFactory {
                     con = TransactionUtil.enlistConnection(xac);
                 } else {
                     if (Debug.infoOn()) {
-                        Debug.logInfo("Got DataSource for name " + jndiName, module);
+                        Debug.logInfo("Got DataSource for name " + jndiName, MODULE);
                     }
 
                     con = ds.getConnection();
                 }
                 return con;
             }
-            Debug.logError("Datasource returned was NULL.", module);
+            Debug.logError("Datasource returned was NULL.", MODULE);
         } catch (NamingException ne) {
-            Debug.logWarning(ne, "Failed to find DataSource named " + jndiName + " in JNDI server with name " + jndiServerName + ". Trying normal database.", module);
+            Debug.logWarning(ne, "Failed to find DataSource named " + jndiName + " in JNDI server with name "
+                    + jndiServerName + ". Trying normal database.", MODULE);
         } catch (GenericConfigException gce) {
             throw new GenericEntityException("Problems with the JNDI configuration.", gce.getNested());
         }
@@ -212,5 +212,5 @@ public class JNDITransactionFactory implements TransactionFactory {
     }
 
     @Override
-    public void shutdown() {}
+    public void shutdown() { }
 }

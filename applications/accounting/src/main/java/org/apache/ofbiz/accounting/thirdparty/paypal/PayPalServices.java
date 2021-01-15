@@ -82,27 +82,27 @@ import com.paypal.sdk.services.NVPCallerServices;
  */
 public class PayPalServices {
 
-    public static final String module = PayPalServices.class.getName();
-    public final static String resource = "AccountingErrorUiLabels";
-    
+    private static final String MODULE = PayPalServices.class.getName();
+    private static final String RESOURCE = "AccountingErrorUiLabels";
+
     // Used to maintain a weak reference to the ShoppingCart for customers who have gone to PayPal to checkout
     // so that we can quickly grab the cart, perform shipment estimates and send the info back to PayPal.
     // The weak key is a simple wrapper for the checkout token String and is stored as a cart attribute. The value
     // is a weak reference to the ShoppingCart itself.  Entries will be removed as carts are removed from the
     // session (i.e. on cart clear or successful checkout) or when the session is destroyed
-    private static Map<TokenWrapper, WeakReference<ShoppingCart>> tokenCartMap = new WeakHashMap<TokenWrapper, WeakReference<ShoppingCart>>();
+    private static Map<TokenWrapper, WeakReference<ShoppingCart>> tokenCartMap = new WeakHashMap<>();
 
     public static Map<String, Object> setExpressCheckout(DispatchContext dctx, Map<String, ? extends Object> context) {
         ShoppingCart cart = (ShoppingCart) context.get("cart");
         Locale locale = cart.getLocale();
         if (cart == null || cart.items().size() <= 0) {
-            return ServiceUtil.returnError(UtilProperties.getMessage(resource, 
+            return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE,
                     "AccountingPayPalShoppingCartIsEmpty", locale));
         }
 
         GenericValue payPalConfig = getPaymentMethodGatewayPayPal(dctx, context, null);
         if (payPalConfig == null) {
-            return ServiceUtil.returnError(UtilProperties.getMessage(resource, 
+            return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE,
                     "AccountingPayPalPaymentGatewayConfigCannotFind", locale));
         }
 
@@ -139,8 +139,8 @@ public class PayPalServices {
         try {
             addCartDetails(encoder, cart);
         } catch (GenericEntityException e) {
-            Debug.logError(e, module);
-            return ServiceUtil.returnError(UtilProperties.getMessage(resource, 
+            Debug.logError(e, MODULE);
+            return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE,
                     "AccountingPayPalErrorDuringRetrievingCartDetails", locale));
         }
 
@@ -148,7 +148,7 @@ public class PayPalServices {
         try {
             decoder = sendNVPRequest(payPalConfig, encoder);
         } catch (PayPalException e) {
-            Debug.logError(e, module);
+            Debug.logError(e, MODULE);
             return ServiceUtil.returnError(e.getMessage());
         }
 
@@ -166,7 +166,7 @@ public class PayPalServices {
         cart.setAttribute("payPalCheckoutToken", token);
         TokenWrapper tokenWrapper = new TokenWrapper(token);
         cart.setAttribute("payPalCheckoutTokenObj", tokenWrapper);
-        PayPalServices.tokenCartMap.put(tokenWrapper, new WeakReference<ShoppingCart>(cart));
+        PayPalServices.tokenCartMap.put(tokenWrapper, new WeakReference<>(cart));
         return ServiceUtil.returnSuccess();
     }
 
@@ -178,20 +178,20 @@ public class PayPalServices {
 
         Map<String, Object> paramMap = UtilHttp.getParameterMap(request);
 
-        String token = (String)paramMap.get("TOKEN");
+        String token = (String) paramMap.get("TOKEN");
         WeakReference<ShoppingCart> weakCart = tokenCartMap.get(new TokenWrapper(token));
         ShoppingCart cart = null;
         if (weakCart != null) {
             cart = weakCart.get();
         }
         if (cart == null) {
-            Debug.logError("Could locate the ShoppingCart for token " + token, module);
+            Debug.logError("Could locate the ShoppingCart for token " + token, MODULE);
             return ServiceUtil.returnSuccess();
         }
         // Since most if not all of the shipping estimate codes requires a persisted contactMechId we'll create one and
         // then delete once we're done, now is not the time to worry about updating everything
         String contactMechId = null;
-        Map<String, Object> inMap = new HashMap<String, Object>();
+        Map<String, Object> inMap = new HashMap<>();
         inMap.put("address1", paramMap.get("SHIPTOSTREET"));
         inMap.put("address2", paramMap.get("SHIPTOSTREET2"));
         inMap.put("city", paramMap.get("SHIPTOCITY"));
@@ -201,14 +201,14 @@ public class PayPalServices {
             return ServiceUtil.returnSuccess();
         }
         inMap.put("countryGeoId", countryGeoId);
-        inMap.put("stateProvinceGeoId", parseStateProvinceGeoId((String)paramMap.get("SHIPTOSTATE"), countryGeoId, delegator));
+        inMap.put("stateProvinceGeoId", parseStateProvinceGeoId((String) paramMap.get("SHIPTOSTATE"), countryGeoId, delegator));
         inMap.put("postalCode", paramMap.get("SHIPTOZIP"));
 
         try {
             GenericValue userLogin = EntityQuery.use(delegator).from("UserLogin").where("userLoginId", "system").cache().queryOne();
             inMap.put("userLogin", userLogin);
         } catch (GenericEntityException e) {
-            Debug.logError(e, module);
+            Debug.logError(e, MODULE);
         }
         boolean beganTransaction = false;
         Transaction parentTransaction = null;
@@ -216,20 +216,20 @@ public class PayPalServices {
             parentTransaction = TransactionUtil.suspend();
             beganTransaction = TransactionUtil.begin();
         } catch (GenericTransactionException e1) {
-            Debug.logError(e1, module);
+            Debug.logError(e1, MODULE);
         }
         try {
             Map<String, Object> outMap = dispatcher.runSync("createPostalAddress", inMap);
             contactMechId = (String) outMap.get("contactMechId");
         } catch (GenericServiceException e) {
-            Debug.logError(e.getMessage(), module);
+            Debug.logError(e.getMessage(), MODULE);
             return ServiceUtil.returnSuccess();
         }
         try {
             TransactionUtil.commit(beganTransaction);
             if (parentTransaction != null) TransactionUtil.resume(parentTransaction);
         } catch (GenericTransactionException e) {
-            Debug.logError(e, module);
+            Debug.logError(e, MODULE);
         }
         // clone the cart so we can modify it temporarily
         CheckOutHelper coh = new CheckOutHelper(dispatcher, delegator, cart);
@@ -251,7 +251,7 @@ public class PayPalServices {
             try {
                 coh.calcAndAddTax();
             } catch (GeneralException e) {
-                Debug.logError(e, module);
+                Debug.logError(e, MODULE);
                 continue;
             }
             String estimateLabel = shipMethod.getString("partyId") + " - " + shipMethod.getString("description");
@@ -266,19 +266,19 @@ public class PayPalServices {
         try {
             responseMsg = encoder.encode();
         } catch (PayPalException e) {
-            Debug.logError(e, module);
+            Debug.logError(e, MODULE);
         }
         if (responseMsg != null) {
             try {
                 response.setContentLength(responseMsg.getBytes("UTF-8").length);
             } catch (UnsupportedEncodingException e) {
-                Debug.logError(e, module);
+                Debug.logError(e, MODULE);
             }
 
             try (Writer writer = response.getWriter()) {
                 writer.write(responseMsg);
             } catch (IOException e) {
-                Debug.logError(e, module);
+                Debug.logError(e, MODULE);
             }
         }
 
@@ -289,7 +289,7 @@ public class PayPalServices {
             GenericValue contactMech = EntityQuery.use(delegator).from("ContactMech").where("contactMechId", contactMechId).queryOne();
             contactMech.remove();
         } catch (GenericEntityException e) {
-            Debug.logError(e, module);
+            Debug.logError(e, MODULE);
         }
         coh.setCheckOutShippingAddress(oldShipAddress);
         return ServiceUtil.returnSuccess();
@@ -353,7 +353,7 @@ public class PayPalServices {
         ShoppingCart cart = (ShoppingCart) context.get("cart");
         GenericValue payPalConfig = getPaymentMethodGatewayPayPal(dctx, context, null);
         if (payPalConfig == null) {
-            return ServiceUtil.returnError(UtilProperties.getMessage(resource, 
+            return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE,
                     "AccountingPayPalPaymentGatewayConfigCannotFind", locale));
         }
 
@@ -363,7 +363,7 @@ public class PayPalServices {
         if (UtilValidate.isNotEmpty(token)) {
             encoder.add("TOKEN", token);
         } else {
-            return ServiceUtil.returnError(UtilProperties.getMessage(resource, 
+            return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE,
                     "AccountingPayPalTokenNotFound", locale));
         }
 
@@ -371,7 +371,7 @@ public class PayPalServices {
         try {
             decoder = sendNVPRequest(payPalConfig, encoder);
         } catch (PayPalException e) {
-            Debug.logError(e, module);
+            Debug.logError(e, MODULE);
             return ServiceUtil.returnError(e.getMessage());
         }
 
@@ -385,11 +385,11 @@ public class PayPalServices {
                 try {
                     cart.setUserLogin(userLogin, dispatcher);
                 } catch (CartItemModifyException e) {
-                    Debug.logError(e, module);
+                    Debug.logError(e, MODULE);
                     return ServiceUtil.returnError(e.getMessage());
                 }
             } catch (GenericEntityException e) {
-                Debug.logError(e, module);
+                Debug.logError(e, MODULE);
                 return ServiceUtil.returnError(e.getMessage());
             }
         }
@@ -406,14 +406,14 @@ public class PayPalServices {
             try {
                 party = EntityQuery.use(delegator).from("Party").where("partyId", partyId).queryOne();
             } catch (GenericEntityException e) {
-                Debug.logError(e, module);
+                Debug.logError(e, MODULE);
             }
             if (party == null) {
                 partyId = null;
             }
         }
 
-        Map<String, Object> inMap = new HashMap<String, Object>();
+        Map<String, Object> inMap = new HashMap<>();
         Map<String, Object> outMap = null;
         // Create the person if necessary
         boolean newParty = false;
@@ -436,7 +436,7 @@ public class PayPalServices {
                 inMap.put("roleTypeId", "CUSTOMER");
                 dispatcher.runSync("createPartyRole", inMap);
             } catch (GenericServiceException e) {
-                Debug.logError(e, module);
+                Debug.logError(e, MODULE);
                 return ServiceUtil.returnError(e.getMessage());
             }
         }
@@ -447,9 +447,7 @@ public class PayPalServices {
         if (!newParty) {
             EntityCondition cond = EntityCondition.makeCondition(UtilMisc.toList(
                     EntityCondition.makeCondition(UtilMisc.toMap("partyId", partyId, "contactMechTypeId", "EMAIL_ADDRESS")),
-                    EntityCondition.makeCondition(EntityFunction.UPPER_FIELD("infoString"), EntityComparisonOperator.EQUALS, EntityFunction.UPPER(emailAddress))
-
-           ));
+                    EntityCondition.makeCondition(EntityFunction.UPPER_FIELD("infoString"), EntityComparisonOperator.EQUALS, EntityFunction.UPPER(emailAddress))));
             try {
                 GenericValue matchingEmail = EntityQuery.use(delegator).from("PartyAndContactMech").where(cond).orderBy("fromDate").filterByDate().queryFirst();
                 if (matchingEmail != null) {
@@ -458,15 +456,15 @@ public class PayPalServices {
                     // No email found so we'll need to create one but first check if it should be PRIMARY or just BILLING
                     long primaryEmails = EntityQuery.use(delegator)
                             .from("PartyContactWithPurpose")
-                            .where("partyId", partyId, 
-                                    "contactMechTypeId", "EMAIL_ADDRESS", 
+                            .where("partyId", partyId,
+                                    "contactMechTypeId", "EMAIL_ADDRESS",
                                     "contactMechPurposeTypeId", "PRIMARY_EMAIL")
                             .filterByDate("contactFromDate", "contactThruDate", "purposeFromDate", "purposeThruDate")
                             .queryCount();
                     if (primaryEmails > 0) emailContactPurposeTypeId = "BILLING_EMAIL";
                 }
             } catch (GenericEntityException e) {
-                Debug.logError(e, module);
+                Debug.logError(e, MODULE);
             }
         }
         if (emailContactMechId == null) {
@@ -482,7 +480,7 @@ public class PayPalServices {
                 outMap = dispatcher.runSync("createPartyEmailAddress", inMap);
                 emailContactMechId = (String) outMap.get("contactMechId");
             } catch (GenericServiceException e) {
-                Debug.logError(e, module);
+                Debug.logError(e, MODULE);
                 return ServiceUtil.returnError(e.getMessage());
             }
         }
@@ -512,7 +510,7 @@ public class PayPalServices {
                 phoneContactId = (String) outMap.get("contactMechId");
                 cart.addContactMech("PHONE_BILLING", phoneContactId);
             } catch (GenericServiceException e) {
-                Debug.logError(e, module);
+                Debug.logError(e, MODULE);
             }
         }
         // Create a new Postal Address if necessary
@@ -520,7 +518,7 @@ public class PayPalServices {
         boolean needsShippingPurpose = true;
         // if the cart for some reason already has a billing address, we'll leave it be
         boolean needsBillingPurpose = (cart.getContactMech("BILLING_LOCATION") == null);
-        Map<String, Object> postalMap = new HashMap<String, Object>();
+        Map<String, Object> postalMap = new HashMap<>();
         postalMap.put("toName", decoder.get("SHIPTONAME"));
         postalMap.put("address1", decoder.get("SHIPTOSTREET"));
         postalMap.put("address2", decoder.get("SHIPTOSTREET2"));
@@ -533,9 +531,8 @@ public class PayPalServices {
             // We want an exact match only
             EntityCondition cond = EntityCondition.makeCondition(UtilMisc.toList(
                     EntityCondition.makeCondition(postalMap),
-                    EntityCondition.makeCondition(UtilMisc.toMap("attnName", null, "directions", null, "postalCodeExt", null,"postalCodeGeoId", null)),
-                    EntityCondition.makeCondition("partyId", partyId)
-           ));
+                    EntityCondition.makeCondition(UtilMisc.toMap("attnName", null, "directions", null, "postalCodeExt", null, "postalCodeGeoId", null)),
+                    EntityCondition.makeCondition("partyId", partyId)));
             try {
                 GenericValue postalMatch = EntityQuery.use(delegator).from("PartyAndPostalAddress")
                         .where(cond).orderBy("fromDate").filterByDate().queryFirst();
@@ -553,7 +550,7 @@ public class PayPalServices {
                     }
                 }
             } catch (GenericEntityException e) {
-                Debug.logError(e, module);
+                Debug.logError(e, MODULE);
             }
         }
         if (postalContactId == null) {
@@ -563,7 +560,7 @@ public class PayPalServices {
                 outMap = dispatcher.runSync("createPartyPostalAddress", postalMap);
                 postalContactId = (String) outMap.get("contactMechId");
             } catch (GenericServiceException e) {
-                Debug.logError(e, module);
+                Debug.logError(e, MODULE);
                 return ServiceUtil.returnError(e.getMessage());
             }
         }
@@ -583,7 +580,7 @@ public class PayPalServices {
                 }
             } catch (GenericServiceException e) {
                 // Not the end of the world, we'll carry on
-                Debug.logInfo(e.getMessage(), module);
+                Debug.logInfo(e.getMessage(), MODULE);
             }
         }
 
@@ -600,14 +597,14 @@ public class PayPalServices {
             try {
                 GenericValue shipmentMethod = EntityQuery.use(delegator)
                         .from("ProductStoreShipmentMethView")
-                        .where("productStoreId", cart.getProductStoreId(), 
-                                "partyId", shipMethodSplit[0], 
-                                "roleTypeId", "CARRIER", 
+                        .where("productStoreId", cart.getProductStoreId(),
+                                "partyId", shipMethodSplit[0],
+                                "roleTypeId", "CARRIER",
                                 "description", shippingMethodTypeDesc)
                         .queryFirst();
                 cart.setAllShipmentMethodTypeId(shipmentMethod.getString("shipmentMethodTypeId"));
             } catch (GenericEntityException e1) {
-                Debug.logError(e1, module);
+                Debug.logError(e1, MODULE);
             }
         }
         //Get rid of any excess ship groups
@@ -634,7 +631,7 @@ public class PayPalServices {
         try {
             cho.calcAndAddTax();
         } catch (GeneralException e) {
-            Debug.logError(e, module);
+            Debug.logError(e, MODULE);
             return ServiceUtil.returnError(e.getMessage());
         }
 
@@ -651,7 +648,7 @@ public class PayPalServices {
         try {
             outMap = dispatcher.runSync("createPayPalPaymentMethod", inMap);
         } catch (GenericServiceException e) {
-            Debug.logError(e, module);
+            Debug.logError(e, MODULE);
             return ServiceUtil.returnError(e.getMessage());
         }
         String paymentMethodId = (String) outMap.get("paymentMethodId");
@@ -681,7 +678,7 @@ public class PayPalServices {
             payPalPaymentMethod = paymentPref.getRelatedOne("PaymentMethod", false);
             payPalPaymentMethod = payPalPaymentMethod.getRelatedOne("PayPalPaymentMethod", false);
         } catch (GenericEntityException e) {
-            Debug.logError(e, module);
+            Debug.logError(e, MODULE);
             return ServiceUtil.returnError(e.getMessage());
         }
         BigDecimal processAmount = paymentPref.getBigDecimal("maxAmount");
@@ -706,18 +703,18 @@ public class PayPalServices {
         try {
             decoder = sendNVPRequest(payPalPaymentSetting, encoder);
         } catch (PayPalException e) {
-            Debug.logError(e, module);
+            Debug.logError(e, MODULE);
             return ServiceUtil.returnError(e.getMessage());
         }
         if (decoder == null) {
-            return ServiceUtil.returnError(UtilProperties.getMessage(resource, 
+            return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE,
                     "AccountingPayPalUnknownError", locale));
         }
 
         Map<String, String> errorMessages = getErrorMessageMap(decoder);
         if (UtilValidate.isNotEmpty(errorMessages)) {
             if (errorMessages.containsKey("10417")) {
-                // "The transaction cannot complete successfully,  Instruct the customer to use an alternative payment method"
+                // "The transaction cannot complete successfully, Instruct the customer to use an alternative payment method"
                 // I've only encountered this once and there's no indication of the cause so the temporary solution is to try again
                 boolean retry = context.get("_RETRY_") == null || (Boolean) context.get("_RETRY_");
                 if (retry) {
@@ -728,7 +725,7 @@ public class PayPalServices {
             return ServiceUtil.returnError(UtilMisc.toList(errorMessages.values()));
         }
 
-        Map<String, Object> inMap = new HashMap<String, Object>();
+        Map<String, Object> inMap = new HashMap<>();
         inMap.put("userLogin", userLogin);
         inMap.put("paymentMethodId", payPalPaymentMethod.get("paymentMethodId"));
         inMap.put("transactionId", decoder.get("TRANSACTIONID"));
@@ -737,11 +734,11 @@ public class PayPalServices {
         try {
             outMap = dispatcher.runSync("updatePayPalPaymentMethod", inMap);
         } catch (GenericServiceException e) {
-            Debug.logError(e, module);
+            Debug.logError(e, MODULE);
             return ServiceUtil.returnError(e.getMessage());
         }
         if (ServiceUtil.isError(outMap)) {
-            Debug.logError(ServiceUtil.getErrorMessage(outMap), module);
+            Debug.logError(ServiceUtil.getErrorMessage(outMap), MODULE);
             return outMap;
         }
         return ServiceUtil.returnSuccess();
@@ -771,12 +768,12 @@ public class PayPalServices {
         try {
             decoder = sendNVPRequest(payPalConfig, encoder);
         } catch (PayPalException e) {
-            Debug.logError(e, module);
+            Debug.logError(e, MODULE);
             return ServiceUtil.returnError(e.getMessage());
         }
 
         if (decoder == null) {
-            return ServiceUtil.returnError(UtilProperties.getMessage(resource, 
+            return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE,
                     "AccountingPayPalUnknownError", locale));
         }
 
@@ -824,12 +821,12 @@ public class PayPalServices {
         try {
             decoder = sendNVPRequest(payPalConfig, encoder);
         } catch (PayPalException e) {
-            Debug.logError(e, module);
+            Debug.logError(e, MODULE);
             return ServiceUtil.returnError(e.getMessage());
         }
 
         if (decoder == null) {
-            return ServiceUtil.returnError(UtilProperties.getMessage(resource, 
+            return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE,
                     "AccountingPayPalUnknownError", locale));
         }
 
@@ -860,7 +857,7 @@ public class PayPalServices {
         GenericValue payPalConfig = getPaymentMethodGatewayPayPal(dctx, context, null);
         Locale locale = (Locale) context.get("locale");
         if (payPalConfig == null) {
-            return ServiceUtil.returnError(UtilProperties.getMessage(resource, 
+            return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE,
                     "AccountingPayPalPaymentGatewayConfigCannotFind", locale));
         }
         GenericValue orderPaymentPreference = (GenericValue) context.get("orderPaymentPreference");
@@ -872,12 +869,12 @@ public class PayPalServices {
         try {
             decoder = sendNVPRequest(payPalConfig, encoder);
         } catch (PayPalException e) {
-            Debug.logError(e, module);
+            Debug.logError(e, MODULE);
             return ServiceUtil.returnError(e.getMessage());
         }
 
         if (decoder == null) {
-            return ServiceUtil.returnError(UtilProperties.getMessage(resource, 
+            return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE,
                     "AccountingPayPalUnknownError", locale));
         }
 
@@ -909,7 +906,7 @@ public class PayPalServices {
         Locale locale = (Locale) context.get("locale");
         GenericValue payPalConfig = getPaymentMethodGatewayPayPal(dctx, context, null);
         if (payPalConfig == null) {
-            return ServiceUtil.returnError(UtilProperties.getMessage(resource, 
+            return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE,
                     "AccountingPayPalPaymentGatewayConfigCannotFind", locale));
         }
         GenericValue orderPaymentPreference = (GenericValue) context.get("orderPaymentPreference");
@@ -926,12 +923,12 @@ public class PayPalServices {
         try {
             decoder = sendNVPRequest(payPalConfig, encoder);
         } catch (PayPalException e) {
-            Debug.logError(e, module);
+            Debug.logError(e, MODULE);
             return ServiceUtil.returnError(e.getMessage());
         }
 
         if (decoder == null) {
-            return ServiceUtil.returnError(UtilProperties.getMessage(resource, 
+            return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE,
                     "AccountingPayPalUnknownError", locale));
         }
 
@@ -985,7 +982,7 @@ public class PayPalServices {
             try {
                 payPalGatewayConfig = EntityQuery.use(delegator).from("PaymentGatewayPayPal").where("paymentGatewayConfigId", paymentGatewayConfigId).cache().queryOne();
             } catch (GenericEntityException e) {
-                Debug.logError(e, module);
+                Debug.logError(e, MODULE);
             }
         }
         return payPalGatewayConfig;
@@ -1001,7 +998,7 @@ public class PayPalServices {
             profile.setEnvironment(payPalConfig.getString("apiEnvironment"));
             caller.setAPIProfile(profile);
         } catch (PayPalException e) {
-            Debug.logError(e.getMessage(), module);
+            Debug.logError(e.getMessage(), MODULE);
         }
 
         String requestMessage = encoder.encode();
@@ -1010,7 +1007,7 @@ public class PayPalServices {
         NVPDecoder decoder = new NVPDecoder();
         decoder.decode(responseMessage);
         if (!"Success".equals(decoder.get("ACK"))) {
-            Debug.logError("A response other than success was received from PayPal: " + responseMessage, module);
+            Debug.logError("A response other than success was received from PayPal: " + responseMessage, MODULE);
         }
 
         return decoder;
@@ -1025,14 +1022,14 @@ public class PayPalServices {
                 geoId = countryGeo.getString("geoId");
             }
         } catch (GenericEntityException e) {
-            Debug.logError(e, module);
+            Debug.logError(e, MODULE);
         }
         return geoId;
     }
 
     private static String parseStateProvinceGeoId(String payPalShipToState, String countryGeoId, Delegator delegator) {
         String lookupField = "geoName";
-        List<EntityCondition> conditionList = new LinkedList<EntityCondition>();
+        List<EntityCondition> conditionList = new LinkedList<>();
         conditionList.add(EntityCondition.makeCondition("geoAssocTypeId", "REGIONS"));
         if ("USA".equals(countryGeoId) || "CAN".equals(countryGeoId)) {
             // PayPal returns two letter code for US and Canadian States/Provinces
@@ -1046,9 +1043,8 @@ public class PayPalServices {
         GenericValue geoAssocAndGeoTo = null;
         try {
             geoAssocAndGeoTo = EntityQuery.use(delegator).from("GeoAssocAndGeoTo").where(cond).cache().queryFirst();
-            
         } catch (GenericEntityException e) {
-            Debug.logError(e, module);
+            Debug.logError(e, MODULE);
         }
         if (geoAssocAndGeoTo != null) {
             return geoAssocAndGeoTo.getString("geoId");

@@ -37,8 +37,8 @@ import org.apache.ofbiz.service.job.JobManager;
  * A container for the service engine.
  */
 public class ServiceContainer implements Container {
-    private static final String module = ServiceContainer.class.getName();
-    private static final ConcurrentHashMap<String, LocalDispatcher> dispatcherCache = new ConcurrentHashMap<>();
+    private static final String MODULE = ServiceContainer.class.getName();
+    private static final ConcurrentHashMap<String, LocalDispatcher> DISPATCHER_CACHE = new ConcurrentHashMap<>();
     private static LocalDispatcherFactory dispatcherFactory;
 
     private String name;
@@ -83,34 +83,34 @@ public class ServiceContainer implements Container {
     public static LocalDispatcher getLocalDispatcher(String dispatcherName, Delegator delegator) {
         if (dispatcherName == null) {
             dispatcherName = delegator.getDelegatorName();
-            Debug.logWarning("ServiceContainer.getLocalDispatcher method called with a null dispatcherName, defaulting to delegator name.", module);
+            Debug.logWarning("ServiceContainer.getLocalDispatcher method called with a null dispatcherName, defaulting to delegator name.", MODULE);
         }
         if (UtilValidate.isNotEmpty(delegator.getDelegatorTenantId())) {
             dispatcherName = dispatcherName.concat("#").concat(delegator.getDelegatorTenantId());
         }
-        LocalDispatcher dispatcher = dispatcherCache.get(dispatcherName);
+        LocalDispatcher dispatcher = DISPATCHER_CACHE.get(dispatcherName);
         if (dispatcher == null) {
             dispatcher = dispatcherFactory.createLocalDispatcher(dispatcherName, delegator);
-            dispatcherCache.putIfAbsent(dispatcherName, dispatcher);
-            dispatcher = dispatcherCache.get(dispatcherName);
-            Debug.logInfo("Created new dispatcher: " + dispatcherName, module);
+            DISPATCHER_CACHE.putIfAbsent(dispatcherName, dispatcher);
+            dispatcher = DISPATCHER_CACHE.get(dispatcherName);
+            Debug.logInfo("Created new dispatcher: " + dispatcherName, MODULE);
         }
         return dispatcher;
     }
 
     public static void deregister(String dispatcherName) {
-        LocalDispatcher dispatcher = dispatcherCache.get(dispatcherName);
+        LocalDispatcher dispatcher = DISPATCHER_CACHE.get(dispatcherName);
         if (dispatcher != null) {
             dispatcher.deregister();
         }
     }
 
     public static LocalDispatcher removeFromCache(String dispatcherName) {
-        Debug.logInfo("Removing from cache dispatcher: " + dispatcherName, module);
-        return dispatcherCache.remove(dispatcherName);
+        Debug.logInfo("Removing from cache dispatcher: " + dispatcherName, MODULE);
+        return DISPATCHER_CACHE.remove(dispatcherName);
     }
 
     public static Set<String> getAllDispatcherNames() {
-        return Collections.unmodifiableSet(dispatcherCache.keySet());
+        return Collections.unmodifiableSet(DISPATCHER_CACHE.keySet());
     }
 }

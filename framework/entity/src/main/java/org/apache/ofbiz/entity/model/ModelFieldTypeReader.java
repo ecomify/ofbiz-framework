@@ -45,8 +45,8 @@ import org.w3c.dom.Element;
 @SuppressWarnings("serial")
 public class ModelFieldTypeReader implements Serializable {
 
-    public static final String module = ModelFieldTypeReader.class.getName();
-    protected static final UtilCache<String, ModelFieldTypeReader> readers = UtilCache.createUtilCache("entity.ModelFieldTypeReader", 0, 0);
+    private static final String MODULE = ModelFieldTypeReader.class.getName();
+    protected static final UtilCache<String, ModelFieldTypeReader> READERS = UtilCache.createUtilCache("entity.ModelFieldTypeReader", 0, 0);
 
     protected static Map<String, ModelFieldType> createFieldTypeCache(Element docElement, String location) {
         docElement.normalize();
@@ -55,7 +55,7 @@ public class ModelFieldTypeReader implements Serializable {
         for (Element curFieldType: fieldTypeList) {
             String fieldTypeName = curFieldType.getAttribute("type");
             if (UtilValidate.isEmpty(fieldTypeName)) {
-                Debug.logError("Invalid field-type element, type attribute is missing in file " + location, module);
+                Debug.logError("Invalid field-type element, type attribute is missing in file " + location, MODULE);
             } else {
                 ModelFieldType fieldType = new ModelFieldType(curFieldType);
                 fieldTypeMap.put(fieldTypeName.intern(), fieldType);
@@ -70,35 +70,37 @@ public class ModelFieldTypeReader implements Serializable {
             throw new IllegalArgumentException("Could not find a datasource/helper with the name " + helperName);
         }
         String tempModelName = datasourceInfo.getFieldTypeName();
-        ModelFieldTypeReader reader = readers.get(tempModelName);
+        ModelFieldTypeReader reader = READERS.get(tempModelName);
         while (reader == null) {
             FieldType fieldTypeInfo = null;
             try {
                 fieldTypeInfo = EntityConfig.getInstance().getFieldType(tempModelName);
             } catch (GenericEntityConfException e) {
-                Debug.logWarning(e, "Exception thrown while getting field type config: ", module);
+                Debug.logWarning(e, "Exception thrown while getting field type config: ", MODULE);
             }
             if (fieldTypeInfo == null) {
                 throw new IllegalArgumentException("Could not find a field-type definition with name \"" + tempModelName + "\"");
             }
-            ResourceHandler fieldTypeResourceHandler = new MainResourceHandler(EntityConfig.ENTITY_ENGINE_XML_FILENAME, fieldTypeInfo.getLoader(), fieldTypeInfo.getLocation());
+            ResourceHandler fieldTypeResourceHandler = new MainResourceHandler(EntityConfig.ENTITY_ENGINE_XML_FILENAME, fieldTypeInfo.getLoader(),
+                    fieldTypeInfo.getLocation());
             UtilTimer utilTimer = new UtilTimer();
-            utilTimer.timerString("[ModelFieldTypeReader.getModelFieldTypeReader] Reading field types from " + fieldTypeResourceHandler.getLocation());
+            utilTimer.timerString("[ModelFieldTypeReader.getModelFieldTypeReader] Reading field types from "
+                    + fieldTypeResourceHandler.getLocation());
             Document document = null;
             try {
                 document = fieldTypeResourceHandler.getDocument();
             } catch (GenericConfigException e) {
-                Debug.logError(e, module);
+                Debug.logError(e, MODULE);
                 throw new IllegalStateException("Error loading field type file " + fieldTypeResourceHandler.getLocation());
             }
             Map<String, ModelFieldType> fieldTypeMap = createFieldTypeCache(document.getDocumentElement(), fieldTypeResourceHandler.getLocation());
-            reader = readers.putIfAbsentAndGet(tempModelName, new ModelFieldTypeReader(fieldTypeMap));
+            reader = READERS.putIfAbsentAndGet(tempModelName, new ModelFieldTypeReader(fieldTypeMap));
             utilTimer.timerString("[ModelFieldTypeReader.getModelFieldTypeReader] Read " + fieldTypeMap.size() + " field types");
         }
         return reader;
     }
 
-    protected final Map<String, ModelFieldType> fieldTypeCache;
+    private final Map<String, ModelFieldType> fieldTypeCache;
 
     public ModelFieldTypeReader(Map<String, ModelFieldType> fieldTypeMap) {
         this.fieldTypeCache = fieldTypeMap;

@@ -27,8 +27,8 @@ import org.apache.ofbiz.entity.config.model.EntityConfig;
  */
 public class TransactionFactoryLoader {
 
-    public static final String module = TransactionFactoryLoader.class.getName();
-    private static final TransactionFactory txFactory = createTransactionFactory();
+    private static final String MODULE = TransactionFactoryLoader.class.getName();
+    private static final TransactionFactory TX_FACTORY = createTransactionFactory();
 
     private static TransactionFactory createTransactionFactory() {
         TransactionFactory instance = null;
@@ -41,19 +41,19 @@ public class TransactionFactoryLoader {
             Class<?> tfClass = loader.loadClass(className);
             instance = (TransactionFactory) tfClass.getDeclaredConstructor().newInstance();
         } catch (GenericEntityConfException gece) {
-            Debug.logError(gece, "Could not find transaction factory class name definition", module);
+            Debug.logError(gece, "Could not find transaction factory class name definition", MODULE);
         } catch (ClassNotFoundException cnfe) {
-            Debug.logError(cnfe, "Could not find transaction factory class", module);
+            Debug.logError(cnfe, "Could not find transaction factory class", MODULE);
         } catch (Exception e) {
-            Debug.logError(e, "Unable to instantiate the transaction factory", module);
+            Debug.logError(e, "Unable to instantiate the transaction factory", MODULE);
         }
         return instance;
     }
 
     public static TransactionFactory getInstance() {
-        if (txFactory == null) {
+        if (TX_FACTORY == null) {
             throw new IllegalStateException("The Transaction Factory is not initialized.");
         }
-        return txFactory;
+        return TX_FACTORY;
     }
 }

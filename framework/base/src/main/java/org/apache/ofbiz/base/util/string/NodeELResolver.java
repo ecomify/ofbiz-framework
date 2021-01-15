@@ -23,7 +23,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import javax.el.CompositeELResolver;
 import javax.el.ELContext;
 import javax.el.ELResolver;
 import javax.el.PropertyNotWritableException;
@@ -40,19 +39,16 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 /**
- * Defines property resolution behavior on Nodes. This resolver handles base objects that implement
- * org.w3c.dom.Node or org.apache.xerces.dom.NodeImpl. It accepts a String as a property and compiles
- * that String into an XPathExpression. The resulting value is the evaluation of the XPathExpression
- * in the context of the base Node. This resolver is currently only available in read-only mode, which
- * means that isReadOnly will always return true and {@link #setValue(ELContext, Object, Object, Object)}
- * will always throw PropertyNotWritableException. ELResolvers are combined together using {@link CompositeELResolver}
- * s, to define rich semantics for evaluating an expression. See the javadocs for {@link ELResolver}
- * for details.
+ * Defines property resolution behavior on Nodes. This resolver handles base objects that implement org.w3c.dom.Node or
+ * org.apache.xerces.dom.NodeImpl. It accepts a String as a property and compiles that String into an XPathExpression. The resulting value is the
+ * evaluation of the XPathExpression in the context of the base Node. This resolver is currently only available in read-only mode, which means that
+ * isReadOnly will always return true and {@link #setValue(ELContext, Object, Object, Object)} will always throw PropertyNotWritableException.
+ * ELResolvers are combined together to define rich semantics for evaluating an expression. See {@link ELResolver} for details.
  */
 public class NodeELResolver extends ELResolver {
     private final XPath xpath;
     private final UtilCache<String, XPathExpression> exprCache = UtilCache.createUtilCache("nodeElResolver.ExpressionCache");
-    private static final String module = NodeELResolver.class.getName();
+    private static final String MODULE = NodeELResolver.class.getName();
 
     /**
      * Creates a new read-only NodeELResolver.
@@ -110,7 +106,7 @@ public class NodeELResolver extends ELResolver {
                 }
                 context.setPropertyResolved(true);
             } catch (XPathExpressionException e) {
-                Debug.logError("An error occurred during XPath expression evaluation, error was: " + e, module);
+                Debug.logError("An error occurred during XPath expression evaluation, error was: " + e, MODULE);
             }
         }
         return result;
@@ -137,7 +133,7 @@ public class NodeELResolver extends ELResolver {
         }
     }
 
-    private final static boolean isResolvable(Object base) {
+    private static boolean isResolvable(Object base) {
         return base != null && (base instanceof Node || base instanceof NodeImpl);
     }
 
@@ -151,7 +147,7 @@ public class NodeELResolver extends ELResolver {
                         xpe = xpath.compile(xPathString);
                         exprCache.put(xPathString, xpe);
                     } catch (XPathExpressionException e) {
-                        Debug.logError("An error occurred during XPath expression compilation, error was: " + e, module);
+                        Debug.logError("An error occurred during XPath expression compilation, error was: " + e, MODULE);
                     }
                 }
             }

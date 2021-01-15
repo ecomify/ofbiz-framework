@@ -80,7 +80,7 @@ under the License.
         </field>
         <field name="partyClassificationGroupId" title="${uiLabelMap.PartyClassificationGroup}" use-when="parentTypeId == null">
             <drop-down allow-multiple="true" size="5" allow-empty="false">
-                <entity-options entity-name="PartyClassificationGroupAndType" description="${typeDescription}" key-field-name="partyClassificationGroupId">
+                <entity-options entity-name="PartyClassificationGroupAndType" description="${typeDescription} - ${partyClassificationGroupId}" key-field-name="partyClassificationGroupId">
                     <entity-order-by field-name="partyClassificationGroupId"/>
                 </entity-options>
             </drop-down>
@@ -142,13 +142,18 @@ under the License.
                 <field-map field-name="partyId" from-field="partyId"/>
                 <field-map field-name="userLogin" from-field="userLogin"/>
             </service>
+            <entity-and entity-name="PartyClassification" list="partyClassifications" use-cache="true">
+                <field-map field-name="partyId" from-field="partyId"/>
+            </entity-and>
+            <set field="fieldId" value="partyClassificationGroupId"/>
+            <set field="partyClassificationGroupIds" value="${groovy:org.apache.ofbiz.entity.util.EntityUtil.getFieldListFromEntityList(partyClassifications, fieldId, true);}"/>
         </row-actions>
-        <field name="partyId" sort-field="true">
+        <field name="partyId" sort-field="true" widget-style="buttontext">
             <hyperlink description="${partyId}" target="viewprofile">
                 <parameter param-name="partyId"/>
             </hyperlink>
         </field>
-        <field name="ClassificationGroup"><display description="${parameters.partyClassificationGroupId}"/></field>
+        <field name="ClassificationGroup" use-when="partyClassificationGroupIds.size() > 0"><display description="${partyClassificationGroupIds}"/></field>
         <field name="userLoginId" use-when="userLoginSize > 1"><include-grid name="ListPartyUserLogin" location="component://party/widget/partymgr/PartyForms.xml"/></field>
         <field name="userLoginId" use-when="userLoginSize == 1"><display description="${logins[0].userLoginId}"/></field>
         <field name="userLoginId" use-when="userLoginSize == 0"><display description="(${uiLabelMap.CommonNone})"/></field>
@@ -291,9 +296,7 @@ under the License.
         </field>
         <field name="submitButton" title="${uiLabelMap.CommonSave}"><submit button-type="button"/></field>
         <field name="cancelLink" title=" " widget-style="smallSubmit">
-            <hyperlink description="${uiLabelMap.CommonCancelDone}" target="${donePage}" also-hidden="false">
-                <parameter param-name="partyId"/>
-            </hyperlink>
+            <hyperlink description="${uiLabelMap.CommonCancelDone}" target="backHome" also-hidden="false"/>
         </field>
     </form>
 
@@ -656,15 +659,6 @@ under the License.
         <field use-when="displayPassword!='Y'" name="USERNAME" title="${uiLabelMap.CommonUsername}" tooltip="* ${uiLabelMap.PartyTemporaryPassword}" required-field="true"><text size="30" maxlength="250"/></field>
         <!--<field name="RequiredNote" title=" "><display description="${uiLabelMap.PartyRequiredNote}" also-hidden="false"/></field> -->
 
-        <field name="securityQuestion">
-          <drop-down allow-empty="true">
-              <entity-options entity-name="Enumeration" key-field-name="enumId" description="${description}">
-                 <entity-constraint name="enumTypeId" operator="equals" value="SQ_STANDARD" /> 
-              </entity-options>
-          </drop-down>
-        </field>
-        <field name="securityAnswer" title="${uiLabelMap.SecurityAnswer}"><text /></field>
-
         <field name="PRODUCT_STORE_ID" title="Product Store" tooltip="${uiLabelMap.CommonRequired}" widget-style="required">
             <drop-down>
                 <entity-options entity-name="ProductStore" key-field-name="productStoreId" description="${storeName} (${productStoreId})">
@@ -730,8 +724,7 @@ under the License.
         <field use-when="attribute!=null" name="attrName" tooltip="${uiLabelMap.PartyNotModifRecreateAttribute}"><display/></field>
         <field name="submitButton" title="${uiLabelMap.CommonUpdate}"><submit button-type="button"/></field>
         <field name="cancelLink" title=" " widget-style="smallSubmit">
-            <hyperlink description="${uiLabelMap.CommonCancelDone}" target="${cancelPage}" also-hidden="false">
-                <parameter param-name="partyId"/>
+            <hyperlink description="${uiLabelMap.CommonCancelDone}" target="backHome" also-hidden="false">
             </hyperlink>
         </field>
     </form>
@@ -892,6 +885,7 @@ under the License.
             </drop-down>
         </field>
         <field name="partyId"><hidden value="${partyId}"/></field>
+        <field name="roleTypeId"><hidden value="${parameters.roleTypeId}"/></field>
         <field name="finAccountTypeId"><ignored/></field>
         <field name="submitButton" title="${uiLabelMap.CommonAdd}"><submit button-type="button"/></field>
     </form>
@@ -1014,7 +1008,7 @@ under the License.
         <field name="thruDate"><date-time/></field>
         <field name="comments"><text/></field>
         <field name="updateButton"><submit button-type="button"/></field>
-        <field name="deleteButton"><hyperlink description="${uiLabelMap.CommonDelete}" target="deletePartyRelationship">
+        <field name="deleteButton" widget-style="buttontext"><hyperlink description="${uiLabelMap.CommonDelete}" target="deletePartyRelationship">
                 <parameter param-name="partyId"/>
                 <parameter param-name="partyIdFrom"/>
                 <parameter param-name="partyIdTo"/>
@@ -1440,7 +1434,7 @@ under the License.
     </grid>
     
     <form name="ImportParty" type="upload" target="uploadParty" title="" >
-        <field name="uploadedFile"><file/></field>
+        <field name="uploadedFile" title="${uiLabelMap.ContentFile}"><file/></field>
         <field name="submitButton" title="${uiLabelMap.CommonUpload}"><submit button-type="button"/></field>
     </form>
     

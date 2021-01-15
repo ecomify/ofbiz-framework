@@ -34,13 +34,14 @@ import org.apache.ofbiz.base.util.Debug;
  */
 public abstract class GenericXaResource extends Thread implements XAResource {
 
-    public static final String module = GenericXaResource.class.getName();
+    private static final String MODULE = GenericXaResource.class.getName();
 
-    protected Transaction trans = null;
-    protected boolean active = false;
-    /** timeout is an Integer and defaults to null so that we know if it is set on this object; if it isn't set we won't worry about the warning message, etc because we don't know what the real timeout is */
-    protected Integer timeout = null;
-    protected Xid xid = null;
+    private Transaction trans = null;
+    private boolean active = false;
+    /** timeout is an Integer and defaults to null so that we know if it is set on this object; if it isn't set we won't worry
+     * about the warning message, etc because we don't know what the real timeout is */
+    private Integer timeout = null;
+    private Xid xid = null;
 
     /**
      * Enlists this resource in the current transaction
@@ -118,7 +119,7 @@ public abstract class GenericXaResource extends Thread implements XAResource {
         this.xid = null;
         if (active) {
             // non-fatal
-            Debug.logWarning("forget() called without end()", module);
+            Debug.logWarning("forget() called without end()", MODULE);
         }
     }
 
@@ -154,14 +155,50 @@ public abstract class GenericXaResource extends Thread implements XAResource {
         return true;
     }
 
+    /**
+     * Gets transaction.
+     * @return the transaction
+     */
     public Transaction getTransaction() {
         return this.trans;
     }
 
+    /**
+     * Sets transaction.
+     * @param t the t
+     */
     public void setTransaction(Transaction t) {
         this.trans = t;
     }
 
+    /**
+     * Sets active.
+     * @param active the active
+     */
+    public void setActive(boolean active) {
+        this.active = active;
+    }
+
+    /**
+     * Is active boolean.
+     * @return the boolean
+     */
+    public boolean isActive() {
+        return active;
+    }
+
+    /**
+     * Sets xid.
+     * @param xid the xid
+     */
+    public void setXid(Xid xid) {
+        this.xid = xid;
+    }
+
+    /**
+     * Gets xid.
+     * @return the xid
+     */
     public Xid getXid() {
         return this.xid;
     }
@@ -193,20 +230,20 @@ public abstract class GenericXaResource extends Thread implements XAResource {
                         try {
                             status = trans.getStatus();
                         } catch (SystemException e) {
-                            Debug.logWarning(e, module);
+                            Debug.logWarning(e, MODULE);
                         }
                     }
 
                     // log a warning message
                     String statusString = TransactionUtil.getTransactionStateString(status);
-                    Debug.logWarning("Transaction timeout [" + timeout + "] Status: " + statusString + " Xid: " + getXid(), module);
+                    Debug.logWarning("Transaction timeout [" + timeout + "] Status: " + statusString + " Xid: " + getXid(), MODULE);
 
                     // run the abstract method
                     runOnTimeout();
                 }
             }
         } catch (InterruptedException e) {
-            Debug.logWarning(e, "InterruptedException thrown", module);
+            Debug.logWarning(e, "InterruptedException thrown", MODULE);
         }
     }
 }

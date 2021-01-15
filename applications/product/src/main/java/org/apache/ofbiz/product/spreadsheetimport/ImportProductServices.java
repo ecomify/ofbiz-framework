@@ -45,18 +45,16 @@ import org.apache.poi.ss.usermodel.CellType;
 
 public class ImportProductServices {
 
-    public static final String module = ImportProductServices.class.getName();
-    public static final String resource = "ProductUiLabels";
+    private static final String MODULE = ImportProductServices.class.getName();
+    private static final String RESOURCE = "ProductUiLabels";
 
     /**
      * This method is responsible to import spreadsheet data into "Product" and
      * "InventoryItem" entities into database. The method uses the
      * ImportProductHelper class to perform its operation. The method uses "Apache
      * POI" api for importing spreadsheet (xls files) data.
-     *
      * Note : Create the spreadsheet directory in the ofbiz home folder and keep
      * your xls files in this folder only.
-     *
      * @param dctx the dispatch context
      * @param context the context
      * @return the result of the service execution
@@ -77,7 +75,7 @@ public class ImportProductServices {
                 // loop for all the containing xls file in the spreadsheet
                 // directory
                 if (files == null) {
-                    return ServiceUtil.returnError(UtilProperties.getMessage(resource, "FileFilesIsNull", locale));
+                    return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE, "FileFilesIsNull", locale));
                 }
                 for (File file : files) {
                     if (file.getName().toUpperCase(Locale.getDefault()).endsWith("XLS")) {
@@ -85,16 +83,16 @@ public class ImportProductServices {
                     }
                 }
             } else {
-                return ServiceUtil.returnError(UtilProperties.getMessage(resource,
+                return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE,
                         "ProductProductImportDirectoryNotFound", locale));
             }
         } else {
-            return ServiceUtil.returnError(UtilProperties.getMessage(resource,
+            return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE,
                     "ProductProductImportPathNotSpecified", locale));
         }
 
         if (fileItems.size() < 1) {
-            return ServiceUtil.returnError(UtilProperties.getMessage(resource,
+            return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE,
                     "ProductProductImportPathNoSpreadsheetExists", locale) + path);
         }
 
@@ -108,8 +106,8 @@ public class ImportProductServices {
                 fs = new POIFSFileSystem(new FileInputStream(item));
                 wb = new HSSFWorkbook(fs);
             } catch (IOException e) {
-                Debug.logError("Unable to read or create workbook from file", module);
-                return ServiceUtil.returnError(UtilProperties.getMessage(resource,
+                Debug.logError("Unable to read or create workbook from file", MODULE);
+                return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE,
                         "ProductProductImportCannotCreateWorkbookFromFile", locale));
             }
 
@@ -136,7 +134,7 @@ public class ImportProductServices {
                     // too.
                     boolean productExists = ImportProductHelper.checkProductExists(productId, delegator);
 
-                    if (!productId.trim().equalsIgnoreCase("") && !productExists) {
+                    if (!"".equalsIgnoreCase(productId.trim()) && !productExists) {
                         products.add(ImportProductHelper.prepareProduct(productId));
                         if (quantityOnHand.compareTo(BigDecimal.ZERO) >= 0) {
                             inventoryItems.add(ImportProductHelper.prepareInventoryItem(productId, quantityOnHand,
@@ -148,7 +146,7 @@ public class ImportProductServices {
                     }
                     int rowNum = row.getRowNum() + 1;
                     if (!row.toString().trim().equalsIgnoreCase("") && productExists) {
-                        Debug.logWarning("Row number " + rowNum + " not imported from " + item.getName(), module);
+                        Debug.logWarning("Row number " + rowNum + " not imported from " + item.getName(), MODULE);
                     }
                 }
             }
@@ -162,15 +160,15 @@ public class ImportProductServices {
                         delegator.create(productGV);
                         delegator.create(inventoryItemGV);
                     } catch (GenericEntityException e) {
-                        Debug.logError("Cannot store product", module);
-                        return ServiceUtil.returnError(UtilProperties.getMessage(resource,
+                        Debug.logError("Cannot store product", MODULE);
+                        return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE,
                                 "ProductProductImportCannotStoreProduct", locale));
                     }
                 }
             }
             int uploadedProducts = products.size() + 1;
-            if (products.size() > 0) {
-                Debug.logInfo("Uploaded " + uploadedProducts + " products from file " + item.getName(), module);
+            if (!products.isEmpty()) {
+                Debug.logInfo("Uploaded " + uploadedProducts + " products from file " + item.getName(), MODULE);
             }
         }
         return ServiceUtil.returnSuccess();

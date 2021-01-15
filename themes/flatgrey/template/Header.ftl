@@ -24,6 +24,10 @@ under the License.
 <html lang="${docLangAttr}" dir="${langDir}" xmlns="http://www.w3.org/1999/xhtml">
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <#assign csrfDefenseStrategy = Static["org.apache.ofbiz.entity.util.EntityUtilProperties"].getPropertyValue("security", "csrf.defense.strategy", "org.apache.ofbiz.security.NoCsrfDefenseStrategy", delegator)>
+    <#if csrfDefenseStrategy != "org.apache.ofbiz.security.NoCsrfDefenseStrategy">
+        <meta name="csrf-token" content="<@csrfTokenAjax/>"/>
+    </#if>
     <title>${layoutSettings.companyName}: <#if (titleProperty)?has_content>${uiLabelMap[titleProperty]}<#else>${title!}</#if></title>
     <#if layoutSettings.shortcutIcon?has_content>
       <#assign shortcutIcon = layoutSettings.shortcutIcon/>
@@ -98,7 +102,7 @@ under the License.
 <#assign organizationLogoLinkURL = "${layoutSettings.organizationLogoLinkUrl!}">
 <body>
   <#include "component://common-theme/template/ImpersonateBanner.ftl"/>
-  <div id="wait-spinner" style="display:none">
+  <div id="wait-spinner" class="hidden">
     <div id="wait-spinner-image"></div>
   </div>
   <div class="page-container">
@@ -153,11 +157,7 @@ under the License.
           <#else>
             <li>${uiLabelMap.CommonWelcome}! <a href="<@ofbizUrl>${checkLoginUrl}</@ofbizUrl>">${uiLabelMap.CommonLogin}</a></li>
           </#if>
-          <#---if webSiteId?? && requestAttributes._CURRENT_VIEW_?? && helpTopic??-->
-          <#if parameters.componentName?? && requestAttributes._CURRENT_VIEW_?? && helpTopic??>
-            <#include "component://common-theme/template/includes/HelpLink.ftl" />
-            <li><a <#if pageAvail?has_content>class="alert"</#if> href="javascript:lookup_popup1('showHelp?helpTopic=${helpTopic}&amp;portalPageId=${(parameters.portalPageId!)?html}','help' ,500,500);">${uiLabelMap.CommonHelp}</a></li>
-          </#if>
+          <li><a class="alert" href="${userDocUri!Static["org.apache.ofbiz.entity.util.EntityUtilProperties"].getPropertyValue("general", "userDocUri", delegator)}<#if helpAnchor??>#${helpAnchor}</#if>" target="help">${uiLabelMap.CommonHelp}</a></li>
           </ul>
       </li>
     </ul>

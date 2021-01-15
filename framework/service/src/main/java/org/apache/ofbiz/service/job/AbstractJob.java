@@ -30,11 +30,28 @@ import org.apache.ofbiz.entity.transaction.TransactionUtil;
  */
 public abstract class AbstractJob implements Job {
 
-    public static final String module = AbstractJob.class.getName();
+    private static final String MODULE = AbstractJob.class.getName();
 
     private final String jobId;
     private final String jobName;
-    protected State currentState = State.CREATED;
+    private State currentState = State.CREATED;
+
+    /**
+     * Gets current state.
+     * @return the current state
+     */
+    public State getCurrentState() {
+        return currentState;
+    }
+
+    /**
+     * Sets current state.
+     * @param currentState the current state
+     */
+    public void setCurrentState(State currentState) {
+        this.currentState = currentState;
+    }
+
     private long elapsedTime = 0;
     private final Date startTime = new Date();
 
@@ -86,22 +103,22 @@ public abstract class AbstractJob implements Job {
         try {
             exec();
         } catch (InvalidJobException e) {
-            Debug.logWarning(e.getMessage(), module);
+            Debug.logWarning(e.getMessage(), MODULE);
         }
         // sanity check; make sure we don't have any transactions in place
         try {
             // roll back current TX first
             if (TransactionUtil.isTransactionInPlace()) {
-                Debug.logWarning("*** NOTICE: JobInvoker finished w/ a transaction in place! Rolling back.", module);
+                Debug.logWarning("*** NOTICE: JobInvoker finished w/ a transaction in place! Rolling back.", MODULE);
                 TransactionUtil.rollback();
             }
             // now resume/rollback any suspended txs
             if (TransactionUtil.suspendedTransactionsHeld()) {
                 int suspended = TransactionUtil.cleanSuspendedTransactions();
-                Debug.logWarning("Resumed/Rolled Back [" + suspended + "] transactions.", module);
+                Debug.logWarning("Resumed/Rolled Back [" + suspended + "] transactions.", MODULE);
             }
         } catch (GenericTransactionException e) {
-            Debug.logWarning(e, module);
+            Debug.logWarning(e, MODULE);
         }
         elapsedTime = System.currentTimeMillis() - startMillis;
     }
@@ -116,7 +133,7 @@ public abstract class AbstractJob implements Job {
         return (Date) startTime.clone();
     }
 
-    /* 
+    /*
      * Returns JobPriority.NORMAL, the default setting
      */
     @Override

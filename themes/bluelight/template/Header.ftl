@@ -28,6 +28,10 @@ under the License.
 <html lang="${docLangAttr}" dir="${langDir}" xmlns="http://www.w3.org/1999/xhtml">
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <#assign csrfDefenseStrategy = Static["org.apache.ofbiz.entity.util.EntityUtilProperties"].getPropertyValue("security", "csrf.defense.strategy", "org.apache.ofbiz.security.NoCsrfDefenseStrategy", delegator)>
+    <#if csrfDefenseStrategy != "org.apache.ofbiz.security.NoCsrfDefenseStrategy">
+        <meta name="csrf-token" content="<@csrfTokenAjax/>"/>
+    </#if>
     <title>${layoutSettings.companyName}: <#if (titleProperty)?has_content>${uiLabelMap[titleProperty]}<#else>${title!}</#if></title>
     <#if layoutSettings.shortcutIcon?has_content>
       <#assign shortcutIcon = layoutSettings.shortcutIcon/>
@@ -118,7 +122,7 @@ under the License.
 
 <body>
   <#include "component://common-theme/template/ImpersonateBanner.ftl"/>
-  <div id="wait-spinner" style="display:none">
+  <div id="wait-spinner" class="hidden">
     <div id="wait-spinner-image"></div>
   </div>
   <div class="page-container">
@@ -176,7 +180,7 @@ under the License.
                         </li>
                     </#if>
                 </#if>
-                <li class="user"><a href="<@ofbizUrl controlPath="/partymgr/control">viewprofile?partyId=${userLogin.partyId}${externalKeyParam!}</@ofbizUrl>">${userName}</a></li>
+                <li class="user"><a href="<@ofbizUrl controlPath="/partymgr/control">viewprofile?partyId=${userLogin.partyId}</@ofbizUrl>">${userName}</a></li>
               <#else>
                 <li class="user">${userName}</li>
               </#if>
@@ -191,11 +195,7 @@ under the License.
             <#else>
               <li><a href="<@ofbizUrl>${checkLoginUrl}</@ofbizUrl>">${uiLabelMap.CommonLogin}</a></li>
             </#if>
-            <#--if webSiteId?? && requestAttributes._CURRENT_VIEW_?? && helpTopic??-->
-            <#if parameters.componentName?? && requestAttributes._CURRENT_VIEW_?? && helpTopic??>
-              <#include "component://common-theme/template/includes/HelpLink.ftl" />
-              <li><a class="help-link <#if pageAvail?has_content> alert</#if>" href="javascript:lookup_popup1('showHelp?helpTopic=${helpTopic}&amp;portalPageId=${(parameters.portalPageId!)?html}','help' ,500,500);" title="${uiLabelMap.CommonHelp}"></a></li>
-            </#if>
+            <li><a class="help-link alert" href="${userDocUri!Static["org.apache.ofbiz.entity.util.EntityUtilProperties"].getPropertyValue("general", "userDocUri", delegator)}<#if helpAnchor??>#${helpAnchor}</#if>" target="help" title="${uiLabelMap.CommonHelp}"></a></li>
             <#if userLogin??>
               <#if "Y" == (userPreferences.COMPACT_HEADER)?default("N")>
                 <li class="collapsed"><a href="javascript:document.setUserPreferenceCompactHeaderN.submit()">&nbsp;&nbsp;</a>

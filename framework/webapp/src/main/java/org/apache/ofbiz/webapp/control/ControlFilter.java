@@ -24,7 +24,6 @@ import java.util.Collections;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import javax.servlet.Filter;
 import javax.servlet.FilterChain;
 import javax.servlet.FilterConfig;
 import javax.servlet.ServletException;
@@ -35,6 +34,7 @@ import javax.servlet.http.HttpSession;
 
 import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.validator.routines.UrlValidator;
+import org.apache.logging.log4j.ThreadContext;
 import org.apache.ofbiz.base.util.Debug;
 
 /**
@@ -66,7 +66,7 @@ import org.apache.ofbiz.base.util.Debug;
 public class ControlFilter extends HttpFilter {
     public static final String FORWARDED_FROM_SERVLET = "_FORWARDED_FROM_SERVLET_";
     public static final int DEFAULT_HTTP_ERROR_CODE = 403;
-    private static final String module = ControlFilter.class.getName();
+    private static final String MODULE = ControlFilter.class.getName();
 
     /** The path used for redirection. */
     private String redirectPath;
@@ -97,7 +97,6 @@ public class ControlFilter extends HttpFilter {
     /**
      * Converts {@code code} string to an integer.  If conversion fails, Return
      * {@code DEFAULT_HTTP_ERROR_STATUS} instead.
-     *
      * @param code an arbitrary string which can be {@code null}
      * @return the integer matching {@code code}
      */
@@ -105,15 +104,14 @@ public class ControlFilter extends HttpFilter {
         try {
             return (code == null) ? DEFAULT_HTTP_ERROR_CODE : Integer.parseInt(code);
         } catch (NumberFormatException err) {
-            Debug.logWarning(err, "Error code specified would not parse to Integer: " + code, module);
-            Debug.logWarning(err, "The default error code will be used: " + DEFAULT_HTTP_ERROR_CODE, module);
+            Debug.logWarning(err, "Error code specified would not parse to Integer: " + code, MODULE);
+            Debug.logWarning(err, "The default error code will be used: " + DEFAULT_HTTP_ERROR_CODE, MODULE);
             return DEFAULT_HTTP_ERROR_CODE;
         }
     }
 
     /**
      * Splits the paths defined by {@code paths}.
-     *
      * @param paths a string which can be either {@code null} or a list of
      * paths separated by ':'.
      * @return a set of string
@@ -125,8 +123,6 @@ public class ControlFilter extends HttpFilter {
 
     /**
      * Makes allowed paths pass through while redirecting the others to a fix location.
-     *
-     * @see Filter#doFilter
      */
     @Override
     public void doFilter(HttpServletRequest req, HttpServletResponse resp, FilterChain chain)
@@ -139,7 +135,7 @@ public class ControlFilter extends HttpFilter {
             // little trick here so we don't loop on ourselves
             if (session.getAttribute("_FORCE_REDIRECT_") == null) {
                 session.setAttribute("_FORCE_REDIRECT_", "true");
-                Debug.logWarning("Redirecting user to: " + redirectPath, module);
+                Debug.logWarning("Redirecting user to: " + redirectPath, MODULE);
                 redirect(resp, context);
             } else {
                 session.removeAttribute("_FORCE_REDIRECT_");
@@ -153,7 +149,14 @@ public class ControlFilter extends HttpFilter {
 
             // Check if the requested URI is allowed.
             if (allowedPaths.stream().anyMatch(uri::startsWith)) {
-                chain.doFilter(req, resp);
+                try {
+                    // support OFBizDynamicThresholdFilter in log4j2.xml
+                    ThreadContext.put("uri", uri);
+
+                    chain.doFilter(req, resp);
+                } finally {
+                    ThreadContext.remove("uri");
+                }
             } else {
                 if (redirectPath == null) {
                     resp.sendError(errorCode, uriWithContext);
@@ -162,7 +165,7 @@ public class ControlFilter extends HttpFilter {
                 }
                 if (Debug.infoOn()) {
                     Debug.logInfo("[Filtered request]: " + uriWithContext + " --> "
-                                    + (redirectPath == null ? errorCode : redirectPath), module);
+                                    + (redirectPath == null ? errorCode : redirectPath), MODULE);
                 }
             }
         }
@@ -170,7 +173,6 @@ public class ControlFilter extends HttpFilter {
 
     /**
      * Sends an HTTP response redirecting to {@code redirectPath}.
-     *
      * @param resp The response to send
      * @param contextPath the prefix to add to the redirection when
      * {@code redirectPath} is a relative URI.

@@ -41,7 +41,7 @@ under the License.
     -->
 
     <!-- Request Mappings -->
-    <request-map uri="view"><security https="true" auth="false"/><response name="success" type="request" value="main"/></request-map>
+    <request-map uri="view"><security https="true" auth="true"/><response name="success" type="request" value="main"/></request-map>
     
     <request-map uri="main"><security https="true" auth="true"/><response name="success" type="view" value="main"/></request-map>
 
@@ -122,9 +122,11 @@ under the License.
         <event type="service" invoke="createServiceCredit"/>
         <response name="success" type="request-redirect" value="viewprofile">
             <redirect-parameter name="partyId"/>
+            <redirect-parameter name="roleTypeId"/>
         </response>
         <response name="error" type="request-redirect" value="viewprofile">
             <redirect-parameter name="partyId"/>
+            <redirect-parameter name="roleTypeId"/>
         </response>
     </request-map>
 
@@ -373,9 +375,11 @@ under the License.
         <event type="simple" path="component://accounting/minilang/payment/PaymentMethodEvents.xml" invoke="deletePaymentMethod"/>
         <response name="success" type="request-redirect" value="viewprofile">
             <redirect-parameter name="partyId"/>
+            <redirect-parameter name="roleTypeId"/>
         </response>
         <response name="error" type="request-redirect" value="viewprofile">
             <redirect-parameter name="partyId"/>
+            <redirect-parameter name="roleTypeId"/>
         </response>
     </request-map>
 
@@ -791,6 +795,14 @@ under the License.
         <response name="success" type="view-home"/>
         <response name="error" type="view-last"/>
     </request-map>
+    <request-map uri="ViewRequest">
+        <security auth="true" https="true"/>
+        <response name="success" type="view" value="ViewRequest"/>
+    </request-map>
+    <request-map uri="EditRequest">
+        <security auth="true" https="true"/>
+        <response name="success" type="view" value="EditRequest"/>
+    </request-map>
 
     <request-map uri="allocateMsgToParty">
         <security https="true" auth="true"/>
@@ -987,7 +999,7 @@ under the License.
    <!-- ================ SimpleContent Requests ================= -->
 
     <request-map uri="ViewSimpleContent">
-        <security auth="false" https="false"/>
+        <security auth="true" https="true"/>
         <response name="success" type="view" value="ViewSimpleContent"/>
     </request-map>
 
@@ -1020,8 +1032,11 @@ under the License.
     <request-map uri="removePartyContent">
         <security auth="true" https="true"/>
         <event type="service" invoke="removePartyContent"/>
-        <response name="success" type="request-redirect" value="EditPartyContents">
-            <redirect-parameter name="partyId"></redirect-parameter>
+        <response name="success" type="request-redirect" value="viewprofile">
+            <redirect-parameter name="partyId"/>
+        </response>
+        <response name="error" type="request-redirect" value="viewprofile">
+            <redirect-parameter name="partyId"/>
         </response>
     </request-map>
 
@@ -1042,7 +1057,7 @@ under the License.
     </request-map>
 
     <request-map uri="img">
-        <security auth="false" https="false"/>
+        <security auth="true" https="true"/>
         <event type="java" path="org.apache.ofbiz.content.data.DataEvents" invoke="serveImage"/>
         <response name="success" type="none"/>
         <response name="error" type="request" value="main"/>
@@ -1167,9 +1182,11 @@ under the License.
         <event type="simple" path="component://party/minilang/party/PartySimpleMethods.xml" invoke="deleteBillingAccount"/>
         <response name="success" type="request-redirect" value="viewprofile">
             <redirect-parameter name="partyId"/>
+            <redirect-parameter name="roleTypeId"/>
         </response>
         <response name="error" type="request-redirect" value="viewprofile">
             <redirect-parameter name="partyId"/>
+            <redirect-parameter name="roleTypeId"/>
         </response>
     </request-map>
 
@@ -1255,6 +1272,7 @@ under the License.
     <request-map uri="LookupOrderHeader"><security auth="true" https="true"/><response name="success" type="view" value="LookupOrderHeader"/></request-map>
     <request-map uri="LookupReturnHeader"><security auth="true" https="true"/><response name="success" type="view" value="LookupReturnHeader"/></request-map>
     <request-map uri="LookupProduct"><security auth="true" https="true"/><response name="success" type="view" value="LookupProduct"/></request-map>
+    <request-map uri="LookupBudget"><security auth="true" https="true"/><response name="success" type="view" value="LookupBudget"/></request-map>
 
     <!-- Financial History Report-->
     <request-map uri="PartyFinancialHistory">
@@ -1334,7 +1352,7 @@ under the License.
 
     <!--  external communication event; mark as read using 1px image request -->
     <request-map uri="ceimages" track-serverhit="false" track-visit="false">
-        <security https="false" auth="false"/>
+        <security https="false" auth="true"/>
         <event type="java" path="org.apache.ofbiz.party.communication.CommunicationEventServices" invoke="markCommunicationAsRead"/>
         <response name="success" type="none"/>
     </request-map>
@@ -1467,6 +1485,7 @@ under the License.
     <view-map name="visitdetail" type="screen" page="component://party/widget/partymgr/VisitScreens.xml#visitdetail"/>
     <view-map name="listLoggedInUsers" type="screen" page="component://party/widget/partymgr/VisitScreens.xml#ListLoggedInUsers"/>
 
+    <view-map name="LookupBudget"  type="screen" page="component://humanres/widget/LookupScreens.xml#LookupBudget"/>
     <view-map name="LookupPartyName" type="screen" page="component://party/widget/partymgr/LookupScreens.xml#LookupPartyName"/>
     <view-map name="LookupPartyEmail" type="screen" page="component://party/widget/partymgr/LookupScreens.xml#LookupPartyEmail"/>
     <view-map name="LookupPartyClassificationGroup" type="screen" page="component://party/widget/partymgr/LookupScreens.xml#LookupPartyClassificationGroup"/>

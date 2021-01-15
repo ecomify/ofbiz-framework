@@ -38,16 +38,16 @@ import org.w3c.dom.Element;
 @SuppressWarnings("serial")
 public final class ServiceEcaRule implements java.io.Serializable {
 
-    public static final String module = ServiceEcaRule.class.getName();
+    private static final String MODULE = ServiceEcaRule.class.getName();
 
-    public final String serviceName;
-    public final String eventName;
-    public final boolean runOnFailure;
-    public final boolean runOnError;
-    public final List<ServiceEcaCondition> conditions = new ArrayList<>();
-    public final List<Object> actionsAndSets = new ArrayList<>();
-    public boolean enabled = true;
-    public final String definitionLocation;
+    private final String serviceName;
+    private final String eventName;
+    private final boolean runOnFailure;
+    private final boolean runOnError;
+    private final List<ServiceEcaCondition> conditions = new ArrayList<>();
+    private final List<Object> actionsAndSets = new ArrayList<>();
+    private boolean enabled = true;
+    private final String definitionLocation;
 
     public ServiceEcaRule(Element eca, String definitionLocation) {
         this.definitionLocation = definitionLocation;
@@ -70,7 +70,7 @@ public final class ServiceEcaRule implements java.io.Serializable {
         }
 
         if (Debug.verboseOn()) {
-            Debug.logVerbose("Conditions: " + conditions, module);
+            Debug.logVerbose("Conditions: " + conditions, MODULE);
         }
 
         Set<String> nameSet = UtilMisc.toSet("set", "action");
@@ -83,7 +83,7 @@ public final class ServiceEcaRule implements java.io.Serializable {
         }
 
         if (Debug.verboseOn()) {
-            Debug.logVerbose("actions and sets (intermixed): " + actionsAndSets, module);
+            Debug.logVerbose("actions and sets (intermixed): " + actionsAndSets, MODULE);
         }
     }
 
@@ -119,9 +119,10 @@ public final class ServiceEcaRule implements java.io.Serializable {
         return condList;
     }
 
-    public void eval(String serviceName, DispatchContext dctx, Map<String, Object> context, Map<String, Object> result, boolean isError, boolean isFailure, Set<String> actionsRun) throws GenericServiceException {
+    public void eval(String serviceName, DispatchContext dctx, Map<String, Object> context, Map<String, Object> result, boolean isError,
+                     boolean isFailure, Set<String> actionsRun) throws GenericServiceException {
         if (!enabled) {
-            Debug.logInfo("Service ECA [" + this.serviceName + "] on [" + this.eventName + "] is disabled; not running.", module);
+            Debug.logInfo("Service ECA [" + this.serviceName + "] on [" + this.eventName + "] is disabled; not running.", MODULE);
             return;
         }
         if (isFailure && !this.runOnFailure) {
@@ -135,13 +136,13 @@ public final class ServiceEcaRule implements java.io.Serializable {
         for (ServiceEcaCondition ec: conditions) {
             if (!ec.eval(serviceName, dctx, context)) {
                 if (Debug.infoOn()) {
-                    Debug.logInfo("For Service ECA [" + this.serviceName + "] on [" + this.eventName + "] got false for condition: " + ec, module);
+                    Debug.logInfo("For Service ECA [" + this.serviceName + "] on [" + this.eventName + "] got false for condition: " + ec, MODULE);
                 }
                 allCondTrue = false;
                 break;
             } else {
                 if (Debug.verboseOn()) {
-                    Debug.logVerbose("For Service ECA [" + this.serviceName + "] on [" + this.eventName + "] got true for condition: " + ec, module);
+                    Debug.logVerbose("For Service ECA [" + this.serviceName + "] on [" + this.eventName + "] got true for condition: " + ec, MODULE);
                 }
             }
         }
@@ -153,12 +154,13 @@ public final class ServiceEcaRule implements java.io.Serializable {
                     ServiceEcaAction ea = (ServiceEcaAction) setOrAction;
                     // in order to enable OR logic without multiple calls to the given service,
                     // only execute a given service name once per service call phase
-                    if (!actionsRun.contains(ea.serviceName)) {
+                    if (!actionsRun.contains(ea.getServiceName())) {
                         if (Debug.infoOn()) {
-                            Debug.logInfo("Running Service ECA Service: " + ea.serviceName + ", triggered by rule on Service: " + serviceName, module);
+                            Debug.logInfo("Running Service ECA Service: " + ea.getServiceName() + ", triggered by rule on Service: "
+                                    + serviceName, MODULE);
                         }
                         if (ea.runAction(serviceName, dctx, context, result)) {
-                            actionsRun.add(ea.serviceName);
+                            actionsRun.add(ea.getServiceName());
                         }
                     }
                 } else {
@@ -224,6 +226,7 @@ public final class ServiceEcaRule implements java.io.Serializable {
 
     @Override
     public String toString() {
-        return "ServiceEcaRule:" + this.serviceName + ":" + this.eventName + ":runOnError=" + this.runOnError + ":runOnFailure=" + this.runOnFailure + ":enabled=" + this.enabled + ":conditions=" + this.conditions + ":actionsAndSets=" + this.actionsAndSets;
+        return "ServiceEcaRule:" + this.serviceName + ":" + this.eventName + ":runOnError=" + this.runOnError + ":runOnFailure=" + this.runOnFailure
+                + ":enabled=" + this.enabled + ":conditions=" + this.conditions + ":actionsAndSets=" + this.actionsAndSets;
     }
 }

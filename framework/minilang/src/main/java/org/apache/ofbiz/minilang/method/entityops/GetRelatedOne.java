@@ -34,12 +34,11 @@ import org.w3c.dom.Element;
 
 /**
  * Implements the &lt;get-related-one&gt; element.
- * 
  * @see <a href="https://cwiki.apache.org/confluence/display/OFBIZ/Mini+Language+-+minilang+-+simple-method+-+Reference">Mini-language Reference</a>
  */
 public final class GetRelatedOne extends MethodOperation {
 
-    public static final String module = GetRelatedOne.class.getName();
+    private static final String MODULE = GetRelatedOne.class.getName();
 
     private final FlexibleStringExpander relationNameFse;
     private final FlexibleMapAccessor<GenericValue> toValueFma;
@@ -72,8 +71,8 @@ public final class GetRelatedOne extends MethodOperation {
             toValueFma.put(methodContext.getEnvMap(), value.getRelatedOne(relationName, useCache));
         } catch (GenericEntityException e) {
             String errMsg = "Exception thrown while finding related value: " + e.getMessage();
-            Debug.logWarning(e, errMsg, module);
-            simpleMethod.addErrorMessage(methodContext, errMsg);
+            Debug.logWarning(e, errMsg, MODULE);
+            getSimpleMethod().addErrorMessage(methodContext, errMsg);
             return false;
         }
         return true;

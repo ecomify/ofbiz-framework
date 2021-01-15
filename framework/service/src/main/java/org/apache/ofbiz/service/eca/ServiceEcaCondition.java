@@ -40,20 +40,20 @@ import org.w3c.dom.Element;
 @SuppressWarnings("serial")
 public class ServiceEcaCondition implements java.io.Serializable {
 
-    public static final String module = ServiceEcaCondition.class.getName();
+    private static final String MODULE = ServiceEcaCondition.class.getName();
 
-    protected String conditionService = null;
-    protected String lhsValueName = null;
-    protected String rhsValueName = null;
-    protected String lhsMapName = null;
-    protected String rhsMapName = null;
-    protected String operator = null;
-    protected String compareType = null;
-    protected String format = null;
-    protected boolean isConstant = false;
-    protected boolean isService = false;
+    private String conditionService = null;
+    private String lhsValueName = null;
+    private String rhsValueName = null;
+    private String lhsMapName = null;
+    private String rhsMapName = null;
+    private String operator = null;
+    private String compareType = null;
+    private String format = null;
+    private boolean isConstant = false;
+    private boolean isService = false;
 
-    protected ServiceEcaCondition() {}
+    protected ServiceEcaCondition() { }
 
     public ServiceEcaCondition(Element condition, boolean isConstant, boolean isService) {
         if (isService) {
@@ -79,6 +79,11 @@ public class ServiceEcaCondition implements java.io.Serializable {
         }
     }
 
+    /**
+     * Gets short display description.
+     * @param moreDetail the more detail
+     * @return the short display description
+     */
     public String getShortDisplayDescription(boolean moreDetail) {
         StringBuilder buf = new StringBuilder();
         if (isService) {
@@ -107,12 +112,22 @@ public class ServiceEcaCondition implements java.io.Serializable {
         return buf.toString();
     }
 
+    /**
+     * Eval boolean.
+     * @param serviceName the service name
+     * @param dctx the dctx
+     * @param context the context
+     * @return the boolean
+     * @throws GenericServiceException the generic service exception
+     */
     public boolean eval(String serviceName, DispatchContext dctx, Map<String, Object> context) throws GenericServiceException {
         if (serviceName == null || dctx == null || context == null || dctx.getClassLoader() == null) {
             throw new GenericServiceException("Cannot have null Service, Context or DispatchContext!");
         }
 
-        if (Debug.verboseOn()) Debug.logVerbose(this.toString() + ", In the context: " + context, module);
+        if (Debug.verboseOn()) {
+            Debug.logVerbose(this.toString() + ", In the context: " + context, MODULE);
+        }
 
         // condition-service; run the service and return the reply result
         if (isService) {
@@ -123,8 +138,8 @@ public class ServiceEcaCondition implements java.io.Serializable {
 
             Boolean conditionReply = Boolean.FALSE;
             if (ServiceUtil.isError(conditionServiceResult)) {
-                Debug.logError("Error in condition-service : " +
-                        ServiceUtil.getErrorMessage(conditionServiceResult), module);
+                Debug.logError("Error in condition-service : "
+                        + ServiceUtil.getErrorMessage(conditionServiceResult), MODULE);
             } else {
                 conditionReply = (Boolean) conditionServiceResult.get("conditionReply");
             }
@@ -139,7 +154,7 @@ public class ServiceEcaCondition implements java.io.Serializable {
                     Map<String, ? extends Object> envMap = UtilGenerics.cast(context.get(lhsMapName));
                     lhsValue = envMap.get(lhsValueName);
                 } else {
-                    Debug.logInfo("From Map (" + lhsMapName + ") not found in context, defaulting to null.", module);
+                    Debug.logInfo("From Map (" + lhsMapName + ") not found in context, defaulting to null.", MODULE);
                 }
             } catch (ClassCastException e) {
                 throw new GenericServiceException("From Map field [" + lhsMapName + "] is not a Map.", e);
@@ -148,7 +163,7 @@ public class ServiceEcaCondition implements java.io.Serializable {
             if (context.containsKey(lhsValueName)) {
                 lhsValue = context.get(lhsValueName);
             } else {
-                Debug.logInfo("From Field (" + lhsValueName + ") is not found in context for " + serviceName + ", defaulting to null.", module);
+                Debug.logInfo("From Field (" + lhsValueName + ") is not found in context for " + serviceName + ", defaulting to null.", MODULE);
             }
         }
 
@@ -160,7 +175,7 @@ public class ServiceEcaCondition implements java.io.Serializable {
                     Map<String, ? extends Object> envMap = UtilGenerics.cast(context.get(rhsMapName));
                     rhsValue = envMap.get(rhsValueName);
                 } else {
-                    Debug.logInfo("To Map (" + rhsMapName + ") not found in context for " + serviceName + ", defaulting to null.", module);
+                    Debug.logInfo("To Map (" + rhsMapName + ") not found in context for " + serviceName + ", defaulting to null.", MODULE);
                 }
             } catch (ClassCastException e) {
                 throw new GenericServiceException("To Map field [" + rhsMapName + "] is not a Map.", e);
@@ -169,24 +184,26 @@ public class ServiceEcaCondition implements java.io.Serializable {
             if (context.containsKey(rhsValueName)) {
                 rhsValue = context.get(rhsValueName);
             } else {
-                Debug.logInfo("To Field (" + rhsValueName + ") is not found in context for " + serviceName + ", defaulting to null.", module);
+                Debug.logInfo("To Field (" + rhsValueName + ") is not found in context for " + serviceName + ", defaulting to null.", MODULE);
             }
         }
 
-        if (Debug.verboseOn()) Debug.logVerbose("Comparing : " + lhsValue + " " + operator + " " + rhsValue, module);
+        if (Debug.verboseOn()) {
+            Debug.logVerbose("Comparing : " + lhsValue + " " + operator + " " + rhsValue, MODULE);
+        }
 
         // evaluate the condition & invoke the action(s)
         List<Object> messages = new LinkedList<>();
         Boolean cond = ObjectType.doRealCompare(lhsValue, rhsValue, operator, compareType, format, messages, null, dctx.getClassLoader(), isConstant);
 
         // if any messages were returned send them out
-        if (messages.size() > 0 && Debug.warningOn()) {
+        if (!messages.isEmpty() && Debug.warningOn()) {
             for (Object message: messages) {
-                Debug.logWarning(message.toString(), module);
+                Debug.logWarning(message.toString(), MODULE);
             }
         }
         if (!cond) {
-            Debug.logWarning("doRealCompare returned null, returning false", module);
+            Debug.logWarning("doRealCompare returned null, returning false", MODULE);
         }
         return cond;
     }

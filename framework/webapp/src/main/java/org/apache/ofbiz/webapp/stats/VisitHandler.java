@@ -42,20 +42,20 @@ import org.apache.ofbiz.entity.util.EntityUtilProperties;
  * Handles saving and maintaining visit information
  */
 public class VisitHandler {
-    // Debug module name
-    public static final String module = VisitHandler.class.getName();
+    // Debug MODULE name
+    private static final String MODULE = VisitHandler.class.getName();
 
-    public static final String visitorCookieName = "OFBiz.Visitor";
+    public static final String VISITOR_COOKIE_NAME = "OFBiz.Visitor";
 
-    protected static final InetAddress address;
+    protected static final InetAddress ADDRESS;
     static {
         InetAddress tmpAddress = null;
         try {
             tmpAddress = InetAddress.getLocalHost();
         } catch (java.net.UnknownHostException e) {
-            Debug.logError("Unable to get server's internet address: " + e.toString(), module);
+            Debug.logError("Unable to get server's internet ADDRESS: " + e.toString(), MODULE);
         }
-        address = tmpAddress;
+        ADDRESS = tmpAddress;
     }
 
     public static void setUserLogin(HttpSession session, GenericValue userLogin, boolean userCreated) {
@@ -71,7 +71,7 @@ public class VisitHandler {
             try {
                 visitor.store();
             } catch (GenericEntityException e) {
-                Debug.logError(e, "Could not update visitor: ", module);
+                Debug.logError(e, "Could not update visitor: ", MODULE);
             }
         }
 
@@ -91,7 +91,7 @@ public class VisitHandler {
             try {
                 visit.store();
             } catch (GenericEntityException e) {
-                Debug.logError(e, "Could not update visit: ", module);
+                Debug.logError(e, "Could not update visit: ", MODULE);
             }
         }
     }
@@ -128,7 +128,8 @@ public class VisitHandler {
                         }
 
                         if (delegator == null) {
-                            Debug.logError("Could not find delegator with delegatorName [" + delegatorName + "] in session, or a delegator attribute in the ServletContext, not creating Visit entity", module);
+                            Debug.logError("Could not find delegator with delegatorName [" + delegatorName
+                                    + "] in session, or a delegator attribute in the ServletContext, not creating Visit entity", MODULE);
                         } else {
                             String webappName = (String) session.getAttribute("_WEBAPP_NAME_");
                             Locale initialLocaleObj = (Locale) session.getAttribute("_CLIENT_LOCALE_");
@@ -139,7 +140,8 @@ public class VisitHandler {
                             String initialLocale = initialLocaleObj != null ? initialLocaleObj.toString() : "";
 
                             if (UtilValidate.isEmpty(webappName)) {
-                                Debug.logInfo(new Exception(), "The webappName was empty, somehow the initial request settings were missing.", module);
+                                Debug.logInfo(new Exception(), "The webappName was empty, somehow the initial request settings were missing.",
+                                        MODULE);
                             }
 
                             visit = delegator.makeValue("Visit");
@@ -149,7 +151,10 @@ public class VisitHandler {
                             visit.set("initialLocale", initialLocale);
                             visit.set("initialRequest", initialRequest);
                             visit.set("initialReferrer", initialReferrer);
-                            if (initialUserAgent != null) visit.set("initialUserAgent", initialUserAgent.length() > 250 ? initialUserAgent.substring(0, 250) : initialUserAgent);
+                            if (initialUserAgent != null) {
+                                visit.set("initialUserAgent", initialUserAgent.length() > 250 ? initialUserAgent.substring(0, 250)
+                                        : initialUserAgent);
+                            }
                             visit.set("webappName", webappName);
                             if (UtilProperties.propertyValueEquals("serverstats", "stats.proxy.enabled", "true")) {
                                 visit.set("clientIpAddress", session.getAttribute("_CLIENT_FORWARDED_FOR_"));
@@ -163,7 +168,6 @@ public class VisitHandler {
                             GenericValue visitor = (GenericValue) session.getAttribute("visitor");
                             if (visitor != null) {
                                 String visitorId = visitor.getString("visitorId");
-                                
                                 // sometimes these values get stale, so check it before we use it
                                 try {
                                     GenericValue checkVisitor = EntityQuery.use(delegator).from("Visitor").where("visitorId", visitorId).queryOne();
@@ -173,42 +177,37 @@ public class VisitHandler {
                                     }
                                     visit.set("visitorId", visitorId);
                                 } catch (GenericEntityException e) {
-                                    Debug.logWarning("Problem checking the visitorId: " + e.toString(), module);
+                                    Debug.logWarning("Problem checking the visitorId: " + e.toString(), MODULE);
                                 }
                             }
-
-                            // get localhost ip address and hostname to store
-                            if (address != null) {
-                                visit.set("serverIpAddress", address.getHostAddress());
-                                visit.set("serverHostName", address.getHostName());
+                            // get localhost ip ADDRESS and hostname to store
+                            if (ADDRESS != null) {
+                                visit.set("serverIpAddress", ADDRESS.getHostAddress());
+                                visit.set("serverHostName", ADDRESS.getHostName());
                             }
-
                             try {
                                 visit = delegator.createSetNextSeqId(visit);
                                 session.setAttribute("visit", visit);
                             } catch (GenericEntityException e) {
-                                Debug.logError(e, "Could not create new visit:", module);
+                                Debug.logError(e, "Could not create new visit:", MODULE);
                                 visit = null;
                             }
                         }
                     }
                 }
             }
-
             if (visit == null) {
-                Debug.logWarning("Could not find or create the visit...", module);
+                Debug.logWarning("Could not find or create the visit...", MODULE);
             }
             return visit;
         }
         return null;
     }
-
     public static GenericValue getVisitor(HttpServletRequest request, HttpServletResponse response) {
         // this defaults to true: ie if anything but "false" it will be true
-    	Delegator delegator = (Delegator) request.getAttribute("delegator");
+        Delegator delegator = (Delegator) request.getAttribute("delegator");
         if (!EntityUtilProperties.propertyValueEqualsIgnoreCase("serverstats", "stats.persist.visitor", "false", delegator)) {
             HttpSession session = request.getSession();
-
             GenericValue visitor = (GenericValue) session.getAttribute("visitor");
             if (visitor == null) {
                 synchronized (session) {
@@ -221,22 +220,27 @@ public class VisitHandler {
                         }
 
                         if (delegator == null) {
-                            Debug.logError("Could not find delegator in request or with delegatorName [" + delegatorName + "] in session, not creating/getting Visitor entity", module);
+                            Debug.logError("Could not find delegator in request or with delegatorName [" + delegatorName
+                                    + "] in session, not creating/getting Visitor entity", MODULE);
                         } else {
                             // first try to get the current ID from the visitor cookie
                             String cookieVisitorId = null;
                             Cookie[] cookies = request.getCookies();
-                            if (Debug.verboseOn()) Debug.logVerbose("Cookies:" + cookies, module);
+                            if (Debug.verboseOn()) {
+                                Debug.logVerbose("Cookies:" + cookies, MODULE);
+                            }
                             if (cookies != null) {
                                 for (int i = 0; i < cookies.length; i++) {
-                                    if (cookies[i].getName().equals(visitorCookieName)) {
+                                    if (cookies[i].getName().equals(VISITOR_COOKIE_NAME)) {
                                         cookieVisitorId = cookies[i].getValue();
                                         break;
                                     }
                                 }
                             }
 
-                            if (Debug.infoOn()) Debug.logInfo("Found visitorId [" + cookieVisitorId + "] in cookie", module);
+                            if (Debug.infoOn()) {
+                                Debug.logInfo("Found visitorId [" + cookieVisitorId + "] in cookie", MODULE);
+                            }
 
                             if (UtilValidate.isEmpty(cookieVisitorId)) {
                                 // no visitor cookie? create visitor and send back cookie too
@@ -244,7 +248,7 @@ public class VisitHandler {
                                 try {
                                     delegator.createSetNextSeqId(visitor);
                                 } catch (GenericEntityException e) {
-                                    Debug.logError(e, "Could not create new visitor:", module);
+                                    Debug.logError(e, "Could not create new visitor:", MODULE);
                                     visitor = null;
                                 }
                             } else {
@@ -256,11 +260,12 @@ public class VisitHandler {
                                         visitor = delegator.createSetNextSeqId(visitor);
                                         if (Debug.infoOn()) {
                                             String visitorId = visitor != null ? visitor.getString("visitorId") : "empty visitor";
-                                            Debug.logInfo("The visitorId [" + cookieVisitorId + "] found in cookie was invalid, creating new Visitor with ID [" + visitorId + "]", module);
+                                            Debug.logInfo("The visitorId [" + cookieVisitorId
+                                                    + "] found in cookie was invalid, creating new Visitor with ID [" + visitorId + "]", MODULE);
                                         }
                                     }
                                 } catch (GenericEntityException e) {
-                                    Debug.logError(e, "Error finding visitor with ID from cookie: " + cookieVisitorId, module);
+                                    Debug.logError(e, "Error finding visitor with ID from cookie: " + cookieVisitorId, MODULE);
                                     visitor = null;
                                 }
                             }
@@ -271,7 +276,7 @@ public class VisitHandler {
                             session.setAttribute("visitor", visitor);
 
                             // create the cookie and send it back, this may be done over and over, in effect frequently refreshing the cookie
-                            Cookie visitorCookie = new Cookie(visitorCookieName, visitor.getString("visitorId"));
+                            Cookie visitorCookie = new Cookie(VISITOR_COOKIE_NAME, visitor.getString("visitorId"));
                             visitorCookie.setMaxAge(60 * 60 * 24 * 365);
                             visitorCookie.setPath("/");
                             visitorCookie.setSecure(true);
@@ -282,7 +287,7 @@ public class VisitHandler {
                 }
             }
             if (visitor == null) {
-                Debug.logWarning(new Exception(), "Could not find or create the visitor...", module);
+                Debug.logWarning(new Exception(), "Could not find or create the visitor...", MODULE);
             }
             return visitor;
         }

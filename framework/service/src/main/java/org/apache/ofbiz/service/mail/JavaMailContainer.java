@@ -60,19 +60,19 @@ import org.apache.ofbiz.service.ServiceContainer;
 
 public class JavaMailContainer implements Container {
 
-    public static final String module = JavaMailContainer.class.getName();
+    private static final String MODULE = JavaMailContainer.class.getName();
     public static final String INBOX = "INBOX";
 
-    protected Delegator delegator = null;
-    protected LocalDispatcher dispatcher = null;
-    protected GenericValue userLogin = null;
-    protected long timerDelay = 300000;
-    protected long maxSize = 1000000;
-    protected ScheduledExecutorService pollTimer = null;
-    protected boolean deleteMail = false;    // whether to delete emails after fetching them.
+    private Delegator delegator = null;
+    private LocalDispatcher dispatcher = null;
+    private GenericValue userLogin = null;
+    private long timerDelay = 300000;
+    private long maxSize = 1000000;
+    private ScheduledExecutorService pollTimer = null;
+    private boolean deleteMail = false;    // whether to delete emails after fetching them.
 
-    protected String configFile = null;
-    protected Map<Store, Session> stores = null;
+    private String configFile = null;
+    private Map<Store, Session> stores = null;
     private String name;
 
     @Override
@@ -100,7 +100,7 @@ public class JavaMailContainer implements Container {
         try {
             this.userLogin = EntityQuery.use(delegator).from("UserLogin").where("userLoginId", runAsUser).queryOne();
         } catch (GenericEntityException e) {
-            Debug.logError(e, "Unable to load run-as-user UserLogin; cannot start container", module);
+            Debug.logError(e, "Unable to load run-as-user UserLogin; cannot start container", MODULE);
             return false;
         }
 
@@ -119,7 +119,7 @@ public class JavaMailContainer implements Container {
         if (stores != null) {
             pollTimer.scheduleAtFixedRate(new PollerTask(dispatcher, userLogin), timerDelay, timerDelay, TimeUnit.MILLISECONDS);
         } else {
-            Debug.logWarning("No JavaMail Store(s) configured; poller disabled.", module);
+            Debug.logWarning("No JavaMail Store(s) configured; poller disabled.", MODULE);
         }
 
         return true;
@@ -129,7 +129,7 @@ public class JavaMailContainer implements Container {
     public void stop() {
         // stop the poller
         this.pollTimer.shutdown();
-        Debug.logWarning("stop JavaMail poller", module);
+        Debug.logWarning("stop JavaMail poller", MODULE);
     }
 
     @Override
@@ -137,7 +137,11 @@ public class JavaMailContainer implements Container {
         return name;
     }
 
-    // java-mail methods
+    /**
+     * Make session session.
+     * @param client the client
+     * @return the session
+     */
     protected Session makeSession(Configuration.Property client) {
         Properties props = new Properties();
         Map<String, Configuration.Property> clientProps = client.properties();
@@ -149,6 +153,12 @@ public class JavaMailContainer implements Container {
         return Session.getInstance(props);
     }
 
+    /**
+     * Gets store.
+     * @param session the session
+     * @return the store
+     * @throws ContainerException the container exception
+     */
     protected Store getStore(Session session) throws ContainerException {
         // create the store object
         Store store;
@@ -162,7 +172,7 @@ public class JavaMailContainer implements Container {
         if (store != null && store.getURLName() != null) {
             URLName urlName = this.updateUrlName(store.getURLName(), session.getProperties());
             if (Debug.verboseOn()) {
-                Debug.logVerbose("URLName - " + urlName.toString(), module);
+                Debug.logVerbose("URLName - " + urlName.toString(), MODULE);
             }
             try {
                 store = session.getStore(urlName);
@@ -180,12 +190,18 @@ public class JavaMailContainer implements Container {
             store.connect();
             store.close();
         } catch (MessagingException e) {
-            Debug.logError("Unable to connect to mail store : " + store.getURLName().toString() + " : " + e.getMessage(), module);
+            Debug.logError("Unable to connect to mail store : " + store.getURLName().toString() + " : " + e.getMessage(), MODULE);
         }
 
         return store;
     }
 
+    /**
+     * Update url name url name.
+     * @param urlName the url name
+     * @param props the props
+     * @return the url name
+     */
     protected URLName updateUrlName(URLName urlName, Properties props) {
         String protocol = urlName.getProtocol();
         String userName = urlName.getUsername();
@@ -225,7 +241,7 @@ public class JavaMailContainer implements Container {
             try {
                 portProps = Integer.parseInt(portStr);
             } catch (NumberFormatException e) {
-                Debug.logError("The port given in property mail." + protocol + ".port is wrong, please check", module);
+                Debug.logError("The port given in property mail." + protocol + ".port is wrong, please check", MODULE);
             }
         }
         if (portProps == 0) {
@@ -234,7 +250,7 @@ public class JavaMailContainer implements Container {
                 try {
                     portProps = Integer.parseInt(props.getProperty("mail.port"));
                 } catch (NumberFormatException e) {
-                    Debug.logError("The port given in property mail.port is wrong, please check", module);
+                    Debug.logError("The port given in property mail.port is wrong, please check", MODULE);
                 }
             }
         }
@@ -244,7 +260,7 @@ public class JavaMailContainer implements Container {
         }
 
         if (Debug.verboseOn()) {
-            Debug.logVerbose("Update URL - " + protocol + "://" + userName + "@" + host + ":" + port + "!" + password + ";" + file, module);
+            Debug.logVerbose("Update URL - " + protocol + "://" + userName + "@" + host + ":" + port + "!" + password + ";" + file, MODULE);
         }
         return new URLName(protocol, host, port, file, userName, password);
     }
@@ -255,28 +271,28 @@ public class JavaMailContainer implements Container {
         public void notification(StoreEvent event) {
             String typeString = "";
             switch (event.getMessageType()) {
-                case StoreEvent.ALERT:
-                    typeString = "ALERT: ";
-                    break;
-                case StoreEvent.NOTICE:
-                    typeString = "NOTICE: ";
-                    break;
-                default:
-                    Debug.logWarning("There was a case error in LoggingStoreListener.notification", module);
+            case StoreEvent.ALERT:
+                typeString = "ALERT: ";
+                break;
+            case StoreEvent.NOTICE:
+                typeString = "NOTICE: ";
+                break;
+            default:
+                Debug.logWarning("There was a case error in LoggingStoreListener.notification", MODULE);
             }
 
             if (Debug.verboseOn()) {
-                Debug.logVerbose("JavaMail " + typeString + event.getMessage(), module);
+                Debug.logVerbose("JavaMail " + typeString + event.getMessage(), MODULE);
             }
         }
     }
 
     class PollerTask implements Runnable {
 
-        LocalDispatcher dispatcher;
-        GenericValue userLogin;
+        private LocalDispatcher dispatcher;
+        private GenericValue userLogin;
 
-        public PollerTask(LocalDispatcher dispatcher, GenericValue userLogin) {
+        PollerTask(LocalDispatcher dispatcher, GenericValue userLogin) {
             this.dispatcher = dispatcher;
             this.userLogin = userLogin;
         }
@@ -291,13 +307,13 @@ public class JavaMailContainer implements Container {
                         checkMessages(store, session);
                     } catch (Exception e) {
                         // Catch all exceptions so the loop will continue running
-                        Debug.logError("Mail service invocation error for mail store " + store + ": " + e, module);
+                        Debug.logError("Mail service invocation error for mail store " + store + ": " + e, MODULE);
                     }
                     if (store.isConnected()) {
                         try {
                             store.close();
                         } catch (Exception e) {
-                            Debug.logError(e, module);
+                            Debug.logError(e, MODULE);
                         }
                     }
                 }
@@ -343,24 +359,26 @@ public class JavaMailContainer implements Container {
                 if (!message.isSet(Flags.Flag.SEEN)) {
                     long messageSize = message.getSize();
                     if (message instanceof MimeMessage && messageSize >= maxSize) {
-                        Debug.logWarning("Message from: " + message.getFrom()[0] + "not received, too big, size:" + messageSize + " cannot be more than " + maxSize + " bytes", module);
+                        Debug.logWarning("Message from: " + message.getFrom()[0] + "not received, too big, size:" + messageSize
+                                + " cannot be more than " + maxSize + " bytes", MODULE);
 
                         // set the message as read so it doesn't continue to try to process; but don't delete it
                         message.setFlag(Flags.Flag.SEEN, true);
                     } else {
                         this.processMessage(message, session);
                         if (Debug.verboseOn()) {
-                            Debug.logVerbose("Message from " + UtilMisc.toListArray(message.getFrom()) + " with subject [" + message.getSubject() + "]  has been processed." , module);
+                            Debug.logVerbose("Message from " + UtilMisc.toListArray(message.getFrom()) + " with subject [" + message.getSubject()
+                                    + "]  has been processed.", MODULE);
                         }
                         message.setFlag(Flags.Flag.SEEN, true);
                         if (Debug.verboseOn()) {
-                            Debug.logVerbose("Message [" + message.getSubject() + "] is marked seen", module);
+                            Debug.logVerbose("Message [" + message.getSubject() + "] is marked seen", MODULE);
                         }
 
                         // delete the message after processing
                         if (deleteMail) {
                             if (Debug.verboseOn()) {
-                                Debug.logVerbose("Message [" + message.getSubject() + "] is being deleted", module);
+                                Debug.logVerbose("Message [" + message.getSubject() + "] is being deleted", MODULE);
                             }
                             message.setFlag(Flags.Flag.DELETED, true);
                         }
@@ -378,7 +396,7 @@ public class JavaMailContainer implements Container {
                 try {
                     ServiceMcaUtil.evalRules(dispatcher, wrapper, userLogin);
                 } catch (GenericServiceException e) {
-                    Debug.logError(e, "Problem processing message", module);
+                    Debug.logError(e, "Problem processing message", MODULE);
                 }
             }
         }

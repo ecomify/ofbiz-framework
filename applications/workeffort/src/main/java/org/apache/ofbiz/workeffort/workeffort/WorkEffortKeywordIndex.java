@@ -41,7 +41,7 @@ import org.apache.ofbiz.entity.util.EntityUtil;
 import org.apache.ofbiz.entity.util.EntityUtilProperties;
 
 public class WorkEffortKeywordIndex {
-    public static final String module = WorkEffortKeywordIndex.class.getName();
+    private static final String MODULE = WorkEffortKeywordIndex.class.getName();
     public static void indexKeywords(GenericValue workEffort) throws GenericEntityException {
         if (workEffort == null) {
             return;
@@ -64,7 +64,7 @@ public class WorkEffortKeywordIndex {
         try {
             widWeight = EntityUtilProperties.getPropertyAsInteger("workeffort", "index.weight.WorkEffort.workEffortId", 1);
         } catch (Exception e) {
-            Debug.logWarning("Could not parse weight number: " + e.toString(), module);
+            Debug.logWarning("Could not parse weight number: " + e.toString(), MODULE);
         }
         keywords.put(workEffort.getString("workEffortId").toLowerCase(Locale.getDefault()), (long) widWeight);
 
@@ -73,15 +73,17 @@ public class WorkEffortKeywordIndex {
         addWeightedKeywordSourceString(workEffort, "currentStatusId", strings);
 
         if (!"0".equals(EntityUtilProperties.getPropertyValue("workeffort", "index.weight.WorkEffortNoteAndData.noteInfo", "1", delegator))) {
-            List<GenericValue> workEffortNotes = EntityQuery.use(delegator).from("WorkEffortNoteAndData").where("workEffortId", workEffortId).queryList();
+            List<GenericValue> workEffortNotes = EntityQuery.use(delegator).from("WorkEffortNoteAndData")
+                    .where("workEffortId", workEffortId).queryList();
             for (GenericValue workEffortNote : workEffortNotes) {
                 addWeightedKeywordSourceString(workEffortNote, "noteInfo", strings);
             }
         }
         //WorkEffortAttribute
-        if (!"0".equals(EntityUtilProperties.getPropertyValue("workeffort", "index.weight.WorkEffortAttribute.attrName", "1", delegator)) ||
-                !"0".equals(EntityUtilProperties.getPropertyValue("workeffort", "index.weight.WorkEffortAttribute.attrValue", "1", delegator))) {
-            List<GenericValue> workEffortAttributes = EntityQuery.use(delegator).from("WorkEffortAttribute").where("workEffortId", workEffortId).queryList();
+        if (!"0".equals(EntityUtilProperties.getPropertyValue("workeffort", "index.weight.WorkEffortAttribute.attrName", "1", delegator))
+                || !"0".equals(EntityUtilProperties.getPropertyValue("workeffort", "index.weight.WorkEffortAttribute.attrValue", "1", delegator))) {
+            List<GenericValue> workEffortAttributes = EntityQuery.use(delegator).from("WorkEffortAttribute")
+                    .where("workEffortId", workEffortId).queryList();
             for (GenericValue workEffortAttribute : workEffortAttributes) {
                 addWeightedKeywordSourceString(workEffortAttribute, "attrName", strings);
                 addWeightedKeywordSourceString(workEffortAttribute, "attrValue", strings);
@@ -94,13 +96,15 @@ public class WorkEffortKeywordIndex {
             try {
                 weight = EntityUtilProperties.getPropertyAsInteger("workeffort", "index.weight.WorkEffortContent." + workEffortContentTypeId, 1);
             } catch (Exception e) {
-                Debug.logWarning("Could not parse weight number: " + e.toString(), module);
+                Debug.logWarning("Could not parse weight number: " + e.toString(), MODULE);
             }
 
-            List<GenericValue> workEffortContentAndInfos = EntityQuery.use(delegator).from("WorkEffortContentAndInfo").where("workEffortId", workEffortId, "workEffortContentTypeId", workEffortContentTypeId).queryList();
+            List<GenericValue> workEffortContentAndInfos = EntityQuery.use(delegator).from("WorkEffortContentAndInfo").where("workEffortId",
+                    workEffortId, "workEffortContentTypeId", workEffortContentTypeId).queryList();
             for (GenericValue workEffortContentAndInfo: workEffortContentAndInfos) {
                 addWeightedDataResourceString(workEffortContentAndInfo, weight, strings, delegator, workEffort);
-                List<GenericValue> alternateViews = workEffortContentAndInfo.getRelated("ContentAssocDataResourceViewTo", UtilMisc.toMap("caContentAssocTypeId", "ALTERNATE_LOCALE"), UtilMisc.toList("-caFromDate"), false);
+                List<GenericValue> alternateViews = workEffortContentAndInfo.getRelated("ContentAssocDataResourceViewTo",
+                        UtilMisc.toMap("caContentAssocTypeId", "ALTERNATE_LOCALE"), UtilMisc.toList("-caFromDate"), false);
                 alternateViews = EntityUtil.filterByDate(alternateViews, UtilDateTime.nowTimestamp(), "caFromDate", "caThruDate", true);
                 for (GenericValue thisView: alternateViews) {
                     addWeightedDataResourceString(thisView, weight, strings, delegator, workEffort);
@@ -115,28 +119,32 @@ public class WorkEffortKeywordIndex {
         List<GenericValue> toBeStored = new LinkedList<>();
         for (Map.Entry<String, Long> entry: keywords.entrySet()) {
             if (entry.getKey().length() < 60) { // ignore very long strings, cannot be stored anyway
-                GenericValue workEffortKeyword = delegator.makeValue("WorkEffortKeyword", UtilMisc.toMap("workEffortId", workEffort.getString("workEffortId"), "keyword", entry.getKey(), "relevancyWeight", entry.getValue()));
+                GenericValue workEffortKeyword = delegator.makeValue("WorkEffortKeyword", UtilMisc.toMap("workEffortId",
+                        workEffort.getString("workEffortId"), "keyword", entry.getKey(), "relevancyWeight", entry.getValue()));
                 toBeStored.add(workEffortKeyword);
             }
         }
-        if (toBeStored.size() > 0) {
+        if (!toBeStored.isEmpty()) {
             if (Debug.verboseOn()) {
-                Debug.logVerbose("WorkEffortKeywordIndex indexKeywords Storing " + toBeStored.size() + " keywords for workEffortId " + workEffort.getString("workEffortId"), module);
+                Debug.logVerbose("WorkEffortKeywordIndex indexKeywords Storing " + toBeStored.size() + " keywords for workEffortId "
+                        + workEffort.getString("workEffortId"), MODULE);
             }
             delegator.storeAll(toBeStored);
         }
 
     }
 
-    public static void addWeightedDataResourceString(GenericValue dataResource, int weight, List<String> strings, Delegator delegator, GenericValue workEffort) {
+    public static void addWeightedDataResourceString(GenericValue dataResource, int weight, List<String> strings, Delegator delegator,
+                                                     GenericValue workEffort) {
         Map<String, Object> workEffortCtx = UtilMisc.<String, Object>toMap("workEffort", workEffort);
         try {
-            String contentText = DataResourceWorker.renderDataResourceAsText(null, delegator, dataResource.getString("dataResourceId"), workEffortCtx, null, null, false);
+            String contentText = DataResourceWorker.renderDataResourceAsText(null, delegator, dataResource.getString("dataResourceId"),
+                    workEffortCtx, null, null, false);
             for (int i = 0; i < weight; i++) {
                 strings.add(contentText);
             }
         } catch (IOException | GeneralException e) {
-            Debug.logError(e, "Error getting content text to index", module);
+            Debug.logError(e, "Error getting content text to index", MODULE);
         }
     }
     public static void addWeightedKeywordSourceString(GenericValue value, String fieldName, List<String> strings) {
@@ -146,7 +154,7 @@ public class WorkEffortKeywordIndex {
             try {
                 weight = EntityUtilProperties.getPropertyAsInteger("workeffort", "index.weight." + value.getEntityName() + "." + fieldName, 1);
             } catch (Exception e) {
-                Debug.logWarning("Could not parse weight number: " + e.toString(), module);
+                Debug.logWarning("Could not parse weight number: " + e.toString(), MODULE);
             }
 
             for (int i = 0; i < weight; i++) {

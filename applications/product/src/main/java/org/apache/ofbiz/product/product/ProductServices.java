@@ -37,6 +37,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import org.apache.commons.imaging.ImageReadException;
 import org.apache.ofbiz.base.util.Debug;
 import org.apache.ofbiz.base.util.UtilDateTime;
 import org.apache.ofbiz.base.util.UtilGenerics;
@@ -68,9 +69,9 @@ import org.jdom.JDOMException;
  */
 public class ProductServices {
 
-    public static final String module = ProductServices.class.getName();
-    public static final String resource = "ProductUiLabels";
-    public static final String resourceError = "ProductErrorUiLabels";
+    private static final String MODULE = ProductServices.class.getName();
+    private static final String RESOURCE = "ProductUiLabels";
+    private static final String RES_ERROR = "ProductErrorUiLabels";
 
     /**
      * Creates a Collection of product entities which are variant products from the specified product ID.
@@ -121,8 +122,9 @@ public class ProductServices {
                     products.add(EntityQuery.use(delegator).from("Product").where("productId", oneVariant.getString("productIdTo")).queryOne());
                 } catch (GenericEntityException e) {
                     Map<String, String> messageMap = UtilMisc.toMap("errProductFeatures", e.toString());
-                    String errMsg = UtilProperties.getMessage(resourceError,"productservices.problem_reading_product_features_errors", messageMap, locale);
-                    Debug.logError(e, errMsg, module);
+                    String errMsg = UtilProperties.getMessage(RES_ERROR, "productservices.problem_reading_product_features_errors",
+                            messageMap, locale);
+                    Debug.logError(e, errMsg, MODULE);
                     return ServiceUtil.returnError(errMsg);
                 }
             }
@@ -144,25 +146,27 @@ public class ProductServices {
             productFeatureApplTypeId = "SELECTABLE_FEATURE";
         }
         Locale locale = (Locale) context.get("locale");
-        String errMsg=null;
+        String errMsg = null;
         Set<String> featureSet = new LinkedHashSet<>();
 
         try {
-            List<GenericValue> features = EntityQuery.use(delegator).from("ProductFeatureAndAppl").where("productId", productId, "productFeatureApplTypeId", productFeatureApplTypeId).orderBy("sequenceNum", "productFeatureTypeId").cache(true).filterByDate().queryList();
+            List<GenericValue> features = EntityQuery.use(delegator).from("ProductFeatureAndAppl")
+                    .where("productId", productId, "productFeatureApplTypeId", productFeatureApplTypeId).orderBy("sequenceNum",
+                            "productFeatureTypeId").cache(true).filterByDate().queryList();
             for (GenericValue v: features) {
                 featureSet.add(v.getString("productFeatureTypeId"));
             }
         } catch (GenericEntityException e) {
             Map<String, String> messageMap = UtilMisc.toMap("errProductFeatures", e.toString());
-            errMsg = UtilProperties.getMessage(resourceError,"productservices.problem_reading_product_features_errors", messageMap, locale);
-            Debug.logError(e, errMsg, module);
+            errMsg = UtilProperties.getMessage(RES_ERROR, "productservices.problem_reading_product_features_errors", messageMap, locale);
+            Debug.logError(e, errMsg, MODULE);
             return ServiceUtil.returnError(errMsg);
         }
 
-        if (featureSet.size() == 0) {
-            errMsg = UtilProperties.getMessage(resourceError,"productservices.problem_reading_product_features", locale);
+        if (featureSet.isEmpty()) {
+            errMsg = UtilProperties.getMessage(RES_ERROR, "productservices.problem_reading_product_features", locale);
             // ToDo DO 2004-02-23 Where should the errMsg go?
-            Debug.logWarning(errMsg + " for product " + productId, module);
+            Debug.logWarning(errMsg + " for product " + productId, MODULE);
         }
         Map<String, Object> result = ServiceUtil.returnSuccess();
         result.put("featureSet", featureSet);
@@ -182,7 +186,7 @@ public class ProductServices {
         List<String> featureOrder = UtilMisc.makeListWritable(UtilGenerics.cast(context.get("featureOrder")));
 
         if (UtilValidate.isEmpty(featureOrder)) {
-            return ServiceUtil.returnError(UtilProperties.getMessage(resource,
+            return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE,
                     "ProductFeatureTreeCannotFindFeaturesList", locale));
         }
 
@@ -204,13 +208,13 @@ public class ProductServices {
             try {
                 productTo = EntityQuery.use(delegator).from("Product").where("productId", productIdTo).cache().queryOne();
             } catch (GenericEntityException e) {
-                Debug.logError(e, module);
+                Debug.logError(e, MODULE);
                 Map<String, String> messageMap = UtilMisc.toMap("productIdTo", productIdTo, "errMessage", e.toString());
-                return ServiceUtil.returnError(UtilProperties.getMessage(resourceError,
+                return ServiceUtil.returnError(UtilProperties.getMessage(RES_ERROR,
                         "productservices.error_finding_associated_variant_with_ID_error", messageMap, locale));
             }
             if (productTo == null) {
-                Debug.logWarning("Could not find associated variant with ID " + productIdTo + ", not showing in list", module);
+                Debug.logWarning("Could not find associated variant with ID " + productIdTo + ", not showing in list", MODULE);
                 continue;
             }
 
@@ -219,10 +223,11 @@ public class ProductServices {
             // check to see if introductionDate hasn't passed yet
             if (productTo.get("introductionDate") != null && nowTimestamp.before(productTo.getTimestamp("introductionDate"))) {
                 if (Debug.verboseOn()) {
-                    String excMsg = "Tried to view the Product " + productTo.getString("productName") +
-                        " (productId: " + productTo.getString("productId") + ") as a variant. This product has not yet been made available for sale, so not adding for view.";
+                    String excMsg = "Tried to view the Product " + productTo.getString("productName")
+                            + " (productId: " + productTo.getString("productId")
+                            + ") as a variant. This product has not yet been made available for sale, so not adding for view.";
 
-                    Debug.logVerbose(excMsg, module);
+                    Debug.logVerbose(excMsg, MODULE);
                 }
                 continue;
             }
@@ -230,10 +235,11 @@ public class ProductServices {
             // check to see if salesDiscontinuationDate has passed
             if (productTo.get("salesDiscontinuationDate") != null && nowTimestamp.after(productTo.getTimestamp("salesDiscontinuationDate"))) {
                 if (Debug.verboseOn()) {
-                    String excMsg = "Tried to view the Product " + productTo.getString("productName") +
-                        " (productId: " + productTo.getString("productId") + ") as a variant. This product is no longer available for sale, so not adding for view.";
+                    String excMsg = "Tried to view the Product " + productTo.getString("productName")
+                            + " (productId: " + productTo.getString("productId")
+                            + ") as a variant. This product is no longer available for sale, so not adding for view.";
 
-                    Debug.logVerbose(excMsg, module);
+                    Debug.logVerbose(excMsg, MODULE);
                 }
                 continue;
             }
@@ -242,9 +248,10 @@ public class ProductServices {
             Boolean checkInventory = (Boolean) context.get("checkInventory");
             try {
                 if (checkInventory) {
-                    Map<String, Object> invReqResult = dispatcher.runSync("isStoreInventoryAvailableOrNotRequired", UtilMisc.<String, Object>toMap("productStoreId", productStoreId, "productId", productIdTo, "quantity", BigDecimal.ONE));
+                    Map<String, Object> invReqResult = dispatcher.runSync("isStoreInventoryAvailableOrNotRequired",
+                            UtilMisc.<String, Object>toMap("productStoreId", productStoreId, "productId", productIdTo, "quantity", BigDecimal.ONE));
                     if (ServiceUtil.isError(invReqResult)) {
-                        return ServiceUtil.returnError(UtilProperties.getMessage(resource,
+                        return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE,
                                 "ProductFeatureTreeCannotCallIsStoreInventoryRequired", locale), null, null, invReqResult);
                     } else if ("Y".equals(invReqResult.get("availableOrNotRequired"))) {
                         items.add(productIdTo);
@@ -261,8 +268,8 @@ public class ProductServices {
                     }
                 }
             } catch (GenericServiceException e) {
-                Debug.logError(e, "Error calling the isStoreInventoryRequired when building the variant product tree: " + e.toString(), module);
-                return ServiceUtil.returnError(UtilProperties.getMessage(resource,
+                Debug.logError(e, "Error calling the isStoreInventoryRequired when building the variant product tree: " + e.toString(), MODULE);
+                return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE,
                         "ProductFeatureTreeCannotCallIsStoreInventoryRequired", locale));
             }
         }
@@ -272,10 +279,11 @@ public class ProductServices {
         // Make the selectable feature list
         List<GenericValue> selectableFeatures = null;
         try {
-            selectableFeatures = EntityQuery.use(delegator).from("ProductFeatureAndAppl").where("productId", productId, "productFeatureApplTypeId", "SELECTABLE_FEATURE").orderBy("sequenceNum").cache(true).filterByDate().queryList();
+            selectableFeatures = EntityQuery.use(delegator).from("ProductFeatureAndAppl").where("productId", productId, "productFeatureApplTypeId",
+                    "SELECTABLE_FEATURE").orderBy("sequenceNum").cache(true).filterByDate().queryList();
         } catch (GenericEntityException e) {
-            Debug.logError(e, module);
-            return ServiceUtil.returnError(UtilProperties.getMessage(resourceError,
+            Debug.logError(e, MODULE);
+            return ServiceUtil.returnError(UtilProperties.getMessage(RES_ERROR,
                     "productservices.empty_list_of_selectable_features_found", locale));
         }
         Map<String, List<String>> features = new HashMap<>();
@@ -298,12 +306,12 @@ public class ProductServices {
         try {
             tree = makeGroup(delegator, features, items, featureOrder, 0);
         } catch (Exception e) {
-            Debug.logError(e, module);
+            Debug.logError(e, MODULE);
             return ServiceUtil.returnError(e.getMessage());
         }
         if (UtilValidate.isEmpty(tree)) {
             result.put(ModelService.RESPONSE_MESSAGE, ModelService.RESPOND_ERROR);
-            result.put(ModelService.ERROR_MESSAGE, UtilProperties.getMessage(resourceError,
+            result.put(ModelService.ERROR_MESSAGE, UtilProperties.getMessage(RES_ERROR,
                     "productservices.feature_grouping_came_back_empty", locale));
         } else {
             result.put("variantTree", tree);
@@ -318,7 +326,7 @@ public class ProductServices {
             return ServiceUtil.returnError(e.getMessage());
         }
 
-        if (outOfStockItems.size() > 0) {
+        if (!outOfStockItems.isEmpty()) {
             result.put("unavailableVariants", outOfStockItems);
         }
         result.put("variantSample", sample);
@@ -339,7 +347,7 @@ public class ProductServices {
         String distinct = (String) context.get("distinct");
         String type = (String) context.get("type");
         Locale locale = (Locale) context.get("locale");
-        String errMsg=null;
+        String errMsg = null;
         List<GenericValue> features = null;
 
         try {
@@ -351,12 +359,13 @@ public class ProductServices {
             if (type != null) {
                 fields.put("productFeatureApplTypeId", type);
             }
-            features = EntityQuery.use(delegator).from("ProductFeatureAndAppl").where(fields).orderBy("sequenceNum", "productFeatureTypeId").cache(true).queryList();
+            features = EntityQuery.use(delegator).from("ProductFeatureAndAppl").where(fields).orderBy("sequenceNum", "productFeatureTypeId")
+                    .cache(true).queryList();
             result.put("productFeatures", features);
             result.put(ModelService.RESPONSE_MESSAGE, ModelService.RESPOND_SUCCESS);
         } catch (GenericEntityException e) {
             Map<String, String> messageMap = UtilMisc.toMap("errMessage", e.toString());
-            errMsg = UtilProperties.getMessage(resourceError,
+            errMsg = UtilProperties.getMessage(RES_ERROR,
                     "productservices.problem_reading_product_feature_entity", messageMap, locale);
             result.put(ModelService.RESPONSE_MESSAGE, ModelService.RESPOND_ERROR);
             result.put(ModelService.ERROR_MESSAGE, errMsg);
@@ -375,7 +384,7 @@ public class ProductServices {
         String errMsg = null;
 
         if (UtilValidate.isEmpty(productId)) {
-            errMsg = UtilProperties.getMessage(resourceError,
+            errMsg = UtilProperties.getMessage(RES_ERROR,
                     "productservices.invalid_productId_passed", locale);
             result.put(ModelService.RESPONSE_MESSAGE, ModelService.RESPOND_ERROR);
             result.put(ModelService.ERROR_MESSAGE, errMsg);
@@ -387,9 +396,10 @@ public class ProductServices {
             GenericValue mainProduct = product;
 
             if (product.get("isVariant") != null && "Y".equalsIgnoreCase(product.getString("isVariant"))) {
-                List<GenericValue> c = product.getRelated("AssocProductAssoc", UtilMisc.toMap("productAssocTypeId", "PRODUCT_VARIANT"), null, true);
+                List<GenericValue> c = product.getRelated("AssocProductAssoc", UtilMisc.toMap("productAssocTypeId", "PRODUCT_VARIANT"),
+                        null, true);
                 c = EntityUtil.filterByDate(c);
-                if (c.size() > 0) {
+                if (!c.isEmpty()) {
                     GenericValue asV = c.iterator().next();
                     mainProduct = asV.getRelatedOne("MainProduct", true);
                 }
@@ -398,9 +408,9 @@ public class ProductServices {
             result.put(ModelService.RESPONSE_MESSAGE, ModelService.RESPOND_SUCCESS);
         } catch (GenericEntityException e) {
             Map<String, String> messageMap = UtilMisc.toMap("errMessage", e.getMessage());
-            errMsg = UtilProperties.getMessage(resourceError,
+            errMsg = UtilProperties.getMessage(RES_ERROR,
                     "productservices.problems_reading_product_entity", messageMap, locale);
-            Debug.logError(e, errMsg, module);
+            Debug.logError(e, errMsg, MODULE);
             result.put(ModelService.RESPONSE_MESSAGE, ModelService.RESPOND_ERROR);
             result.put(ModelService.ERROR_MESSAGE, errMsg);
         }
@@ -430,7 +440,7 @@ public class ProductServices {
         sortDescending = sortDescending == null ? Boolean.FALSE : sortDescending;
 
         if (productId == null && productIdTo == null) {
-            errMsg = UtilProperties.getMessage(resourceError,
+            errMsg = UtilProperties.getMessage(RES_ERROR,
                     "productservices.both_productId_and_productIdTo_cannot_be_null", locale);
             result.put(ModelService.RESPONSE_MESSAGE, ModelService.RESPOND_ERROR);
             result.put(ModelService.ERROR_MESSAGE, errMsg);
@@ -438,7 +448,7 @@ public class ProductServices {
         }
 
         if (productId != null && productIdTo != null) {
-            errMsg = UtilProperties.getMessage(resourceError,
+            errMsg = UtilProperties.getMessage(RES_ERROR,
                     "productservices.both_productId_and_productIdTo_cannot_be_defined", locale);
             result.put(ModelService.RESPONSE_MESSAGE, ModelService.RESPOND_ERROR);
             result.put(ModelService.ERROR_MESSAGE, errMsg);
@@ -452,7 +462,7 @@ public class ProductServices {
             product = EntityQuery.use(delegator).from("Product").where("productId", productId).cache().queryOne();
         } catch (GenericEntityException e) {
             Map<String, String> messageMap = UtilMisc.toMap("errMessage", e.getMessage());
-            errMsg = UtilProperties.getMessage(resourceError,
+            errMsg = UtilProperties.getMessage(RES_ERROR,
                     "productservices.problems_reading_product_entity", messageMap, locale);
             result.put(ModelService.RESPONSE_MESSAGE, ModelService.RESPOND_ERROR);
             result.put(ModelService.ERROR_MESSAGE, errMsg);
@@ -460,7 +470,7 @@ public class ProductServices {
         }
 
         if (product == null) {
-            errMsg = UtilProperties.getMessage(resourceError,
+            errMsg = UtilProperties.getMessage(RES_ERROR,
                     "productservices.problems_getting_product_entity", locale);
             result.put(ModelService.RESPONSE_MESSAGE, ModelService.RESPOND_ERROR);
             result.put(ModelService.ERROR_MESSAGE, errMsg);
@@ -481,9 +491,9 @@ public class ProductServices {
                 EntityCondition cond = EntityCondition.makeCondition(
                         UtilMisc.toList(
                                 EntityCondition.makeCondition("productId", productId),
-                                EntityCondition.makeCondition("productIdTo", productId)
-                       ), EntityJoinOperator.OR);
-                productAssocs = EntityQuery.use(delegator).from("ProductAssoc").where(EntityCondition.makeCondition(cond, EntityCondition.makeCondition("productAssocTypeId", type))).orderBy(orderBy).cache(true).queryList();
+                                EntityCondition.makeCondition("productIdTo", productId)), EntityJoinOperator.OR);
+                productAssocs = EntityQuery.use(delegator).from("ProductAssoc").where(EntityCondition.makeCondition(cond,
+                        EntityCondition.makeCondition("productAssocTypeId", type))).orderBy(orderBy).cache(true).queryList();
             } else {
                 if (productIdTo == null) {
                     productAssocs = product.getRelated("MainProductAssoc", UtilMisc.toMap("productAssocTypeId", type), orderBy, true);
@@ -498,7 +508,8 @@ public class ProductServices {
                 String viewProductCategoryId = CatalogWorker.getCatalogViewAllowCategoryId(delegator, prodCatalogId);
                 if (viewProductCategoryId != null) {
                     if (productIdTo == null) {
-                        productAssocs = CategoryWorker.filterProductsInCategory(delegator, productAssocs, viewProductCategoryId, "productIdTo");
+                        productAssocs = CategoryWorker.filterProductsInCategory(delegator, productAssocs, viewProductCategoryId,
+                                "productIdTo");
                     } else {
                         productAssocs = CategoryWorker.filterProductsInCategory(delegator, productAssocs, viewProductCategoryId, "productId");
                     }
@@ -510,7 +521,7 @@ public class ProductServices {
             result.put(ModelService.RESPONSE_MESSAGE, ModelService.RESPOND_SUCCESS);
         } catch (GenericEntityException e) {
             Map<String, String> messageMap = UtilMisc.toMap("errMessage", e.getMessage());
-            errMsg = UtilProperties.getMessage(resourceError,
+            errMsg = UtilProperties.getMessage(RES_ERROR,
                     "productservices.problems_product_association_relation_error", messageMap, locale);
             result.put(ModelService.RESPONSE_MESSAGE, ModelService.RESPOND_ERROR);
             result.put(ModelService.ERROR_MESSAGE, errMsg);
@@ -521,7 +532,8 @@ public class ProductServices {
     }
 
     // Builds a product feature tree
-    private static Map<String, Object> makeGroup(Delegator delegator, Map<String, List<String>> featureList, List<String> items, List<String> order, int index)
+    private static Map<String, Object> makeGroup(Delegator delegator, Map<String, List<String>> featureList, List<String> items,
+                                                 List<String> order, int index)
         throws IllegalArgumentException, IllegalStateException {
         Map<String, List<String>> tempGroup = new HashMap<>();
         Map<String, Object> group = new LinkedHashMap<>();
@@ -545,7 +557,7 @@ public class ProductServices {
             // -------------------------------
 
             if (Debug.verboseOn()) {
-                Debug.logVerbose("ThisItem: " + thisItem, module);
+                Debug.logVerbose("ThisItem: " + thisItem, MODULE);
             }
             List<GenericValue> features = null;
 
@@ -561,7 +573,7 @@ public class ProductServices {
                 throw new IllegalStateException("Problem reading relation: " + e.getMessage());
             }
             if (Debug.verboseOn()) {
-                Debug.logVerbose("Features: " + features, module);
+                Debug.logVerbose("Features: " + features, MODULE);
             }
 
             // -------------------------------
@@ -582,7 +594,7 @@ public class ProductServices {
             }
         }
         if (Debug.verboseOn()) {
-            Debug.logVerbose("TempGroup: " + tempGroup, module);
+            Debug.logVerbose("TempGroup: " + tempGroup, MODULE);
         }
 
         // Loop through the feature list and order the keys in the tempGroup
@@ -599,11 +611,11 @@ public class ProductServices {
         }
 
         if (Debug.verboseOn()) {
-            Debug.logVerbose("Group: " + group, module);
+            Debug.logVerbose("Group: " + group, MODULE);
         }
 
         // no groups; no tree
-        if (group.size() == 0) {
+        if (group.isEmpty()) {
             return group;
         }
 
@@ -625,7 +637,8 @@ public class ProductServices {
     }
 
     // builds a variant sample (a single sku for a featureType)
-    private static Map<String, GenericValue> makeVariantSample(Delegator delegator, Map<String, List<String>> featureList, List<String> items, String feature) {
+    private static Map<String, GenericValue> makeVariantSample(Delegator delegator, Map<String, List<String>> featureList,
+                                                               List<String> items, String feature) {
         Map<String, GenericValue> tempSample = new HashMap<>();
         Map<String, GenericValue> sample = new LinkedHashMap<>();
         for (String productId: items) {
@@ -668,7 +681,7 @@ public class ProductServices {
         Delegator delegator = dctx.getDelegator();
         Map<String, Object> result = new HashMap<>();
         Locale locale = (Locale) context.get("locale");
-        String errMsg=null;
+        String errMsg = null;
         String productId = (String) context.get("productId");
         String variantProductId = (String) context.get("productVariantId");
         String productFeatureIds = (String) context.get("productFeatureIds");
@@ -679,7 +692,7 @@ public class ProductServices {
             GenericValue product = EntityQuery.use(delegator).from("Product").where("productId", productId).queryOne();
             if (product == null) {
                 Map<String, String> messageMap = UtilMisc.toMap("productId", productId);
-                errMsg = UtilProperties.getMessage(resourceError,
+                errMsg = UtilProperties.getMessage(RES_ERROR,
                         "productservices.product_not_found_with_ID", messageMap, locale);
                 result.put(ModelService.RESPONSE_MESSAGE, ModelService.RESPOND_ERROR);
                 result.put(ModelService.ERROR_MESSAGE, errMsg);
@@ -728,11 +741,12 @@ public class ProductServices {
             while (st.hasMoreTokens()) {
                 String productFeatureId = st.nextToken();
 
-                GenericValue productFeature = EntityQuery.use(delegator).from("ProductFeature").where("productFeatureId", productFeatureId).queryOne();
+                GenericValue productFeature = EntityQuery.use(delegator).from("ProductFeature")
+                        .where("productFeatureId", productFeatureId).queryOne();
 
                 GenericValue productFeatureAppl = delegator.makeValue("ProductFeatureAppl",
-                UtilMisc.toMap("productId", variantProductId, "productFeatureId", productFeatureId,
-                "productFeatureApplTypeId", "STANDARD_FEATURE", "fromDate", UtilDateTime.nowTimestamp()));
+                        UtilMisc.toMap("productId", variantProductId, "productFeatureId", productFeatureId,
+                        "productFeatureApplTypeId", "STANDARD_FEATURE", "fromDate", UtilDateTime.nowTimestamp()));
 
                 // set the default seq num if it's there...
                 if (productFeature != null) {
@@ -743,9 +757,9 @@ public class ProductServices {
             }
 
         } catch (GenericEntityException e) {
-            Debug.logError(e, "Entity error creating quick add variant data", module);
+            Debug.logError(e, "Entity error creating quick add variant data", MODULE);
             Map<String, String> messageMap = UtilMisc.toMap("errMessage", e.toString());
-            errMsg = UtilProperties.getMessage(resourceError,
+            errMsg = UtilProperties.getMessage(RES_ERROR,
                     "productservices.entity_error_quick_add_variant_data", messageMap, locale);
             result.put(ModelService.RESPONSE_MESSAGE, ModelService.RESPOND_ERROR);
             result.put(ModelService.ERROR_MESSAGE, errMsg);
@@ -801,8 +815,8 @@ public class ProductServices {
             //note: can be comma, tab, or white-space delimited
             Set<String> prelimVariantProductIds = new HashSet<>();
             List<String> splitIds = Arrays.asList(variantProductIdsBag.split("[,\\p{Space}]"));
-            Debug.logInfo("Variants: bag=" + variantProductIdsBag, module);
-            Debug.logInfo("Variants: split=" + splitIds, module);
+            Debug.logInfo("Variants: bag=" + variantProductIdsBag, MODULE);
+            Debug.logInfo("Variants: split=" + splitIds, MODULE);
             prelimVariantProductIds.addAll(splitIds);
             //note: should support both direct productIds and GoodIdentification entries (what to do if more than one GoodID? Add all?
 
@@ -818,16 +832,19 @@ public class ProductServices {
                     variantProductsById.put(variantProductId, variantProduct);
                 } else {
                     // is a GoodIdentification.idValue?
-                    List<GenericValue> goodIdentificationList = EntityQuery.use(delegator).from("GoodIdentification").where("idValue", variantProductId).queryList();
+                    List<GenericValue> goodIdentificationList = EntityQuery.use(delegator).from("GoodIdentification")
+                            .where("idValue", variantProductId).queryList();
                     if (UtilValidate.isEmpty(goodIdentificationList)) {
                         // whoops, nothing found... return error
-                        return ServiceUtil.returnError(UtilProperties.getMessage(resource,
+                        return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE,
                                 "ProductVirtualVariantCreation", UtilMisc.toMap("variantProductId", variantProductId), locale));
                     }
 
                     if (goodIdentificationList.size() > 1) {
                         // what to do here? for now just log a warning and add all of them as variants; they can always be dissociated later
-                        Debug.logWarning("Warning creating a virtual with variants: the ID [" + variantProductId + "] was not a productId and resulted in [" + goodIdentificationList.size() + "] GoodIdentification records: " + goodIdentificationList, module);
+                        Debug.logWarning("Warning creating a virtual with variants: the ID [" + variantProductId
+                                + "] was not a productId and resulted in [" + goodIdentificationList.size() + "] GoodIdentification records: "
+                                + goodIdentificationList, MODULE);
                     }
 
                     for (GenericValue goodIdentification: goodIdentificationList) {
@@ -873,8 +890,9 @@ public class ProductServices {
                 productAssoc.create();
             }
         } catch (GenericEntityException e) {
-            String errMsg = UtilProperties.getMessage(resourceError, "ProductErrorCreatingNewVirtualProductFromVariantProducts", UtilMisc.toMap("errorString", e.toString()), locale);
-            Debug.logError(e, errMsg, module);
+            String errMsg = UtilProperties.getMessage(RES_ERROR, "ProductErrorCreatingNewVirtualProductFromVariantProducts",
+                    UtilMisc.toMap("errorString", e.toString()), locale);
+            Debug.logError(e, errMsg, MODULE);
             return ServiceUtil.returnError(errMsg);
         }
         return successResult;
@@ -891,7 +909,7 @@ public class ProductServices {
             try {
                 inventoryItem = EntityQuery.use(delegator).from("InventoryItem").where("inventoryItemId", inventoryItemId).cache().queryOne();
             } catch (GenericEntityException e) {
-                Debug.logError(e, module);
+                Debug.logError(e, MODULE);
                 return ServiceUtil.returnError(e.getMessage());
             }
 
@@ -901,7 +919,7 @@ public class ProductServices {
                 try {
                     product = EntityQuery.use(delegator).from("Product").where("productId", productId).cache().queryOne();
                 } catch (GenericEntityException e) {
-                    Debug.logError(e, module);
+                    Debug.logError(e, MODULE);
                     return ServiceUtil.returnError(e.getMessage());
                 }
 
@@ -910,12 +928,13 @@ public class ProductServices {
                     if (salesDiscontinuationDate != null && salesDiscontinuationDate.before(UtilDateTime.nowTimestamp())) {
                         Map<String, Object> invRes = null;
                         try {
-                            invRes = dispatcher.runSync("getProductInventoryAvailable", UtilMisc.<String, Object>toMap("productId", productId, "userLogin", userLogin));
+                            invRes = dispatcher.runSync("getProductInventoryAvailable",
+                                    UtilMisc.<String, Object>toMap("productId", productId, "userLogin", userLogin));
                             if (ServiceUtil.isError(invRes)) {
                                 return ServiceUtil.returnError(ServiceUtil.getErrorMessage(invRes));
                             }
                         } catch (GenericServiceException e) {
-                            Debug.logError(e, module);
+                            Debug.logError(e, MODULE);
                             return ServiceUtil.returnError(e.getMessage());
                         }
 
@@ -926,7 +945,7 @@ public class ProductServices {
                             try {
                                 productToUpdate = EntityQuery.use(delegator).from("Product").where(product.getPrimaryKey()).queryOne();
                             } catch (GenericEntityException e) {
-                                Debug.logError(e, module);
+                                Debug.logError(e, MODULE);
                                 return ServiceUtil.returnError(e.getMessage());
                             }
 
@@ -935,7 +954,7 @@ public class ProductServices {
                             try {
                                 delegator.store(productToUpdate);
                             } catch (GenericEntityException e) {
-                                Debug.logError(e, module);
+                                Debug.logError(e, MODULE);
                                 return ServiceUtil.returnError(e.getMessage());
                             }
                         }
@@ -948,7 +967,7 @@ public class ProductServices {
     }
 
     public static Map<String, Object> addAdditionalViewForProduct(DispatchContext dctx,
-            Map<String, ? extends Object> context) {
+            Map<String, ? extends Object> context) throws ImageReadException {
 
         LocalDispatcher dispatcher = dctx.getDispatcher();
         Delegator delegator = dctx.getDelegator();
@@ -961,13 +980,15 @@ public class ProductServices {
             Map<String, Object> imageContext = new HashMap<>();
             imageContext.putAll(context);
             imageContext.put("delegator", delegator);
-            imageContext.put("tenantId",delegator.getDelegatorTenantId());
+            imageContext.put("tenantId", delegator.getDelegatorTenantId());
             String imageFilenameFormat = EntityUtilProperties.getPropertyValue("catalog", "image.filename.additionalviewsize.format", delegator);
 
-            String imageServerPath = FlexibleStringExpander.expandString(EntityUtilProperties.getPropertyValue("catalog", "image.server.path", delegator), imageContext);
-            String imageUrlPrefix = FlexibleStringExpander.expandString(EntityUtilProperties.getPropertyValue("catalog", "image.url.prefix", delegator), imageContext);
-            imageServerPath = imageServerPath.endsWith("/") ? imageServerPath.substring(0, imageServerPath.length()-1) : imageServerPath;
-            imageUrlPrefix = imageUrlPrefix.endsWith("/") ? imageUrlPrefix.substring(0, imageUrlPrefix.length()-1) : imageUrlPrefix;
+            String imageServerPath = FlexibleStringExpander.expandString(EntityUtilProperties.getPropertyValue("catalog",
+                    "image.server.path", delegator), imageContext);
+            String imageUrlPrefix = FlexibleStringExpander.expandString(EntityUtilProperties.getPropertyValue("catalog",
+                    "image.url.prefix", delegator), imageContext);
+            imageServerPath = imageServerPath.endsWith("/") ? imageServerPath.substring(0, imageServerPath.length() - 1) : imageServerPath;
+            imageUrlPrefix = imageUrlPrefix.endsWith("/") ? imageUrlPrefix.substring(0, imageUrlPrefix.length() - 1) : imageUrlPrefix;
             FlexibleStringExpander filenameExpander = FlexibleStringExpander.getInstance(imageFilenameFormat);
             String viewNumber = String.valueOf(productContentTypeId.charAt(productContentTypeId.length() - 1));
             String viewType = "additional" + viewNumber;
@@ -976,7 +997,8 @@ public class ProductServices {
                 id = productId + "_View_" + viewNumber;
                 viewType = "additional";
             }
-            String fileLocation = filenameExpander.expandString(UtilMisc.toMap("location", "products", "id", id, "viewtype", viewType, "sizetype", "original"));
+            String fileLocation = filenameExpander.expandString(UtilMisc.toMap("location", "products", "id", id,
+                    "viewtype", viewType, "sizetype", "original"));
             String filePathPrefix = "";
             String filenameToUse = fileLocation;
             if (fileLocation.lastIndexOf('/') != -1) {
@@ -991,7 +1013,7 @@ public class ProductServices {
                         .where("mimeTypeId", context.get("_uploadedFile_contentType"))
                         .queryList();
             } catch (GenericEntityException e) {
-                Debug.logError(e, module);
+                Debug.logError(e, MODULE);
                 return ServiceUtil.returnError(e.getMessage());
             }
 
@@ -1008,8 +1030,9 @@ public class ProductServices {
                 if (!targetDir.exists()) {
                     boolean created = targetDir.mkdirs();
                     if (!created) {
-                        String errMsg = UtilProperties.getMessage(resource, "ScaleImage.unable_to_create_target_directory", locale) + " - " + targetDirectory;
-                        Debug.logFatal(errMsg, module);
+                        String errMsg = UtilProperties.getMessage(RESOURCE, "ScaleImage.unable_to_create_target_directory", locale)
+                                + " - " + targetDirectory;
+                        Debug.logFatal(errMsg, MODULE);
                         return ServiceUtil.returnError(errMsg);
                     }
                 // Delete existing image files
@@ -1020,13 +1043,13 @@ public class ProductServices {
                         for (File file : files) {
                             if (file.isFile()) {
                                 if (!file.delete()) {
-                                    Debug.logError("File : " + file.getName() + ", couldn't be deleted", module);
+                                    Debug.logError("File : " + file.getName() + ", couldn't be deleted", MODULE);
                                 }
                             }
 
                         }
                     } catch (SecurityException e) {
-                        Debug.logError(e,module);
+                        Debug.logError(e, MODULE);
                     }
                 // Images aren't ordered by productId (${location}/${viewtype}/${sizetype}/${id})
                 } else {
@@ -1035,35 +1058,40 @@ public class ProductServices {
                         for (File file : files) {
                             if (file.isFile() && file.getName().startsWith(productId + "_View_" + viewNumber)) {
                                 if (!file.delete()) {
-                                    Debug.logError("File : " + file.getName() + ", couldn't be deleted", module);
+                                    Debug.logError("File : " + file.getName() + ", couldn't be deleted", MODULE);
                                 }
                             }
                         }
                     } catch (SecurityException e) {
-                        Debug.logError(e,module);
+                        Debug.logError(e, MODULE);
                     }
                 }
             } catch (NullPointerException e) {
-                Debug.logError(e,module);
+                Debug.logError(e, MODULE);
             }
             // Write
             try {
-            File file = new File(imageServerPath + "/" + fileLocation + "." +  extension.getString("fileExtensionId"));
+                String fileToCheck = imageServerPath + "/" + fileLocation + "." + extension.getString("fileExtensionId");
+                File file = new File(fileToCheck);
                 try {
-                    RandomAccessFile out = new RandomAccessFile(file, "rw");
+                    RandomAccessFile out = new RandomAccessFile(fileToCheck, "rw");
                     out.write(imageData.array());
                     out.close();
+                    if (!org.apache.ofbiz.security.SecuredUpload.isValidFile(fileToCheck, "Image", delegator)) {
+                        String errorMessage = UtilProperties.getMessage("SecurityUiLabels", "SupportedImageFormats", locale);
+                        return ServiceUtil.returnError(errorMessage);
+                    }
                 } catch (FileNotFoundException e) {
-                    Debug.logError(e, module);
-                    return ServiceUtil.returnError(UtilProperties.getMessage(resource,
+                    Debug.logError(e, MODULE);
+                    return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE,
                             "ProductImageViewUnableWriteFile", UtilMisc.toMap("fileName", file.getAbsolutePath()), locale));
                 } catch (IOException e) {
-                    Debug.logError(e, module);
-                    return ServiceUtil.returnError(UtilProperties.getMessage(resource,
+                    Debug.logError(e, MODULE);
+                    return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE,
                             "ProductImageViewUnableWriteBinaryData", UtilMisc.toMap("fileName", file.getAbsolutePath()), locale));
                 }
             } catch (NullPointerException e) {
-                Debug.logError(e,module);
+                Debug.logError(e, MODULE);
             }
 
             /* scale Image in different sizes */
@@ -1071,29 +1099,29 @@ public class ProductServices {
             try {
                 resultResize.putAll(ScaleImage.scaleImageInAllSize(imageContext, filenameToUse, "additional", viewNumber));
             } catch (IOException e) {
-                Debug.logError(e, "Scale additional image in all different sizes is impossible : " + e.toString(), module);
-                return ServiceUtil.returnError(UtilProperties.getMessage(resource,
+                Debug.logError(e, "Scale additional image in all different sizes is impossible : " + e.toString(), MODULE);
+                return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE,
                         "ProductImageViewScaleImpossible", UtilMisc.toMap("errorString", e.toString()), locale));
             } catch (JDOMException e) {
-                Debug.logError(e, "Errors occur in parsing ImageProperties.xml : " + e.toString(), module);
-                return ServiceUtil.returnError(UtilProperties.getMessage(resource,
+                Debug.logError(e, "Errors occur in parsing ImageProperties.xml : " + e.toString(), MODULE);
+                return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE,
                         "ProductImageViewParsingError", UtilMisc.toMap("errorString", e.toString()), locale));
             }
 
-            String imageUrl = imageUrlPrefix + "/" + fileLocation + "." +  extension.getString("fileExtensionId");
+            String imageUrl = imageUrlPrefix + "/" + fileLocation + "." + extension.getString("fileExtensionId");
             /* store the imageUrl version of the image, for backwards compatibility with code that does not use scaled versions */
             Map<String, Object> result = addImageResource(dispatcher, delegator, context, imageUrl, productContentTypeId);
 
-            if( ServiceUtil.isError(result)) {
+            if (ServiceUtil.isError(result)) {
                 return result;
             }
 
             /* now store the image versions created by ScaleImage.scaleImageInAllSize */
             /* have to shrink length of productContentTypeId, as otherwise value is too long for database field */
-            Map<String,String> imageUrlMap = UtilGenerics.cast(resultResize.get("imageUrlMap"));
-            for ( String sizeType : ScaleImage.sizeTypeList ) {
+            Map<String, String> imageUrlMap = UtilGenerics.cast(resultResize.get("imageUrlMap"));
+            for (String sizeType : ScaleImage.SIZE_TYPE_LIST) {
                 imageUrl = imageUrlMap.get(sizeType);
-                if( UtilValidate.isNotEmpty(imageUrl)) {
+                if (UtilValidate.isNotEmpty(imageUrl)) {
                     try {
                         GenericValue productContentType = EntityQuery.use(delegator)
                                 .from("ProductContentType")
@@ -1101,14 +1129,15 @@ public class ProductServices {
                                 .cache()
                                 .queryOne();
                         if (UtilValidate.isNotEmpty(productContentType)) {
-                            result = addImageResource(dispatcher, delegator, context, imageUrl, "XTRA_IMG_" + viewNumber + "_" + sizeType.toUpperCase(Locale.getDefault()));
-                            if( ServiceUtil.isError(result)) {
-                                Debug.logError(ServiceUtil.getErrorMessage(result), module);
+                            result = addImageResource(dispatcher, delegator, context, imageUrl, "XTRA_IMG_"
+                                    + viewNumber + "_" + sizeType.toUpperCase(Locale.getDefault()));
+                            if (ServiceUtil.isError(result)) {
+                                Debug.logError(ServiceUtil.getErrorMessage(result), MODULE);
                                 return result;
                             }
                         }
-                    } catch(GenericEntityException e) {
-                        Debug.logError(e,module);
+                    } catch (GenericEntityException e) {
+                        Debug.logError(e, MODULE);
                         return ServiceUtil.returnError(e.getMessage());
                     }
                 }
@@ -1117,12 +1146,12 @@ public class ProductServices {
         return ServiceUtil.returnSuccess();
     }
 
-    private static Map<String,Object> addImageResource( LocalDispatcher dispatcher, Delegator delegator, Map<String, ? extends Object> context,
-            String imageUrl, String productContentTypeId ) {
+    private static Map<String, Object> addImageResource(LocalDispatcher dispatcher, Delegator delegator, Map<String, ? extends Object> context,
+            String imageUrl, String productContentTypeId) {
         GenericValue userLogin = (GenericValue) context.get("userLogin");
         String productId = (String) context.get("productId");
 
-        if (UtilValidate.isNotEmpty(imageUrl) && imageUrl.length() > 0) {
+        if (UtilValidate.isNotEmpty(imageUrl) && !imageUrl.isEmpty()) {
             String contentId = (String) context.get("contentId");
 
             Map<String, Object> dataResourceCtx = new HashMap<>();
@@ -1142,7 +1171,7 @@ public class ProductServices {
                 try {
                     content = EntityQuery.use(delegator).from("Content").where("contentId", contentId).queryOne();
                 } catch (GenericEntityException e) {
-                    Debug.logError(e, module);
+                    Debug.logError(e, MODULE);
                     return ServiceUtil.returnError(e.getMessage());
                 }
 
@@ -1151,7 +1180,7 @@ public class ProductServices {
                     try {
                         dataResource = content.getRelatedOne("DataResource", false);
                     } catch (GenericEntityException e) {
-                        Debug.logError(e, module);
+                        Debug.logError(e, MODULE);
                         return ServiceUtil.returnError(e.getMessage());
                     }
 
@@ -1163,7 +1192,7 @@ public class ProductServices {
                                 return ServiceUtil.returnError(ServiceUtil.getErrorMessage(serviceResult));
                             }
                         } catch (GenericServiceException e) {
-                            Debug.logError(e, module);
+                            Debug.logError(e, MODULE);
                             return ServiceUtil.returnError(e.getMessage());
                         }
                     } else {
@@ -1176,7 +1205,7 @@ public class ProductServices {
                                 return ServiceUtil.returnError(ServiceUtil.getErrorMessage(dataResourceResult));
                             }
                         } catch (GenericServiceException e) {
-                            Debug.logError(e, module);
+                            Debug.logError(e, MODULE);
                             return ServiceUtil.returnError(e.getMessage());
                         }
 
@@ -1190,7 +1219,7 @@ public class ProductServices {
                                 return ServiceUtil.returnError(ServiceUtil.getErrorMessage(serviceResult));
                             }
                         } catch (GenericServiceException e) {
-                            Debug.logError(e, module);
+                            Debug.logError(e, MODULE);
                             return ServiceUtil.returnError(e.getMessage());
                         }
                     }
@@ -1202,7 +1231,7 @@ public class ProductServices {
                             return ServiceUtil.returnError(ServiceUtil.getErrorMessage(serviceResult));
                         }
                     } catch (GenericServiceException e) {
-                        Debug.logError(e, module);
+                        Debug.logError(e, MODULE);
                         return ServiceUtil.returnError(e.getMessage());
                     }
                 }
@@ -1216,7 +1245,7 @@ public class ProductServices {
                         return ServiceUtil.returnError(ServiceUtil.getErrorMessage(dataResourceResult));
                     }
                 } catch (GenericServiceException e) {
-                    Debug.logError(e, module);
+                    Debug.logError(e, MODULE);
                     return ServiceUtil.returnError(e.getMessage());
                 }
 
@@ -1231,7 +1260,7 @@ public class ProductServices {
                         return ServiceUtil.returnError(ServiceUtil.getErrorMessage(contentResult));
                     }
                 } catch (GenericServiceException e) {
-                    Debug.logError(e, module);
+                    Debug.logError(e, MODULE);
                     return ServiceUtil.returnError(e.getMessage());
                 }
 
@@ -1242,12 +1271,12 @@ public class ProductServices {
                         return ServiceUtil.returnError(ServiceUtil.getErrorMessage(serviceResult));
                     }
                 } catch (GenericServiceException e) {
-                    Debug.logError(e, module);
+                    Debug.logError(e, MODULE);
                     return ServiceUtil.returnError(e.getMessage());
                 }
             }
         }
-       return ServiceUtil.returnSuccess();
+        return ServiceUtil.returnSuccess();
     }
 
     /**
@@ -1264,14 +1293,14 @@ public class ProductServices {
         String searchAllIdContext = (String) context.get("searchAllId");
 
         boolean searchProductFirst = UtilValidate.isNotEmpty(searchProductFirstContext) && "N".equals(searchProductFirstContext) ? false : true;
-        boolean searchAllId = UtilValidate.isNotEmpty(searchAllIdContext)&& "Y".equals(searchAllIdContext) ? true : false;
+        boolean searchAllId = UtilValidate.isNotEmpty(searchAllIdContext) && "Y".equals(searchAllIdContext) ? true : false;
 
         GenericValue product = null;
         List<GenericValue> productsFound = null;
         try {
             productsFound = ProductWorker.findProductsById(delegator, idToFind, goodIdentificationTypeId, searchProductFirst, searchAllId);
         } catch (GenericEntityException e) {
-            Debug.logError(e, module);
+            Debug.logError(e, MODULE);
             return ServiceUtil.returnError(e.getMessage());
         }
 
@@ -1303,21 +1332,22 @@ public class ProductServices {
         if (UtilValidate.isNotEmpty(context.get("_uploadedFile_fileName"))) {
             Map<String, Object> imageContext = new HashMap<>();
             imageContext.putAll(context);
-            imageContext.put("tenantId",delegator.getDelegatorTenantId());
+            imageContext.put("tenantId", delegator.getDelegatorTenantId());
             String imageFilenameFormat = EntityUtilProperties.getPropertyValue("catalog", "image.filename.format", delegator);
 
-            String imageServerPath = FlexibleStringExpander.expandString(EntityUtilProperties.getPropertyValue("catalog", "image.server.path",delegator), imageContext);
-            String imageUrlPrefix = FlexibleStringExpander.expandString(EntityUtilProperties.getPropertyValue("catalog", "image.url.prefix", delegator), imageContext);
-            imageServerPath = imageServerPath.endsWith("/") ? imageServerPath.substring(0, imageServerPath.length()-1) : imageServerPath;
-            imageUrlPrefix = imageUrlPrefix.endsWith("/") ? imageUrlPrefix.substring(0, imageUrlPrefix.length()-1) : imageUrlPrefix;
+            String imageServerPath = FlexibleStringExpander.expandString(EntityUtilProperties.getPropertyValue("catalog",
+                    "image.server.path", delegator), imageContext);
+            String imageUrlPrefix = FlexibleStringExpander.expandString(EntityUtilProperties.getPropertyValue("catalog",
+                    "image.url.prefix", delegator), imageContext);
+            imageServerPath = imageServerPath.endsWith("/") ? imageServerPath.substring(0, imageServerPath.length() - 1) : imageServerPath;
+            imageUrlPrefix = imageUrlPrefix.endsWith("/") ? imageUrlPrefix.substring(0, imageUrlPrefix.length() - 1) : imageUrlPrefix;
             FlexibleStringExpander filenameExpander = FlexibleStringExpander.getInstance(imageFilenameFormat);
             String id = productPromoId + "_Image_" + productPromoContentTypeId.charAt(productPromoContentTypeId.length() - 1);
             String fileLocation = filenameExpander.expandString(UtilMisc.toMap("location", "products", "type", "promo", "id", id));
             String filePathPrefix = "";
             String filenameToUse = fileLocation;
             if (fileLocation.lastIndexOf('/') != -1) {
-                filePathPrefix = fileLocation.substring(0, fileLocation.lastIndexOf('/') + 1); // adding 1 to include
-                                                                                               // the trailing slash
+                filePathPrefix = fileLocation.substring(0, fileLocation.lastIndexOf('/') + 1); // adding 1 to include the trailing slash
                 filenameToUse = fileLocation.substring(fileLocation.lastIndexOf('/') + 1);
             }
 
@@ -1328,7 +1358,7 @@ public class ProductServices {
                         .where("mimeTypeId", EntityOperator.EQUALS, context.get("_uploadedFile_contentType"))
                         .queryList();
             } catch (GenericEntityException e) {
-                Debug.logError(e, module);
+                Debug.logError(e, MODULE);
                 return ServiceUtil.returnError(e.getMessage());
             }
 
@@ -1337,32 +1367,38 @@ public class ProductServices {
                 filenameToUse += "." + extension.getString("fileExtensionId");
             }
 
-            File makeResourceDirectory  = new File(imageServerPath + "/" + filePathPrefix);
+            File makeResourceDirectory = new File(imageServerPath + "/" + filePathPrefix);
             if (!makeResourceDirectory.exists()) {
                 if (!makeResourceDirectory.mkdirs()) {
-                    Debug.logError("Directory :" + makeResourceDirectory.getPath() + ", couldn't be created", module);
+                    Debug.logError("Directory :" + makeResourceDirectory.getPath() + ", couldn't be created", MODULE);
                 }
             }
 
-            File file = new File(imageServerPath + "/" + filePathPrefix + filenameToUse);
+            String fileToCheck = imageServerPath + "/" + filePathPrefix + filenameToUse;
+            File file = new File(fileToCheck);
 
             try {
                 RandomAccessFile out = new RandomAccessFile(file, "rw");
                 out.write(imageData.array());
                 out.close();
+                if (!org.apache.ofbiz.security.SecuredUpload.isValidFile(fileToCheck, "Image", delegator)) {
+                    String errorMessage = UtilProperties.getMessage("SecurityUiLabels", "SupportedImageFormats", locale);
+                    return ServiceUtil.returnError(errorMessage);
+                }
+
             } catch (FileNotFoundException e) {
-                Debug.logError(e, module);
-                return ServiceUtil.returnError(UtilProperties.getMessage(resource,
+                Debug.logError(e, MODULE);
+                return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE,
                         "ProductImageViewUnableWriteFile", UtilMisc.toMap("fileName", file.getAbsolutePath()), locale));
-            } catch (IOException e) {
-                Debug.logError(e, module);
-                return ServiceUtil.returnError(UtilProperties.getMessage(resource,
+            } catch (IOException | ImageReadException e) {
+                Debug.logError(e, MODULE);
+                return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE,
                         "ProductImageViewUnableWriteBinaryData", UtilMisc.toMap("fileName", file.getAbsolutePath()), locale));
             }
 
             String imageUrl = imageUrlPrefix + "/" + filePathPrefix + filenameToUse;
 
-            if (UtilValidate.isNotEmpty(imageUrl) && imageUrl.length() > 0) {
+            if (UtilValidate.isNotEmpty(imageUrl) && !imageUrl.isEmpty()) {
                 Map<String, Object> dataResourceCtx = new HashMap<>();
                 dataResourceCtx.put("objectInfo", imageUrl);
                 dataResourceCtx.put("dataResourceName", context.get("_uploadedFile_fileName"));
@@ -1380,7 +1416,7 @@ public class ProductServices {
                     try {
                         content = EntityQuery.use(delegator).from("Content").where("contentId", contentId).queryOne();
                     } catch (GenericEntityException e) {
-                        Debug.logError(e, module);
+                        Debug.logError(e, MODULE);
                         return ServiceUtil.returnError(e.getMessage());
                     }
 
@@ -1389,7 +1425,7 @@ public class ProductServices {
                         try {
                             dataResource = content.getRelatedOne("DataResource", false);
                         } catch (GenericEntityException e) {
-                            Debug.logError(e, module);
+                            Debug.logError(e, MODULE);
                             return ServiceUtil.returnError(e.getMessage());
                         }
 
@@ -1401,7 +1437,7 @@ public class ProductServices {
                                     return ServiceUtil.returnError(ServiceUtil.getErrorMessage(serviceResult));
                                 }
                             } catch (GenericServiceException e) {
-                                Debug.logError(e, module);
+                                Debug.logError(e, MODULE);
                                 return ServiceUtil.returnError(e.getMessage());
                             }
                         } else {
@@ -1414,7 +1450,7 @@ public class ProductServices {
                                     return ServiceUtil.returnError(ServiceUtil.getErrorMessage(dataResourceResult));
                                 }
                             } catch (GenericServiceException e) {
-                                Debug.logError(e, module);
+                                Debug.logError(e, MODULE);
                                 return ServiceUtil.returnError(e.getMessage());
                             }
 
@@ -1428,7 +1464,7 @@ public class ProductServices {
                                     return ServiceUtil.returnError(ServiceUtil.getErrorMessage(serviceResult));
                                 }
                             } catch (GenericServiceException e) {
-                                Debug.logError(e, module);
+                                Debug.logError(e, MODULE);
                                 return ServiceUtil.returnError(e.getMessage());
                             }
                         }
@@ -1440,7 +1476,7 @@ public class ProductServices {
                                 return ServiceUtil.returnError(ServiceUtil.getErrorMessage(serviceResult));
                             }
                         } catch (GenericServiceException e) {
-                            Debug.logError(e, module);
+                            Debug.logError(e, MODULE);
                             return ServiceUtil.returnError(e.getMessage());
                         }
                     }
@@ -1454,7 +1490,7 @@ public class ProductServices {
                             return ServiceUtil.returnError(ServiceUtil.getErrorMessage(dataResourceResult));
                         }
                     } catch (GenericServiceException e) {
-                        Debug.logError(e, module);
+                        Debug.logError(e, MODULE);
                         return ServiceUtil.returnError(e.getMessage());
                     }
 
@@ -1469,7 +1505,7 @@ public class ProductServices {
                             return ServiceUtil.returnError(ServiceUtil.getErrorMessage(contentResult));
                         }
                     } catch (GenericServiceException e) {
-                        Debug.logError(e, module);
+                        Debug.logError(e, MODULE);
                         return ServiceUtil.returnError(e.getMessage());
                     }
 
@@ -1480,7 +1516,7 @@ public class ProductServices {
                             return ServiceUtil.returnError(ServiceUtil.getErrorMessage(serviceResult));
                         }
                     } catch (GenericServiceException e) {
-                        Debug.logError(e, module);
+                        Debug.logError(e, MODULE);
                         return ServiceUtil.returnError(e.getMessage());
                     }
                 }
@@ -1499,7 +1535,7 @@ public class ProductServices {
                     return ServiceUtil.returnError(ServiceUtil.getErrorMessage(serviceResult));
                 }
             } catch (GenericServiceException e) {
-                Debug.logError(e, module);
+                Debug.logError(e, MODULE);
                 return ServiceUtil.returnError(e.getMessage());
             }
         }

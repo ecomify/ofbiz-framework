@@ -40,12 +40,11 @@ import org.w3c.dom.Element;
 
 /**
  * Implements the &lt;entity-count&gt; element.
- * 
  * @see <a href="https://cwiki.apache.org/confluence/display/OFBIZ/Mini+Language+-+minilang+-+simple-method+-+Reference">Mini-language Reference</a>
  */
 public final class EntityCount extends EntityOperation {
 
-    public static final String module = EntityCount.class.getName();
+    private static final String MODULE = EntityCount.class.getName();
 
     private final FlexibleMapAccessor<Long> countFma;
     private final FlexibleStringExpander entityNameFse;
@@ -98,18 +97,20 @@ public final class EntityCount extends EntityOperation {
             ModelEntity modelEntity = delegator.getModelEntity(entityName);
             EntityCondition whereEntityCondition = null;
             if (this.whereCondition != null) {
-                whereEntityCondition = this.whereCondition.createCondition(methodContext.getEnvMap(), modelEntity, delegator.getModelFieldTypeReader(modelEntity));
+                whereEntityCondition = this.whereCondition.createCondition(methodContext.getEnvMap(), modelEntity,
+                        delegator.getModelFieldTypeReader(modelEntity));
             }
             EntityCondition havingEntityCondition = null;
             if (this.havingCondition != null) {
-                havingEntityCondition = this.havingCondition.createCondition(methodContext.getEnvMap(), modelEntity, delegator.getModelFieldTypeReader(modelEntity));
+                havingEntityCondition = this.havingCondition.createCondition(methodContext.getEnvMap(), modelEntity,
+                        delegator.getModelFieldTypeReader(modelEntity));
             }
             long count = EntityQuery.use(delegator).from(entityName).where(whereEntityCondition).having(havingEntityCondition).queryCount();
             this.countFma.put(methodContext.getEnvMap(), count);
         } catch (GeneralException e) {
             String errMsg = "Exception thrown while performing entity count: " + e.getMessage();
-            Debug.logWarning(e, errMsg, module);
-            simpleMethod.addErrorMessage(methodContext, errMsg);
+            Debug.logWarning(e, errMsg, MODULE);
+            getSimpleMethod().addErrorMessage(methodContext, errMsg);
             return false;
         }
         return true;

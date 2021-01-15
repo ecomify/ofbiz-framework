@@ -52,14 +52,14 @@ import org.w3c.dom.Node;
 @SuppressWarnings("serial")
 public class ModelGroupReader implements Serializable {
 
-    public static final String module = ModelGroupReader.class.getName();
-    private static final UtilCache<String, ModelGroupReader> readers = UtilCache.createUtilCache("entity.ModelGroupReader", 0, 0);
+    private static final String MODULE = ModelGroupReader.class.getName();
+    private static final UtilCache<String, ModelGroupReader> READERS = UtilCache.createUtilCache("entity.ModelGroupReader", 0, 0);
 
     private volatile Map<String, String> groupCache = null;
     private Set<String> groupNames = null;
 
-    public String modelName;
-    public List<ResourceHandler> entityGroupResourceHandlers = new LinkedList<>();
+    private String modelName;
+    private List<ResourceHandler> entityGroupResourceHandlers = new LinkedList<>();
 
     public static ModelGroupReader getModelGroupReader(String delegatorName) throws GenericEntityConfException {
         DelegatorElement delegatorInfo = EntityConfig.getInstance().getDelegator(delegatorName);
@@ -69,10 +69,10 @@ public class ModelGroupReader implements Serializable {
         }
 
         String tempModelName = delegatorInfo.getEntityGroupReader();
-        ModelGroupReader reader = readers.get(tempModelName);
+        ModelGroupReader reader = READERS.get(tempModelName);
 
         if (reader == null) {
-            reader = readers.putIfAbsentAndGet(tempModelName, new ModelGroupReader(delegatorName, tempModelName));
+            reader = READERS.putIfAbsentAndGet(tempModelName, new ModelGroupReader(delegatorName, tempModelName));
         }
         return reader;
     }
@@ -85,12 +85,13 @@ public class ModelGroupReader implements Serializable {
             throw new GenericEntityConfException("Cound not find an entity-group-reader with the name " + modelName);
         }
         for (Resource resourceElement: entityGroupReaderInfo.getResourceList()) {
-            this.entityGroupResourceHandlers.add(new MainResourceHandler(EntityConfig.ENTITY_ENGINE_XML_FILENAME, resourceElement.getLoader(), resourceElement.getLocation()));
+            this.entityGroupResourceHandlers.add(new MainResourceHandler(EntityConfig.ENTITY_ENGINE_XML_FILENAME, resourceElement.getLoader(),
+                    resourceElement.getLocation()));
         }
 
         // get all of the component resource group stuff, ie specified in each ofbiz-component.xml file
         for (ComponentConfig.EntityResourceInfo componentResourceInfo: ComponentConfig.getAllEntityResourceInfos("group")) {
-            if (modelName.equals(componentResourceInfo.readerName)) {
+            if (modelName.equals(componentResourceInfo.getReaderName())) {
                 this.entityGroupResourceHandlers.add(componentResourceInfo.createResourceHandler());
             }
         }
@@ -99,6 +100,11 @@ public class ModelGroupReader implements Serializable {
         getGroupCache(delegatorName);
     }
 
+    /**
+     * Gets group cache.
+     * @param delegatorName the delegator name
+     * @return the group cache
+     */
     public Map<String, String> getGroupCache(String delegatorName) {
         if (this.groupCache == null) { // don't want to block here
             synchronized (ModelGroupReader.class) {
@@ -118,7 +124,7 @@ public class ModelGroupReader implements Serializable {
                         try {
                             document = entityGroupResourceHandler.getDocument();
                         } catch (GenericConfigException e) {
-                            Debug.logError(e, "Error loading entity group model", module);
+                            Debug.logError(e, "Error loading entity group model", MODULE);
                         }
                         if (document == null) {
                             this.groupCache = null;
@@ -143,10 +149,11 @@ public class ModelGroupReader implements Serializable {
 
                                     try {
                                         if (null == EntityConfig.getInstance().getDelegator(delegatorName).getGroupDataSource(groupName)) {
-                                            Debug.logError("The declared group name " + groupName + " has no corresponding group-map in entityengine.xml: ", module);
+                                            Debug.logError("The declared group name " + groupName
+                                                    + " has no corresponding group-map in entityengine.xml: ", MODULE);
                                         }
                                     } catch (GenericEntityConfException e) {
-                                        Debug.logWarning(e, "Exception thrown while getting group name: ", module);
+                                        Debug.logWarning(e, "Exception thrown while getting group name: ", MODULE);
                                     }
                                     this.groupNames.add(groupName);
                                     this.groupCache.put(entityName, groupName);
@@ -155,7 +162,7 @@ public class ModelGroupReader implements Serializable {
                                 }
                             } while ((curChild = curChild.getNextSibling()) != null);
                         } else {
-                            Debug.logWarning("[ModelGroupReader.getGroupCache] No child nodes found.", module);
+                            Debug.logWarning("[ModelGroupReader.getGroupCache] No child nodes found.", MODULE);
                         }
                     }
                     utilTimer.timerString("[ModelGroupReader.getGroupCache] FINISHED - Total Entity-Groups: " + i + " FINISHED");
@@ -179,7 +186,7 @@ public class ModelGroupReader implements Serializable {
                 try {
                     delegatorInfo = EntityConfig.getInstance().getDelegator(delegatorBaseName);
                 } catch (GenericEntityConfException e) {
-                    Debug.logWarning(e, "Exception thrown while getting delegator config: ", module);
+                    Debug.logWarning(e, "Exception thrown while getting delegator config: ", MODULE);
                 }
                 if (delegatorInfo == null) {
                     throw new RuntimeException("Could not find DelegatorInfo for delegatorBaseName [" + delegatorBaseName + "]");
@@ -205,7 +212,7 @@ public class ModelGroupReader implements Serializable {
         try {
             newSet.add(EntityConfig.getInstance().getDelegator(delegatorBaseName).getDefaultGroupName());
         } catch (GenericEntityConfException e) {
-            Debug.logWarning(e, "Exception thrown while getting delegator config: ", module);
+            Debug.logWarning(e, "Exception thrown while getting delegator config: ", MODULE);
         }
         newSet.addAll(this.groupNames);
         return newSet;

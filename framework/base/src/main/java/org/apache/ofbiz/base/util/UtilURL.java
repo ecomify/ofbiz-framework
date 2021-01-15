@@ -30,10 +30,10 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public final class UtilURL {
 
-    public static final String module = UtilURL.class.getName();
-    private static final Map<String, URL> urlMap = new ConcurrentHashMap<>();
+    private static final String MODULE = UtilURL.class.getName();
+    private static final Map<String, URL> URL_MAP = new ConcurrentHashMap<>();
 
-    private UtilURL() {}
+    private UtilURL() { }
 
     public static <C> URL fromClass(Class<C> contextClass) {
         String resourceName = contextClass.getName();
@@ -53,7 +53,6 @@ public final class UtilURL {
      * <p>This method uses various ways to locate the resource, and in all
      * cases it tests to see if the resource exists - so it
      * is very inefficient.</p>
-     *
      * @param resourceName
      * @return
      */
@@ -74,18 +73,17 @@ public final class UtilURL {
      * <p>This method uses various ways to locate the resource, and in all
      * cases it tests to see if the resource exists - so it
      * is very inefficient.</p>
-     *
      * @param resourceName
      * @param loader
      * @return
      */
     public static URL fromResource(String resourceName, ClassLoader loader) {
-        URL url = urlMap.get(resourceName);
+        URL url = URL_MAP.get(resourceName);
         if (url != null) {
             try {
                 return new URL(url.toString());
             } catch (MalformedURLException e) {
-                Debug.logWarning(e, "Exception thrown while copying URL: ", module);
+                Debug.logWarning(e, "Exception thrown while copying URL: ", MODULE);
             }
         }
         if (loader == null) {
@@ -98,27 +96,27 @@ public final class UtilURL {
         }
         url = loader.getResource(resourceName);
         if (url != null) {
-            urlMap.put(resourceName, url);
+            URL_MAP.put(resourceName, url);
             return url;
         }
         url = ClassLoader.getSystemResource(resourceName);
         if (url != null) {
-            urlMap.put(resourceName, url);
+            URL_MAP.put(resourceName, url);
             return url;
         }
         url = fromFilename(resourceName);
         if (url != null) {
-            urlMap.put(resourceName, url);
+            URL_MAP.put(resourceName, url);
             return url;
         }
         url = fromOfbizHomePath(resourceName);
         if (url != null) {
-            urlMap.put(resourceName, url);
+            URL_MAP.put(resourceName, url);
             return url;
         }
         url = fromUrlString(resourceName);
         if (url != null) {
-            urlMap.put(resourceName, url);
+            URL_MAP.put(resourceName, url);
         }
         return url;
     }
@@ -135,7 +133,7 @@ public final class UtilURL {
                 url = file.toURI().toURL();
             }
         } catch (java.net.MalformedURLException e) {
-            Debug.logError(e, "unable to retrieve URL for file: " + filename, module);
+            Debug.logError(e, "unable to retrieve URL for file: " + filename, MODULE);
         }
         return url;
     }
@@ -153,7 +151,7 @@ public final class UtilURL {
     public static URL fromOfbizHomePath(String filename) {
         String ofbizHome = System.getProperty("ofbiz.home");
         if (ofbizHome == null) {
-            Debug.logWarning("No ofbiz.home property set in environment", module);
+            Debug.logWarning("No ofbiz.home property set in environment", MODULE);
             return null;
         }
         String newFilename = ofbizHome;
@@ -169,7 +167,7 @@ public final class UtilURL {
         String path = fileUrl.getPath();
         if (path.startsWith(ofbizHome)) {
             // note: the +1 is to remove the leading slash
-            path = path.substring(ofbizHome.length()+1);
+            path = path.substring(ofbizHome.length() + 1);
         }
         return path;
     }

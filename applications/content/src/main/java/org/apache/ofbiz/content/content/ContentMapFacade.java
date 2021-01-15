@@ -49,44 +49,45 @@ import org.apache.ofbiz.webapp.website.WebSiteWorker;
  */
 public class ContentMapFacade implements Map<Object, Object> {
 
-    public static final String module = ContentMapFacade.class.getName();
+    private static final String MODULE = ContentMapFacade.class.getName();
 
-    private static final Set<String> mapKeySet = new HashSet<>();
+    private static final Set<String> MAP_KEY_SET = new HashSet<>();
     static {
-        mapKeySet.add("fields");
-        mapKeySet.add("link");
-        mapKeySet.add("data");
-        mapKeySet.add("dataresource");
-        mapKeySet.add("subcontent");
-        mapKeySet.add("subcontent_all");
-        mapKeySet.add("metadata");
-        mapKeySet.add("content");
-        mapKeySet.add("render");
+        MAP_KEY_SET.add("fields");
+        MAP_KEY_SET.add("link");
+        MAP_KEY_SET.add("data");
+        MAP_KEY_SET.add("dataresource");
+        MAP_KEY_SET.add("subcontent");
+        MAP_KEY_SET.add("subcontent_all");
+        MAP_KEY_SET.add("metadata");
+        MAP_KEY_SET.add("content");
+        MAP_KEY_SET.add("render");
     }
 
-    protected final LocalDispatcher dispatcher;
-    protected final Delegator delegator;
-    protected final String contentId;
-    protected final GenericValue value;
-    protected final Map<String, Object> context;
-    protected final Locale locale;
-    protected final String mimeType;
-    protected final boolean cache;
-    protected boolean allowRender = true;
-    protected boolean isDecorated = false;
-    protected ContentMapFacade decoratedContent = null;
+    private final LocalDispatcher dispatcher;
+    private final Delegator delegator;
+    private final String contentId;
+    private final GenericValue value;
+    private final Map<String, Object> context;
+    private final Locale locale;
+    private final String mimeType;
+    private final boolean cache;
+    private boolean allowRender = true;
+    private boolean isDecorated = false;
+    private ContentMapFacade decoratedContent = null;
 
     // internal objects
-    private String sortOrder="-fromDate";
-    private String mapKeyFilter="";
-    private String statusFilter="";
+    private String sortOrder = "-fromDate";
+    private String mapKeyFilter = "";
+    private String statusFilter = "";
     private DataResource dataResource;
     private SubContent subContent;
     private MetaData metaData;
     private Content content;
     private GenericValue fields = null;
 
-    public ContentMapFacade(LocalDispatcher dispatcher, GenericValue content, Map<String, Object> context, Locale locale, String mimeTypeId, boolean cache) {
+    public ContentMapFacade(LocalDispatcher dispatcher, GenericValue content, Map<String, Object> context, Locale locale,
+                            String mimeTypeId, boolean cache) {
         this.dispatcher = dispatcher;
         this.value = content;
         this.context = context;
@@ -99,7 +100,8 @@ public class ContentMapFacade implements Map<Object, Object> {
         init();
     }
 
-    private ContentMapFacade(LocalDispatcher dispatcher, String contentId, Map<String, Object> context, Locale locale, String mimeTypeId, boolean cache) {
+    private ContentMapFacade(LocalDispatcher dispatcher, String contentId, Map<String, Object> context, Locale locale,
+                             String mimeTypeId, boolean cache) {
         this.dispatcher = dispatcher;
         this.delegator = dispatcher.getDelegator();
         this.contentId = contentId;
@@ -114,7 +116,7 @@ public class ContentMapFacade implements Map<Object, Object> {
                 this.value = EntityQuery.use(this.delegator).from("Content").where("contentId", contentId).queryOne();
             }
         } catch (GenericEntityException e) {
-            Debug.logError(e, module);
+            Debug.logError(e, MODULE);
             throw new RuntimeException(e.getMessage());
         }
         init();
@@ -127,10 +129,18 @@ public class ContentMapFacade implements Map<Object, Object> {
         this.content = new Content();
     }
 
+    /**
+     * Sets render flag.
+     * @param render the render
+     */
     public void setRenderFlag(boolean render) {
         this.allowRender = render;
     }
 
+    /**
+     * Sets is decorated.
+     * @param isDecorated the is decorated
+     */
     public void setIsDecorated(boolean isDecorated) {
         this.isDecorated = isDecorated;
     }
@@ -158,69 +168,85 @@ public class ContentMapFacade implements Map<Object, Object> {
 
     @Override
     public Object put(Object name, Object value) {
-        Debug.logWarning("This [put()] method is not implemented in ContentMapFacade", module);
+        Debug.logWarning("This [put()] method is not implemented in ContentMapFacade", MODULE);
         return null;
     }
 
     @Override
     public Object remove(Object object) {
-        Debug.logWarning("This [remove()] method is not implemented in ContentMapFacade", module);
+        Debug.logWarning("This [remove()] method is not implemented in ContentMapFacade", MODULE);
         return null;
     }
 
     @Override
     public void putAll(Map<?, ?> map) {
-        Debug.logWarning("This method [putAll()] is not implemented in ContentMapFacade", module);
+        Debug.logWarning("This method [putAll()] is not implemented in ContentMapFacade", MODULE);
     }
 
     @Override
     public void clear() {
-        Debug.logWarning("This method [clear()] is not implemented in ContentMapFacade", module);
+        Debug.logWarning("This method [clear()] is not implemented in ContentMapFacade", MODULE);
     }
 
     @Override
     public Set<Object> keySet() {
-        return UtilGenerics.cast(mapKeySet);
+        return UtilGenerics.cast(MAP_KEY_SET);
     }
 
     @Override
     public Collection<Object> values() {
-        Debug.logWarning("This method [values()] is not implemented in ContentMapFacade", module);
+        Debug.logWarning("This method [values()] is not implemented in ContentMapFacade", MODULE);
         return null;
     }
 
     @Override
     public Set<Map.Entry<Object, Object>> entrySet() {
-        Debug.logWarning("This method [entrySet()] is not implemented in ContentMapFacade", module);
+        Debug.logWarning("This method [entrySet()] is not implemented in ContentMapFacade", MODULE);
         return null;
     }
 
+    /**
+     * Sets sort order.
+     * @param obj the obj
+     */
     public void setSortOrder(Object obj) {
         if (!(obj instanceof String)) {
-            Debug.logWarning("sortOrder parameters must be a string", module);
+            Debug.logWarning("sortOrder parameters must be a string", MODULE);
             return;
         }
-        this.sortOrder=(String) obj;
+        this.sortOrder = (String) obj;
         this.subContent.setSortOrder(obj);
     }
 
+    /**
+     * Sets map key filter.
+     * @param obj the obj
+     */
     public void setMapKeyFilter(Object obj) {
         if (!(obj instanceof String)) {
-            Debug.logWarning("mapKeyFilter parameters must be a string", module);
+            Debug.logWarning("mapKeyFilter parameters must be a string", MODULE);
             return;
         }
-        this.mapKeyFilter=(String) obj;
+        this.mapKeyFilter = (String) obj;
     }
 
+    /**
+     * Sets status filter.
+     * @param obj the obj
+     */
     public void setStatusFilter(Object obj) {
         if (!(obj instanceof String)) {
-            Debug.logWarning("statusFilter parameters must be a string", module);
+            Debug.logWarning("statusFilter parameters must be a string", MODULE);
             return;
         }
-        this.statusFilter=(String) obj;
+        this.statusFilter = (String) obj;
         this.subContent.setStatusFilter(obj);
     }
 
+    /**
+     * Sets decorated content.
+     * @param decoratedContent the decorated content
+     */
     public void setDecoratedContent(ContentMapFacade decoratedContent) {
         this.decoratedContent = decoratedContent;
     }
@@ -229,7 +255,7 @@ public class ContentMapFacade implements Map<Object, Object> {
     @Override
     public Object get(Object obj) {
         if (!(obj instanceof String)) {
-            Debug.logWarning("Key parameters must be a string", module);
+            Debug.logWarning("Key parameters must be a string", MODULE);
             return null;
         }
         String name = (String) obj;
@@ -246,7 +272,7 @@ public class ContentMapFacade implements Map<Object, Object> {
                 }
                 this.fields = contentQuery.queryOne();
             } catch (GenericEntityException e) {
-                Debug.logError(e, module);
+                Debug.logError(e, MODULE);
             }
             return this.fields;
 
@@ -260,14 +286,14 @@ public class ContentMapFacade implements Map<Object, Object> {
             if (rh != null && request != null && response != null) {
                 String webSiteId = WebSiteWorker.getWebSiteId(request);
                 Delegator delegator = (Delegator) request.getAttribute("delegator");
-                
+
                 String contentUri = this.contentId;
-                // Try and find a WebSitePathAlias record to use, it isn't very feasible to find an alias by (parent)contentId/mapKey
+                // Try and find a WebSitePathAlias record to use, it isn't very feasible to find an alias by (parent) contentId/mapKey
                 // so we're only looking for a direct alias using contentId
                 if (webSiteId != null && delegator != null) {
                     try {
                         GenericValue webSitePathAlias = EntityQuery.use(delegator).from("WebSitePathAlias")
-                                .where("mapKey", null, "webSiteId", webSiteId,"contentId", this.contentId)
+                                .where("mapKey", null, "webSiteId", webSiteId, "contentId", this.contentId)
                                 .orderBy("-fromDate")
                                 .cache()
                                 .filterByDate()
@@ -276,7 +302,7 @@ public class ContentMapFacade implements Map<Object, Object> {
                             contentUri = webSitePathAlias.getString("pathAlias");
                         }
                     } catch (GenericEntityException e) {
-                        Debug.logError(e, module);
+                        Debug.logError(e, MODULE);
                     }
                 }
                 String contextLink = rh.makeLink(request, response, contentUri, true, false, true);
@@ -285,7 +311,7 @@ public class ContentMapFacade implements Map<Object, Object> {
                 return this.contentId;
             }
         } else if ("data".equalsIgnoreCase(name) || "dataresource".equalsIgnoreCase(name)) {
-            // data (resource) object
+            // data (RESOURCE) object
             return dataResource;
         } else if ("subcontent_all".equalsIgnoreCase(name)) {
             // subcontent list of ordered subcontent
@@ -294,10 +320,10 @@ public class ContentMapFacade implements Map<Object, Object> {
             try {
                 Map<String, Object> expressions = new HashMap<>();
                 expressions.put("contentIdStart", contentId);
-                if(!this.mapKeyFilter.equals("")) {
+                if (!"".equals(this.mapKeyFilter)) {
                     expressions.put("caMapKey", this.mapKeyFilter);
                 }
-                if(!this.statusFilter.equals("")) {
+                if (!"".equals(this.statusFilter)) {
                     expressions.put("statusId", this.statusFilter);
                 }
 
@@ -307,7 +333,7 @@ public class ContentMapFacade implements Map<Object, Object> {
                         .filterByDate()
                         .cache(cache).queryList();
             } catch (GenericEntityException e) {
-                Debug.logError(e, module);
+                Debug.logError(e, MODULE);
             }
             if (subs != null) {
                 for (GenericValue v: subs) {
@@ -332,10 +358,14 @@ public class ContentMapFacade implements Map<Object, Object> {
         return null;
     }
 
+    /**
+     * Render this string.
+     * @return the string
+     */
     protected String renderThis() {
         if (!this.allowRender && !this.isDecorated) {
             String errorMsg = "WARNING: Cannot render content being rendered! (Infinite Recursion NOT allowed!)";
-            Debug.logWarning(errorMsg, module);
+            Debug.logWarning(errorMsg, MODULE);
             return "=========> " + errorMsg + " <=========";
         }
         // TODO: change to use the MapStack instead of a cloned Map
@@ -351,11 +381,8 @@ public class ContentMapFacade implements Map<Object, Object> {
 
         try {
             return ContentWorker.renderContentAsText(dispatcher, contentId, renderCtx, locale, mimeType, cache);
-        } catch (GeneralException e) {
-            Debug.logError(e, module);
-            return e.toString();
-        } catch (IOException e) {
-            Debug.logError(e, module);
+        } catch (GeneralException | IOException e) {
+            Debug.logError(e, MODULE);
             return e.toString();
         }
     }
@@ -388,41 +415,41 @@ public class ContentMapFacade implements Map<Object, Object> {
 
         @Override
         public Object put(Object name, Object value) {
-            Debug.logWarning("This [put()] method is not implemented in ContentMapFacade.AbstractInfo", module);
+            Debug.logWarning("This [put()] method is not implemented in ContentMapFacade.AbstractInfo", MODULE);
             return null;
         }
 
         @Override
         public Object remove(Object object) {
-            Debug.logWarning("This [remove()] method is not implemented in ContentMapFacade.AbstractInfo", module);
+            Debug.logWarning("This [remove()] method is not implemented in ContentMapFacade.AbstractInfo", MODULE);
             return null;
         }
 
         @Override
         public void putAll(Map<?, ?> map) {
-            Debug.logWarning("This method [putAll()] is not implemented in ContentMapFacade.AbstractInfo", module);
+            Debug.logWarning("This method [putAll()] is not implemented in ContentMapFacade.AbstractInfo", MODULE);
         }
 
         @Override
         public void clear() {
-            Debug.logWarning("This method [clear()] is not implemented in ContentMapFacade.AbstractInfo", module);
+            Debug.logWarning("This method [clear()] is not implemented in ContentMapFacade.AbstractInfo", MODULE);
         }
 
         @Override
         public Set<Object> keySet() {
-            Debug.logWarning("This method [keySet()] is not implemented in ContentMapFacade.AbstractInfo", module);
+            Debug.logWarning("This method [keySet()] is not implemented in ContentMapFacade.AbstractInfo", MODULE);
             return null;
         }
 
         @Override
         public Collection<Object> values() {
-            Debug.logWarning("This method [values()] is not implemented in ContentMapFacade.AbstractInfo", module);
+            Debug.logWarning("This method [values()] is not implemented in ContentMapFacade.AbstractInfo", MODULE);
             return null;
         }
 
         @Override
         public Set<Map.Entry<Object, Object>> entrySet() {
-            Debug.logWarning("This method [entrySet()] is not implemented in ContentMapFacade.AbstractInfo", module);
+            Debug.logWarning("This method [entrySet()] is not implemented in ContentMapFacade.AbstractInfo", MODULE);
             return null;
         }
     }
@@ -431,7 +458,7 @@ public class ContentMapFacade implements Map<Object, Object> {
         @Override
         public Object get(Object key) {
             if (!(key instanceof String)) {
-                Debug.logWarning("Key parameters must be a string", module);
+                Debug.logWarning("Key parameters must be a string", MODULE);
                 return null;
             }
             String name = (String) key;
@@ -448,7 +475,7 @@ public class ContentMapFacade implements Map<Object, Object> {
                     content = EntityQuery.use(delegator).from("Content").where("contentId", name).queryOne();
                 }
             } catch (GenericEntityException e) {
-                Debug.logError(e, module);
+                Debug.logError(e, MODULE);
             }
             if (content != null) {
                 return new ContentMapFacade(dispatcher, content.getString("contentId"), context, locale, mimeType, cache);
@@ -459,12 +486,12 @@ public class ContentMapFacade implements Map<Object, Object> {
     }
 
     class SubContent extends AbstractInfo {
-        private String sortOrder="-fromDate";
-        private String statusFilter="";
+        private String sortOrder = "-fromDate";
+        private String statusFilter = "";
         @Override
         public Object get(Object key) {
             if (!(key instanceof String)) {
-                Debug.logWarning("Key parameters must be a string", module);
+                Debug.logWarning("Key parameters must be a string", MODULE);
                 return null;
             }
             String name = (String) key;
@@ -478,7 +505,7 @@ public class ContentMapFacade implements Map<Object, Object> {
                 Map<String, Object> expressions = new HashMap<>();
                 expressions.put("contentIdStart", contentId);
                 expressions.put("caMapKey", name);
-                if(!this.statusFilter.equals("")) {
+                if (!"".equals(this.statusFilter)) {
                     expressions.put("statusId", this.statusFilter);
                 }
                 sub = EntityQuery.use(delegator).from("ContentAssocViewTo")
@@ -487,7 +514,7 @@ public class ContentMapFacade implements Map<Object, Object> {
                         .cache(cache)
                         .filterByDate().queryFirst();
             } catch (GenericEntityException e) {
-                Debug.logError(e, module);
+                Debug.logError(e, MODULE);
             }
             if (sub != null) {
                 return new ContentMapFacade(dispatcher, sub.getString("contentId"), context, locale, mimeType, cache);
@@ -497,17 +524,17 @@ public class ContentMapFacade implements Map<Object, Object> {
         }
         public void setSortOrder(Object obj) {
             if (!(obj instanceof String)) {
-                Debug.logWarning("sortOrder parameters must be a string", module);
+                Debug.logWarning("sortOrder parameters must be a string", MODULE);
                 return;
             }
-            this.sortOrder=(String) obj;
+            this.sortOrder = (String) obj;
         }
         public void setStatusFilter(Object obj) {
             if (!(obj instanceof String)) {
-                Debug.logWarning("statusFilter parameters must be a string", module);
+                Debug.logWarning("statusFilter parameters must be a string", MODULE);
                 return;
             }
-            this.statusFilter=(String) obj;
+            this.statusFilter = (String) obj;
         }
     }
 
@@ -515,7 +542,7 @@ public class ContentMapFacade implements Map<Object, Object> {
         @Override
         public Object get(Object key) {
             if (!(key instanceof String)) {
-                Debug.logWarning("Key parameters must be a string", module);
+                Debug.logWarning("Key parameters must be a string", MODULE);
                 return null;
             }
             String name = (String) key;
@@ -525,7 +552,7 @@ public class ContentMapFacade implements Map<Object, Object> {
                         .where("contentId", contentId, "metaDataPredicateId", name)
                         .cache(cache).queryList();
             } catch (GenericEntityException e) {
-                Debug.logError(e, module);
+                Debug.logError(e, MODULE);
             }
             return metaData;
         }
@@ -535,29 +562,27 @@ public class ContentMapFacade implements Map<Object, Object> {
         @Override
         public Object get(Object key) {
             if (!(key instanceof String)) {
-                Debug.logWarning("Key parameters must be a string", module);
+                Debug.logWarning("Key parameters must be a string", MODULE);
                 return null;
             }
             String name = (String) key;
 
             if ("fields".equalsIgnoreCase(name)) {
-                // get the data resource value object
+                // get the data RESOURCE value object
                 GenericValue dr = null;
                 try {
                     dr = value.getRelatedOne("DataResource", cache);
                 } catch (GenericEntityException e) {
-                    Debug.logError(e, module);
+                    Debug.logError(e, MODULE);
                 }
                 return dr;
             } else if ("render".equalsIgnoreCase(name)) {
                 // render just the dataresource
                 try {
-                    return DataResourceWorker.renderDataResourceAsText(dispatcher, delegator, value.getString("dataResourceId"), context, locale, mimeType, cache);
-                } catch (GeneralException e) {
-                    Debug.logError(e, module);
-                    return e.toString();
-                } catch (IOException e) {
-                    Debug.logError(e, module);
+                    return DataResourceWorker.renderDataResourceAsText(dispatcher, delegator, value.getString("dataResourceId"),
+                            context, locale, mimeType, cache);
+                } catch (GeneralException | IOException e) {
+                    Debug.logError(e, MODULE);
                     return e.toString();
                 }
             }

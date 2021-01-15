@@ -60,7 +60,7 @@ import com.ibm.icu.util.TimeZone;
 @SuppressWarnings("serial")
 public class PersistedServiceJob extends GenericServiceJob {
 
-    public static final String module = PersistedServiceJob.class.getName();
+    private static final String MODULE = PersistedServiceJob.class.getName();
 
     private final transient Delegator delegator;
     private long nextRecurrence = -1;
@@ -99,7 +99,7 @@ public class PersistedServiceJob extends GenericServiceJob {
         } catch (GenericEntityException e) {
             throw new InvalidJobException("Unable to refresh JobSandbox value", e);
         }
-        if (!JobManager.instanceId.equals(jobValue.getString("runByInstanceId"))) {
+        if (!JobManager.INSTANCE_ID.equals(jobValue.getString("runByInstanceId"))) {
             throw new InvalidJobException("Job has been accepted by a different instance");
         }
         Timestamp cancelTime = jobValue.getTimestamp("cancelDateTime");
@@ -115,7 +115,7 @@ public class PersistedServiceJob extends GenericServiceJob {
             throw new InvalidJobException("Unable to set the startDateTime and statusId on the current job [" + getJobId() + "]; not running!", e);
         }
         if (Debug.verboseOn()) {
-            Debug.logVerbose("Placing job [" + getJobId() + "] in queue", module);
+            Debug.logVerbose("Placing job [" + getJobId() + "] in queue", MODULE);
         }
     }
 
@@ -127,7 +127,7 @@ public class PersistedServiceJob extends GenericServiceJob {
         } catch (GenericEntityException e) {
             throw new InvalidJobException("Unable to refresh JobSandbox value", e);
         }
-        if (!JobManager.instanceId.equals(jobValue.getString("runByInstanceId"))) {
+        if (!JobManager.INSTANCE_ID.equals(jobValue.getString("runByInstanceId"))) {
             throw new InvalidJobException("Job has been accepted by a different instance");
         }
         if (jobValue.getTimestamp("cancelDateTime") != null) {
@@ -142,7 +142,7 @@ public class PersistedServiceJob extends GenericServiceJob {
             throw new InvalidJobException("Unable to set the startDateTime and statusId on the current job [" + getJobId() + "]; not running!", e);
         }
         if (Debug.verboseOn()) {
-            Debug.logVerbose("Job [" + getJobId() + "] running", module);
+            Debug.logVerbose("Job [" + getJobId() + "] running", MODULE);
         }
         // configure any additional recurrences
         long maxRecurrenceCount = -1;
@@ -150,7 +150,7 @@ public class PersistedServiceJob extends GenericServiceJob {
         TemporalExpression expr = null;
         RecurrenceInfo recurrence = getRecurrenceInfo();
         if (recurrence != null) {
-            Debug.logWarning("Persisted Job [" + getJobId() + "] references a RecurrenceInfo, recommend using TemporalExpression instead", module);
+            Debug.logWarning("Persisted Job [" + getJobId() + "] references a RecurrenceInfo, recommend using TemporalExpression instead", MODULE);
             currentRecurrenceCount = recurrence.getCurrentCount();
             expr = RecurrenceInfo.toTemporalExpression(recurrence);
         }
@@ -176,7 +176,8 @@ public class PersistedServiceJob extends GenericServiceJob {
                 if (recurrence != null) {
                     recurrence.incrementCurrentCount();
                 }
-                TimeZone timeZone = jobValue.get("recurrenceTimeZone") != null ? TimeZone.getTimeZone(jobValue.getString("recurrenceTimeZone")) : TimeZone.getDefault();
+                TimeZone timeZone = jobValue.get("recurrenceTimeZone") != null ? TimeZone.getTimeZone(jobValue.getString("recurrenceTimeZone"))
+                        : TimeZone.getDefault();
                 Calendar next = expr.next(Calendar.getInstance(timeZone));
 
                 if (next != null) {
@@ -187,13 +188,13 @@ public class PersistedServiceJob extends GenericServiceJob {
             throw new InvalidJobException(e);
         }
         if (Debug.infoOn()) {
-            Debug.logInfo("Job  [" + getJobName() + "] Id ["  + getJobId() + "] -- Next runtime: " + new Date(nextRecurrence), module);
+            Debug.logInfo("Job  [" + getJobName() + "] Id [" + getJobId() + "] -- Next runtime: " + new Date(nextRecurrence), MODULE);
         }
     }
 
     private void createRecurrence(long next, boolean isRetryOnFailure) throws GenericEntityException {
         if (Debug.verboseOn()) {
-            Debug.logVerbose("Next runtime returned: " + next, module);
+            Debug.logVerbose("Next runtime returned: " + next, MODULE);
         }
         if (next > startTime) {
             String pJobId = jobValue.getString("parentJobId");
@@ -220,7 +221,7 @@ public class PersistedServiceJob extends GenericServiceJob {
             }
             delegator.createSetNextSeqId(newJob);
             if (Debug.verboseOn()) {
-                Debug.logVerbose("Created next job entry: " + newJob, module);
+                Debug.logVerbose("Created next job entry: " + newJob, MODULE);
             }
         }
     }
@@ -243,7 +244,7 @@ public class PersistedServiceJob extends GenericServiceJob {
         try {
             jobValue.store();
         } catch (GenericEntityException e) {
-            Debug.logError(e, "Cannot update the job [" + getJobId() + "] sandbox", module);
+            Debug.logError(e, "Cannot update the job [" + getJobId() + "] sandbox", MODULE);
         }
     }
 
@@ -258,17 +259,17 @@ public class PersistedServiceJob extends GenericServiceJob {
                 try {
                     cal.add(Calendar.MINUTE, ServiceConfigUtil.getServiceEngine().getThreadPool().getFailedRetryMin());
                 } catch (GenericConfigException e) {
-                    Debug.logWarning(e, "Unable to get retry minutes for job [" + getJobId() + "], defaulting to now: ", module);
+                    Debug.logWarning(e, "Unable to get retry minutes for job [" + getJobId() + "], defaulting to now: ", MODULE);
                 }
                 long next = cal.getTimeInMillis();
                 try {
                     createRecurrence(next, true);
                 } catch (GenericEntityException e) {
-                    Debug.logError(e, "Unable to re-schedule job [" + getJobId() + "]: ", module);
+                    Debug.logError(e, "Unable to re-schedule job [" + getJobId() + "]: ", MODULE);
                 }
-                Debug.logInfo("Persisted Job [" + getJobId() + "] Failed. Re-Scheduling : " + next, module);
+                Debug.logInfo("Persisted Job [" + getJobId() + "] Failed. Re-Scheduling : " + next, MODULE);
             } else {
-                Debug.logWarning("Persisted Job [" + getJobId() + "] Failed. Max Retry Hit, not re-scheduling", module);
+                Debug.logWarning("Persisted Job [" + getJobId() + "] Failed. Max Retry Hit, not re-scheduling", MODULE);
             }
         }
         // set the failed status
@@ -278,7 +279,7 @@ public class PersistedServiceJob extends GenericServiceJob {
         try {
             jobValue.store();
         } catch (GenericEntityException e) {
-            Debug.logError(e, "Cannot update the JobSandbox entity", module);
+            Debug.logError(e, "Cannot update the JobSandbox entity", MODULE);
         }
     }
 
@@ -297,7 +298,8 @@ public class PersistedServiceJob extends GenericServiceJob {
             if (UtilValidate.isNotEmpty(jobValue.getString("runtimeDataId"))) {
                 GenericValue contextObj = jobValue.getRelatedOne("RuntimeData", false);
                 if (contextObj != null) {
-                    context = UtilGenerics.checkMap(XmlSerializer.deserialize(contextObj.getString("runtimeInfo"), delegator), String.class, Object.class);
+                    context = UtilGenerics.checkMap(XmlSerializer.deserialize(contextObj.getString("runtimeInfo"),
+                            delegator), String.class, Object.class);
                 }
             }
             if (context == null) {
@@ -305,21 +307,21 @@ public class PersistedServiceJob extends GenericServiceJob {
             }
             // check the runAsUser
             if (UtilValidate.isNotEmpty(jobValue.getString("runAsUser"))) {
-                context.put("userLogin", ServiceUtil.getUserLogin(dctx, context, jobValue.getString("runAsUser")));
+                context.put("userLogin", ServiceUtil.getUserLogin(getDctx(), context, jobValue.getString("runAsUser")));
             }
         } catch (GenericEntityException e) {
-            Debug.logError(e, "PersistedServiceJob.getContext(): Entity Exception", module);
+            Debug.logError(e, "PersistedServiceJob.getContext(): Entity Exception", MODULE);
         } catch (SerializeException e) {
-            Debug.logError(e, "PersistedServiceJob.getContext(): Serialize Exception", module);
+            Debug.logError(e, "PersistedServiceJob.getContext(): Serialize Exception", MODULE);
         } catch (ParserConfigurationException e) {
-            Debug.logError(e, "PersistedServiceJob.getContext(): Parse Exception", module);
+            Debug.logError(e, "PersistedServiceJob.getContext(): Parse Exception", MODULE);
         } catch (SAXException e) {
-            Debug.logError(e, "PersistedServiceJob.getContext(): SAXException", module);
+            Debug.logError(e, "PersistedServiceJob.getContext(): SAXException", MODULE);
         } catch (IOException e) {
-            Debug.logError(e, "PersistedServiceJob.getContext(): IOException", module);
+            Debug.logError(e, "PersistedServiceJob.getContext(): IOException", MODULE);
         }
         if (context == null) {
-            Debug.logError("Job context is null", module);
+            Debug.logError("Job context is null", MODULE);
         }
         return context;
     }
@@ -334,7 +336,7 @@ public class PersistedServiceJob extends GenericServiceJob {
         try {
             count = EntityQuery.use(delegator).from("JobSandbox").where("parentJobId", pJobId, "statusId", "SERVICE_FAILED").queryCount();
         } catch (GenericEntityException e) {
-            Debug.logError(e, "Exception thrown while counting retries: ", module);
+            Debug.logError(e, "Exception thrown while counting retries: ", MODULE);
         }
         return count + 1; // add one for the parent
     }
@@ -355,19 +357,19 @@ public class PersistedServiceJob extends GenericServiceJob {
                 }
             }
         } catch (GenericEntityException e) {
-            Debug.logError(e, "Problem getting RecurrenceInfo entity from JobSandbox", module);
+            Debug.logError(e, "Problem getting RecurrenceInfo entity from JobSandbox", MODULE);
         } catch (RecurrenceInfoException re) {
-            Debug.logError(re, "Problem creating RecurrenceInfo instance: " + re.getMessage(), module);
+            Debug.logError(re, "Problem creating RecurrenceInfo instance: " + re.getMessage(), MODULE);
         }
         return null;
     }
 
     @Override
     public void deQueue() throws InvalidJobException {
-        if (currentState != State.QUEUED) {
+        if (getCurrentState() != State.QUEUED) {
             throw new InvalidJobException("Illegal state change");
         }
-        currentState = State.CREATED;
+        setCurrentState(State.CREATED);
         try {
             jobValue.refresh();
             jobValue.set("startDateTime", null);
@@ -378,7 +380,7 @@ public class PersistedServiceJob extends GenericServiceJob {
             throw new InvalidJobException("Unable to dequeue job [" + getJobId() + "]", e);
         }
         if (Debug.verboseOn()) {
-            Debug.logVerbose("Job [" + getJobId() + "] not queued, rescheduling", module);
+            Debug.logVerbose("Job [" + getJobId() + "] not queued, rescheduling", MODULE);
         }
     }
 
@@ -387,7 +389,7 @@ public class PersistedServiceJob extends GenericServiceJob {
         return new Date(startTime);
     }
 
-    /* 
+    /*
      * Returns the priority stored in the JobSandbox.priority field, if no value is present
      * then it defaults to AbstractJob.getPriority()
      */

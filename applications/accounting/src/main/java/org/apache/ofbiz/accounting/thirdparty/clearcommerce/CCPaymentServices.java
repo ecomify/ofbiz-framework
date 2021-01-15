@@ -53,11 +53,11 @@ import org.w3c.dom.Element;
  */
 public class CCPaymentServices {
 
-    public final static String module = CCPaymentServices.class.getName();
-    private static int decimals = UtilNumber.getBigDecimalScale("invoice.decimals");
-    private static RoundingMode rounding = UtilNumber.getRoundingMode("invoice.rounding");
-    public final static String resource = "AccountingUiLabels";
-    private final static int maxSevComp = 4;
+    private static final String MODULE = CCPaymentServices.class.getName();
+    private static final String RESOURCE = "AccountingUiLabels";
+    private static final int DECIMALS = UtilNumber.getBigDecimalScale("invoice.decimals");
+    private static final RoundingMode ROUNDING_MODE = UtilNumber.getRoundingMode("invoice.rounding");
+    private static final int MAX_SEV_COMP = 4;
 
     public static Map<String, Object> ccAuth(DispatchContext dctx, Map<String, Object> context) {
         String ccAction = (String) context.get("ccAction");
@@ -75,7 +75,7 @@ public class CCPaymentServices {
             return ServiceUtil.returnError(cce.getMessage());
         }
 
-        if (getMessageListMaxSev(authResponseDoc) > maxSevComp) { // 5 and higher, process error from HSBC
+        if (getMessageListMaxSev(authResponseDoc) > MAX_SEV_COMP) { // 5 and higher, process error from HSBC
             Map<String, Object> result = ServiceUtil.returnSuccess();
             result.put("authResult", Boolean.FALSE);
             result.put("processAmount", BigDecimal.ZERO);
@@ -106,7 +106,7 @@ public class CCPaymentServices {
             return ServiceUtil.returnError(cce.getMessage());
         }
 
-        if (getMessageListMaxSev(creditResponseDoc) > maxSevComp) {
+        if (getMessageListMaxSev(creditResponseDoc) > MAX_SEV_COMP) {
             Map<String, Object> result = ServiceUtil.returnSuccess();
             result.put("creditResult", Boolean.FALSE);
             result.put("creditAmount", BigDecimal.ZERO);
@@ -127,7 +127,7 @@ public class CCPaymentServices {
         GenericValue orderPaymentPreference = (GenericValue) context.get("orderPaymentPreference");
         GenericValue authTransaction = PaymentGatewayServices.getAuthTransaction(orderPaymentPreference);
         if (authTransaction == null) {
-            return ServiceUtil.returnError(UtilProperties.getMessage(resource,
+            return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE,
                     "AccountingPaymentTransactionAuthorizationNotFoundCannotCapture", locale));
         }
 
@@ -141,7 +141,7 @@ public class CCPaymentServices {
             return ServiceUtil.returnError(cce.getMessage());
         }
 
-        if (getMessageListMaxSev(captureResponseDoc) > maxSevComp) {
+        if (getMessageListMaxSev(captureResponseDoc) > MAX_SEV_COMP) {
             Map<String, Object> result = ServiceUtil.returnSuccess();
             result.put("captureResult", Boolean.FALSE);
             result.put("captureAmount", BigDecimal.ZERO);
@@ -162,7 +162,7 @@ public class CCPaymentServices {
         GenericValue orderPaymentPreference = (GenericValue) context.get("orderPaymentPreference");
         GenericValue authTransaction = PaymentGatewayServices.getAuthTransaction(orderPaymentPreference);
         if (authTransaction == null) {
-            return ServiceUtil.returnError(UtilProperties.getMessage(resource,
+            return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE,
                     "AccountingPaymentTransactionAuthorizationNotFoundCannotRelease", locale));
         }
 
@@ -176,7 +176,7 @@ public class CCPaymentServices {
             return ServiceUtil.returnError(cce.getMessage());
         }
 
-        if (getMessageListMaxSev(releaseResponseDoc) > maxSevComp) {
+        if (getMessageListMaxSev(releaseResponseDoc) > MAX_SEV_COMP) {
             Map<String, Object> result = ServiceUtil.returnSuccess();
             result.put("releaseResult", Boolean.FALSE);
             result.put("releaseAmount", BigDecimal.ZERO);
@@ -196,7 +196,7 @@ public class CCPaymentServices {
         GenericValue orderPaymentPreference = (GenericValue) context.get("orderPaymentPreference");
         GenericValue authTransaction = PaymentGatewayServices.getAuthTransaction(orderPaymentPreference);
         if (authTransaction == null) {
-            return ServiceUtil.returnError(UtilProperties.getMessage(resource,
+            return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE,
                     "AccountingPaymentTransactionAuthorizationNotFoundCannotRelease", locale));
         }
 
@@ -217,7 +217,7 @@ public class CCPaymentServices {
         GenericValue orderPaymentPreference = (GenericValue) context.get("orderPaymentPreference");
         GenericValue authTransaction = PaymentGatewayServices.getAuthTransaction(orderPaymentPreference);
         if (authTransaction == null) {
-            return ServiceUtil.returnError(UtilProperties.getMessage(resource,
+            return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE,
                     "AccountingPaymentTransactionAuthorizationNotFoundCannotRefund", locale));
         }
 
@@ -233,7 +233,7 @@ public class CCPaymentServices {
             return ServiceUtil.returnError(cce.getMessage());
         }
 
-        if (getMessageListMaxSev(refundResponseDoc) > maxSevComp) {
+        if (getMessageListMaxSev(refundResponseDoc) > MAX_SEV_COMP) {
             Map<String, Object> result = ServiceUtil.returnSuccess();
             result.put("refundResult", Boolean.FALSE);
             result.put("refundAmount", BigDecimal.ZERO);
@@ -254,7 +254,7 @@ public class CCPaymentServices {
         GenericValue orderPaymentPreference = (GenericValue) context.get("orderPaymentPreference");
         GenericValue authTransaction = PaymentGatewayServices.getAuthTransaction(orderPaymentPreference);
         if (authTransaction == null) {
-            return ServiceUtil.returnError(UtilProperties.getMessage(resource,
+            return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE,
                     "AccountingPaymentTransactionAuthorizationNotFoundCannotReauth", locale));
         }
 
@@ -268,7 +268,7 @@ public class CCPaymentServices {
             return ServiceUtil.returnError(cce.getMessage());
         }
 
-        if (getMessageListMaxSev(reauthResponseDoc) > maxSevComp) {
+        if (getMessageListMaxSev(reauthResponseDoc) > MAX_SEV_COMP) {
             Map<String, Object> result = ServiceUtil.returnSuccess();
             result.put("reauthResult", Boolean.FALSE);
             result.put("reauthAmount", BigDecimal.ZERO);
@@ -296,7 +296,7 @@ public class CCPaymentServices {
         // orderId
         String orderId = (String) context.get("orderId");
         if (UtilValidate.isEmpty(orderId)) {
-            return ServiceUtil.returnError(UtilProperties.getMessage(resource,
+            return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE,
                     "AccountingClearCommerceCannotExecuteReport", locale));
         }
 
@@ -607,7 +607,7 @@ public class CCPaymentServices {
                 try {
                     severity = Integer.parseInt(UtilXml.childElementValue(messageElement, "Sev"));
                 } catch (NumberFormatException nfe) {
-                    Debug.logError("Error parsing message severity: " + nfe.getMessage(), module);
+                    Debug.logError("Error parsing message severity: " + nfe.getMessage(), MODULE);
                     severity = 9;
                 }
                 String message = "[" + UtilXml.childElementValue(messageElement, "Audience") + "] " + UtilXml
@@ -630,7 +630,7 @@ public class CCPaymentServices {
             try {
                 maxSev = Integer.parseInt(maxSevStr);
             } catch (NumberFormatException nfe) {
-                Debug.logError("Error parsing MaxSev: " + nfe.getMessage(), module);
+                Debug.logError("Error parsing MaxSev: " + nfe.getMessage(), MODULE);
                 maxSev = 9;
             }
         }
@@ -709,7 +709,7 @@ public class CCPaymentServices {
         Map<String, Object> pbOrder = UtilGenerics.cast(context.get("pbOrder"));
         if (pbOrder != null) {
             if (Debug.verboseOn()) {
-                Debug.logVerbose("pbOrder Map not empty:" + pbOrder.toString(), module);
+                Debug.logVerbose("pbOrder Map not empty:" + pbOrder.toString(), MODULE);
             }
             Element pbOrderElement = UtilXml.addChildElement(orderFormDocElement, "PbOrder", requestDocument); // periodic billing order
             UtilXml.addChildElementValue(pbOrderElement, "OrderFrequencyCycle", (String) pbOrder.get(
@@ -806,7 +806,7 @@ public class CCPaymentServices {
                 GenericValue countryGeo = address.getRelatedOne("CountryGeo", true);
                 UtilXml.addChildElementValue(addressElement, "Country", countryGeo.getString("geoSecCode"), document);
             } catch (GenericEntityException gee) {
-                Debug.logInfo(gee, "Error finding related Geo for countryGeoId: " + countryGeoId, module);
+                Debug.logInfo(gee, "Error finding related Geo for countryGeoId: " + countryGeoId, MODULE);
             }
         }
     }
@@ -825,7 +825,7 @@ public class CCPaymentServices {
 
             // DecimalFormat("#") is used here in case the total is something like 9.9999999...
             // in that case, we want to send 999, not 999.9999999...
-            String totalString = amount.setScale(decimals, rounding).movePointRight(2).toPlainString();
+            String totalString = amount.setScale(DECIMALS, ROUNDING_MODE).movePointRight(2).toPlainString();
 
             Element totalElement = UtilXml.addChildElementValue(totalsElement, "Total", totalString, document);
             totalElement.setAttribute("DataType", "Money");
@@ -897,7 +897,7 @@ public class CCPaymentServices {
             throw new ClearCommerceException("Missing server URL; check your ClearCommerce configuration");
         }
         if (Debug.verboseOn()) {
-            Debug.logVerbose("ClearCommerce server URL: " + serverURL, module);
+            Debug.logVerbose("ClearCommerce server URL: " + serverURL, MODULE);
         }
 
         OutputStream os = new ByteArrayOutputStream();
@@ -911,7 +911,7 @@ public class CCPaymentServices {
         String xmlString = os.toString();
 
         if (Debug.verboseOn()) {
-            Debug.logVerbose("ClearCommerce XML request string: " + xmlString, module);
+            Debug.logVerbose("ClearCommerce XML request string: " + xmlString, MODULE);
         }
 
         HttpClient http = new HttpClient(serverURL);
@@ -921,7 +921,7 @@ public class CCPaymentServices {
         try {
             response = http.post();
         } catch (HttpClientException hce) {
-            Debug.logInfo(hce, module);
+            Debug.logInfo(hce, MODULE);
             throw new ClearCommerceException("ClearCommerce connection problem", hce);
         }
 
@@ -932,10 +932,10 @@ public class CCPaymentServices {
             throw new ClearCommerceException("Error reading response Document from a String: " + e.getMessage());
         }
         if (Debug.verboseOn()) {
-            Debug.logVerbose("Result severity from clearCommerce:" + getMessageListMaxSev(responseDocument), module);
+            Debug.logVerbose("Result severity from clearCommerce:" + getMessageListMaxSev(responseDocument), MODULE);
         }
-        if (Debug.verboseOn() && getMessageListMaxSev(responseDocument) > maxSevComp) {
-            Debug.logVerbose("Returned messages:" + getMessageList(responseDocument), module);
+        if (Debug.verboseOn() && getMessageListMaxSev(responseDocument) > MAX_SEV_COMP) {
+            Debug.logVerbose("Returned messages:" + getMessageList(responseDocument), MODULE);
         }
         return responseDocument;
     }

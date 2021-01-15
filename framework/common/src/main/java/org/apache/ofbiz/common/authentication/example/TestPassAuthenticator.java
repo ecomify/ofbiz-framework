@@ -27,11 +27,10 @@ import org.apache.ofbiz.common.authentication.api.AuthenticatorException;
  */
 public class TestPassAuthenticator extends TestFailAuthenticator {
 
-    private static final String module = TestPassAuthenticator.class.getName();
+    private static final String MODULE = TestPassAuthenticator.class.getName();
 
     /**
      * Method to authenticate a user
-     *
      * @param username      User's username
      * @param password      User's password
      * @param isServiceAuth true if authentication is for a service call
@@ -41,13 +40,12 @@ public class TestPassAuthenticator extends TestFailAuthenticator {
      */
     @Override
     public boolean authenticate(String username, String password, boolean isServiceAuth) throws AuthenticatorException {
-        Debug.logInfo(this.getClass().getName() + " Authenticator authenticate() -- returning false", module);
+        Debug.logInfo(this.getClass().getName() + " Authenticator authenticate() -- returning false", MODULE);
         return true;
     }
 
     /**
      * Flag to test if this Authenticator is enabled
-     *
      * @return true if the Authenticator is enabled
      */
     @Override

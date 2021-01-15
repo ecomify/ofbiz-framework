@@ -34,6 +34,7 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
+import org.apache.commons.imaging.ImageReadException;
 import org.apache.ofbiz.base.util.Debug;
 import org.apache.ofbiz.base.util.GeneralException;
 import org.apache.ofbiz.base.util.UtilDateTime;
@@ -55,8 +56,8 @@ import org.apache.ofbiz.service.ServiceUtil;
  */
 public class DataServices {
 
-    public static final String module = DataServices.class.getName();
-    public static final String resource = "ContentUiLabels";
+    private static final String MODULE = DataServices.class.getName();
+    private static final String RESOURCE = "ContentUiLabels";
 
     public static Map<String, Object> clearAssociatedRenderCache(DispatchContext dctx, Map<String, Object> context) {
         Delegator delegator = dctx.getDelegator();
@@ -65,8 +66,9 @@ public class DataServices {
         try {
             DataResourceWorker.clearAssociatedRenderCache(delegator, dataResourceId);
         } catch (GeneralException e) {
-            Debug.logError(e, "Unable to clear associated render cache with dataResourceId=" + dataResourceId, module);
-            return ServiceUtil.returnError(UtilProperties.getMessage(resource, "ContentClearAssociatedRenderCacheError", UtilMisc.toMap("dataResourceId", dataResourceId), locale));
+            Debug.logError(e, "Unable to clear associated render cache with dataResourceId=" + dataResourceId, MODULE);
+            return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE, "ContentClearAssociatedRenderCacheError",
+                    UtilMisc.toMap("dataResourceId", dataResourceId), locale));
         }
         return ServiceUtil.returnSuccess();
     }
@@ -127,7 +129,7 @@ public class DataServices {
             dataResourceId = delegator.getNextSeqId("DataResource");
         }
         if (Debug.infoOn()) {
-            Debug.logInfo("in createDataResourceMethod, dataResourceId:" + dataResourceId, module);
+            Debug.logInfo("in createDataResourceMethod, dataResourceId:" + dataResourceId, MODULE);
         }
         GenericValue dataResource = delegator.makeValue("DataResource", UtilMisc.toMap("dataResourceId", dataResourceId));
         dataResource.setNonPKFields(context);
@@ -138,9 +140,10 @@ public class DataServices {
         // get first statusId  for content out of the statusItem table if not provided
         if (UtilValidate.isEmpty(dataResource.get("statusId"))) {
             try {
-                GenericValue statusItem = EntityQuery.use(delegator).from("StatusItem").where("statusTypeId", "CONTENT_STATUS").orderBy("sequenceId").queryFirst();
+                GenericValue statusItem = EntityQuery.use(delegator).from("StatusItem").where("statusTypeId", "CONTENT_STATUS")
+                        .orderBy("sequenceId").queryFirst();
                 if (statusItem != null) {
-                    dataResource.put("statusId",  statusItem.get("statusId"));
+                    dataResource.put("statusId", statusItem.get("statusId"));
                 }
             } catch (GenericEntityException e) {
                 return ServiceUtil.returnError(e.getMessage());
@@ -171,7 +174,8 @@ public class DataServices {
         String dataResourceId = (String) context.get("dataResourceId");
         String textData = (String) context.get("textData");
         if (UtilValidate.isNotEmpty(textData)) {
-            GenericValue electronicText = delegator.makeValue("ElectronicText", UtilMisc.toMap("dataResourceId", dataResourceId, "textData", textData));
+            GenericValue electronicText = delegator.makeValue("ElectronicText",
+                    UtilMisc.toMap("dataResourceId", dataResourceId, "textData", textData));
             try {
                 electronicText.create();
             } catch (GenericEntityException e) {
@@ -195,7 +199,7 @@ public class DataServices {
     }
 
     public static Map<String, Object> createFileMethod(DispatchContext dctx, Map<String, ? extends Object> context) {
-        //GenericValue dataResource = (GenericValue) context.get("dataResource");
+        Delegator delegator = dctx.getDelegator();
         String dataResourceTypeId = (String) context.get("dataResourceTypeId");
         String objectInfo = (String) context.get("objectInfo");
         ByteBuffer binData = (ByteBuffer) context.get("binData");
@@ -208,18 +212,19 @@ public class DataServices {
 
         // extended validation for binary/character data
         if (UtilValidate.isNotEmpty(textData) && binData != null) {
-            return ServiceUtil.returnError(UtilProperties.getMessage(resource, "ContentCannotProcessBothCharacterAndBinaryFile", locale));
+            return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE, "ContentCannotProcessBothCharacterAndBinaryFile", locale));
         }
 
         // obtain a reference to the file
         File file = null;
         if (UtilValidate.isEmpty(objectInfo)) {
-            return ServiceUtil.returnError(UtilProperties.getMessage(resource, "ContentUnableObtainReferenceToFile", UtilMisc.toMap("objectInfo", ""), locale));
+            return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE, "ContentUnableObtainReferenceToFile",
+                    UtilMisc.toMap("objectInfo", ""), locale));
         }
         if (UtilValidate.isEmpty(dataResourceTypeId) || "LOCAL_FILE".equals(dataResourceTypeId) || "LOCAL_FILE_BIN".equals(dataResourceTypeId)) {
             file = new File(objectInfo);
             if (!file.isAbsolute()) {
-                return ServiceUtil.returnError(UtilProperties.getMessage(resource, "ContentLocalFileDoesNotPointToAbsoluteLocation", locale));
+                return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE, "ContentLocalFileDoesNotPointToAbsoluteLocation", locale));
             }
         } else if ("OFBIZ_FILE".equals(dataResourceTypeId) || "OFBIZ_FILE_BIN".equals(dataResourceTypeId)) {
             prefix = System.getProperty("ofbiz.home");
@@ -230,7 +235,7 @@ public class DataServices {
         } else if ("CONTEXT_FILE".equals(dataResourceTypeId) || "CONTEXT_FILE_BIN".equals(dataResourceTypeId)) {
             prefix = (String) context.get("rootDir");
             if (UtilValidate.isEmpty(prefix)) {
-                return ServiceUtil.returnError(UtilProperties.getMessage(resource, "ContentCannotFindContextFileWithEmptyContextRoot", locale));
+                return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE, "ContentCannotFindContextFileWithEmptyContextRoot", locale));
             }
             if (objectInfo.indexOf('/') != 0 && prefix.lastIndexOf('/') != (prefix.length() - 1)) {
                 sep = "/";
@@ -238,33 +243,46 @@ public class DataServices {
             file = new File(prefix + sep + objectInfo);
         }
         if (file == null) {
-            return ServiceUtil.returnError(UtilProperties.getMessage(resource, "ContentUnableObtainReferenceToFile", UtilMisc.toMap("objectInfo", objectInfo), locale));
+            return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE, "ContentUnableObtainReferenceToFile",
+                    UtilMisc.toMap("objectInfo", objectInfo), locale));
         }
 
         // write the data to the file
         if (UtilValidate.isNotEmpty(textData)) {
-            try (
-                OutputStreamWriter out = new OutputStreamWriter(new FileOutputStream(file), StandardCharsets.UTF_8);
-            ) {
+            try (OutputStreamWriter out = new OutputStreamWriter(new FileOutputStream(file), StandardCharsets.UTF_8);) {
                 out.write(textData);
-            } catch (IOException e) {
-                Debug.logWarning(e, module);
-                return ServiceUtil.returnError(UtilProperties.getMessage(resource, "ContentUnableWriteCharacterDataToFile", UtilMisc.toMap("fileName", file.getAbsolutePath()), locale));
+                if (!org.apache.ofbiz.security.SecuredUpload.isValidFile(file.getAbsolutePath(), "Text", delegator)) {
+                    String errorMessage = UtilProperties.getMessage("SecurityUiLabels", "SupportedTextFileFormats", locale);
+                    return ServiceUtil.returnError(errorMessage);
+                }
+            } catch (IOException | ImageReadException e) {
+                Debug.logWarning(e, MODULE);
+                return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE, "ContentUnableWriteCharacterDataToFile",
+                        UtilMisc.toMap("fileName", file.getAbsolutePath()), locale));
             }
         } else if (binData != null) {
             try {
                 RandomAccessFile out = new RandomAccessFile(file, "rw");
                 out.write(binData.array());
                 out.close();
-            } catch (FileNotFoundException e) {
-                Debug.logError(e, module);
-                return ServiceUtil.returnError(UtilProperties.getMessage(resource, "ContentUnableToOpenFileForWriting", UtilMisc.toMap("fileName", file.getAbsolutePath()), locale));
+                // Check if a webshell is not uploaded
+                if (!org.apache.ofbiz.security.SecuredUpload.isValidFile(file.getAbsolutePath(), "All", delegator)) {
+                    String errorMessage = UtilProperties.getMessage("SecurityUiLabels", "SupportedFileFormatsIncludingSvg", locale);
+                    return ServiceUtil.returnError(errorMessage);
+                }
+
+            } catch (FileNotFoundException | ImageReadException e) {
+                Debug.logError(e, MODULE);
+                return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE, "ContentUnableToOpenFileForWriting",
+                        UtilMisc.toMap("fileName", file.getAbsolutePath()), locale));
             } catch (IOException e) {
-                Debug.logError(e, module);
-                return ServiceUtil.returnError(UtilProperties.getMessage(resource, "ContentUnableWriteBinaryDataToFile", UtilMisc.toMap("fileName", file.getAbsolutePath()), locale));
+                Debug.logError(e, MODULE);
+                return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE, "ContentUnableWriteBinaryDataToFile",
+                        UtilMisc.toMap("fileName", file.getAbsolutePath()), locale));
             }
         } else {
-            return ServiceUtil.returnError(UtilProperties.getMessage(resource, "ContentNoContentFilePassed", UtilMisc.toMap("fileName", file.getAbsolutePath()), locale));
+            return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE, "ContentNoContentFilePassed",
+                    UtilMisc.toMap("fileName", file.getAbsolutePath()), locale));
         }
 
         Map<String, Object> result = ServiceUtil.returnSuccess();
@@ -312,8 +330,9 @@ public class DataServices {
         try {
             dataResource = EntityQuery.use(delegator).from("DataResource").where("dataResourceId", dataResourceId).queryOne();
         } catch (GenericEntityException e) {
-            Debug.logWarning(e, module);
-            return ServiceUtil.returnError(UtilProperties.getMessage(resource, "ContentDataResourceNotFound", UtilMisc.toMap("parameters.dataResourceId", dataResourceId), locale));
+            Debug.logWarning(e, MODULE);
+            return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE, "ContentDataResourceNotFound",
+                    UtilMisc.toMap("parameters.dataResourceId", dataResourceId), locale));
         }
 
         dataResource.setNonPKFields(context);
@@ -323,7 +342,7 @@ public class DataServices {
         try {
             dataResource.store();
         } catch (GenericEntityException e) {
-            Debug.logError(e, module);
+            Debug.logError(e, MODULE);
             return ServiceUtil.returnError(e.getMessage());
         }
 
@@ -340,8 +359,8 @@ public class DataServices {
     }
 
     /**
-     * Because sometimes a DataResource will exist, but no ElectronicText has been created,
-     * this method will create an ElectronicText if it does not exist.
+     * Because sometimes a DataResource will exist, but no ElectronicText has been created, this method will create an
+     * ElectronicText if it does not exist.
      * @param dctx the dispatch context
      * @param context the context
      * @return update the ElectronicText
@@ -356,12 +375,12 @@ public class DataServices {
         String contentId = (String) context.get("contentId");
         result.put("contentId", contentId);
         if (UtilValidate.isEmpty(dataResourceId)) {
-            Debug.logError("dataResourceId is null.", module);
-            return ServiceUtil.returnError(UtilProperties.getMessage(resource, "ContentDataResourceIsNull", locale));
+            Debug.logError("dataResourceId is null.", MODULE);
+            return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE, "ContentDataResourceIsNull", locale));
         }
         String textData = (String) context.get("textData");
         if (Debug.verboseOn()) {
-            Debug.logVerbose("in updateElectronicText, textData:" + textData, module);
+            Debug.logVerbose("in updateElectronicText, textData:" + textData, MODULE);
         }
         try {
             electronicText = EntityQuery.use(delegator).from("ElectronicText").where("dataResourceId", dataResourceId).queryOne();
@@ -375,8 +394,8 @@ public class DataServices {
                 electronicText.create();
             }
         } catch (GenericEntityException e) {
-            Debug.logWarning(e, module);
-            return ServiceUtil.returnError(UtilProperties.getMessage(resource, "ContentElectronicTextNotFound", locale) + " " + e.getMessage());
+            Debug.logWarning(e, MODULE);
+            return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE, "ContentElectronicTextNotFound", locale) + " " + e.getMessage());
         }
 
         return result;
@@ -396,6 +415,7 @@ public class DataServices {
     }
 
     public static Map<String, Object> updateFileMethod(DispatchContext dctx, Map<String, ? extends Object> context) throws GenericServiceException {
+        Delegator delegator = dctx.getDelegator();
         Map<String, Object> result = new HashMap<>();
         Locale locale = (Locale) context.get("locale");
         String dataResourceTypeId = (String) context.get("dataResourceTypeId");
@@ -432,13 +452,16 @@ public class DataServices {
 
             // write the data to the file
             if (UtilValidate.isNotEmpty(textData)) {
-                try (
-                        OutputStreamWriter out = new OutputStreamWriter(new FileOutputStream(file),StandardCharsets.UTF_8);
-                ) {
+                try (OutputStreamWriter out = new OutputStreamWriter(new FileOutputStream(file), StandardCharsets.UTF_8);) {
                     out.write(textData);
-                } catch (IOException e) {
-                    Debug.logWarning(e, module);
-                    return ServiceUtil.returnError(UtilProperties.getMessage(resource, "ContentUnableWriteCharacterDataToFile", UtilMisc.toMap("fileName", file.getAbsolutePath()), locale));
+                    if (!org.apache.ofbiz.security.SecuredUpload.isValidFile(file.getAbsolutePath(), "Text", delegator)) {
+                        String errorMessage = UtilProperties.getMessage("SecurityUiLabels", "SupportedTextFileFormats", locale);
+                        return ServiceUtil.returnError(errorMessage);
+                    }
+                } catch (IOException | ImageReadException e) {
+                    Debug.logWarning(e, MODULE);
+                    return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE, "ContentUnableWriteCharacterDataToFile",
+                            UtilMisc.toMap("fileName", file.getAbsolutePath()), locale));
                 }
             } else if (binData != null) {
                 try {
@@ -446,26 +469,35 @@ public class DataServices {
                     out.setLength(binData.array().length);
                     out.write(binData.array());
                     out.close();
-                } catch (FileNotFoundException e) {
-                    Debug.logError(e, module);
-                    return ServiceUtil.returnError(UtilProperties.getMessage(resource, "ContentUnableToOpenFileForWriting", UtilMisc.toMap("fileName", file.getAbsolutePath()), locale));
+                    // Check if a webshell is not uploaded
+                    if (!org.apache.ofbiz.security.SecuredUpload.isValidFile(file.getAbsolutePath(), "All", delegator)) {
+                        String errorMessage = UtilProperties.getMessage("SecurityUiLabels", "SupportedFileFormatsIncludingSvg", locale);
+                        return ServiceUtil.returnError(errorMessage);
+                    }
+                } catch (FileNotFoundException | ImageReadException e) {
+                    Debug.logError(e, MODULE);
+                    return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE, "ContentUnableToOpenFileForWriting",
+                            UtilMisc.toMap("fileName", file.getAbsolutePath()), locale));
                 } catch (IOException e) {
-                    Debug.logError(e, module);
-                    return ServiceUtil.returnError(UtilProperties.getMessage(resource, "ContentUnableWriteBinaryDataToFile", UtilMisc.toMap("fileName", file.getAbsolutePath()), locale));
+                    Debug.logError(e, MODULE);
+                    return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE, "ContentUnableWriteBinaryDataToFile",
+                            UtilMisc.toMap("fileName", file.getAbsolutePath()), locale));
                 }
             } else {
-                return ServiceUtil.returnError(UtilProperties.getMessage(resource, "ContentNoContentFilePassed", UtilMisc.toMap("fileName", file.getAbsolutePath()), locale));
+                return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE, "ContentNoContentFilePassed",
+                        UtilMisc.toMap("fileName", file.getAbsolutePath()), locale));
             }
 
         } catch (IOException e) {
-            Debug.logWarning(e, module);
+            Debug.logWarning(e, MODULE);
             throw new GenericServiceException(e.getMessage());
         }
 
         return result;
     }
 
-    public static Map<String, Object> renderDataResourceAsText(DispatchContext dctx, Map<String, ? extends Object> context) throws GeneralException, IOException {
+    public static Map<String, Object> renderDataResourceAsText(DispatchContext dctx, Map<String, ? extends Object> context)
+            throws GeneralException, IOException {
         Map<String, Object> results = new HashMap<>();
         //LocalDispatcher dispatcher = dctx.getDispatcher();
         Writer out = (Writer) context.get("outWriter");
@@ -492,7 +524,7 @@ public class DataServices {
             out.write(outWriter.toString());
             results.put("textData", outWriter.toString());
         } catch (IOException e) {
-            Debug.logError(e, "Error rendering sub-content text", module);
+            Debug.logError(e, "Error rendering sub-content text", MODULE);
             return ServiceUtil.returnError(e.toString());
         }
         return results;
@@ -511,14 +543,15 @@ public class DataServices {
         Delegator delegator = dctx.getDelegator();
         //Locale locale = (Locale) context.get("locale");
         String dataResourceId = (String) context.get("dataResourceId");
-        ByteBuffer byteBuffer = (ByteBuffer)context.get("imageData");
+        ByteBuffer byteBuffer = (ByteBuffer) context.get("imageData");
         if (byteBuffer != null) {
             byte[] imageBytes = byteBuffer.array();
             try {
-                GenericValue imageDataResource = EntityQuery.use(delegator).from("ImageDataResource").where("dataResourceId", dataResourceId).queryOne();
+                GenericValue imageDataResource = EntityQuery.use(delegator).from("ImageDataResource")
+                        .where("dataResourceId", dataResourceId).queryOne();
                 if (Debug.infoOn()) {
-                    Debug.logInfo("imageDataResource(U):" + imageDataResource, module);
-                    Debug.logInfo("imageBytes(U):" + Arrays.toString(imageBytes), module);
+                    Debug.logInfo("imageDataResource(U):" + imageDataResource, MODULE);
+                    Debug.logInfo("imageBytes(U):" + Arrays.toString(imageBytes), MODULE);
                 }
                 if (imageDataResource == null) {
                     return createImageMethod(dctx, context);
@@ -544,14 +577,14 @@ public class DataServices {
         Map<String, Object> result = new HashMap<>();
         Delegator delegator = dctx.getDelegator();
         String dataResourceId = (String) context.get("dataResourceId");
-        ByteBuffer byteBuffer = (ByteBuffer)context.get("imageData");
+        ByteBuffer byteBuffer = (ByteBuffer) context.get("imageData");
         if (byteBuffer != null) {
             byte[] imageBytes = byteBuffer.array();
             try {
                 GenericValue imageDataResource = delegator.makeValue("ImageDataResource", UtilMisc.toMap("dataResourceId", dataResourceId));
                 imageDataResource.setBytes("imageData", imageBytes);
                 if (Debug.infoOn()) {
-                    Debug.logInfo("imageDataResource(C):" + imageDataResource, module);
+                    Debug.logInfo("imageDataResource(C):" + imageDataResource, MODULE);
                 }
                 imageDataResource.create();
             } catch (GenericEntityException e) {
@@ -575,39 +608,45 @@ public class DataServices {
         return result;
     }
 
-    public static Map<String, Object> createBinaryFileMethod(DispatchContext dctx, Map<String, ? extends Object> context) throws GenericServiceException {
+    public static Map<String, Object> createBinaryFileMethod(DispatchContext dctx, Map<String, ? extends Object> context)
+            throws GenericServiceException {
+        Delegator delegator = dctx.getDelegator();
         Map<String, Object> result = new HashMap<>();
         GenericValue dataResource = (GenericValue) context.get("dataResource");
         String dataResourceTypeId = (String) dataResource.get("dataResourceTypeId");
         String objectInfo = (String) dataResource.get("objectInfo");
-        byte [] imageData = (byte []) context.get("imageData");
-        String rootDir = (String)context.get("rootDir");
+        byte[] imageData = (byte[]) context.get("imageData");
+        String rootDir = (String) context.get("rootDir");
+        Locale locale = (Locale) context.get("locale");
         File file = null;
         if (Debug.infoOn()) {
-            Debug.logInfo("in createBinaryFileMethod, dataResourceTypeId:" + dataResourceTypeId, module);
-            Debug.logInfo("in createBinaryFileMethod, objectInfo:" + objectInfo, module);
-            Debug.logInfo("in createBinaryFileMethod, rootDir:" + rootDir, module);
+            Debug.logInfo("in createBinaryFileMethod, dataResourceTypeId:" + dataResourceTypeId, MODULE);
+            Debug.logInfo("in createBinaryFileMethod, objectInfo:" + objectInfo, MODULE);
+            Debug.logInfo("in createBinaryFileMethod, rootDir:" + rootDir, MODULE);
         }
         try {
             file = DataResourceWorker.getContentFile(dataResourceTypeId, objectInfo, rootDir);
         } catch (FileNotFoundException | GeneralException e) {
-            Debug.logWarning(e, module);
+            Debug.logWarning(e, MODULE);
             throw new GenericServiceException(e.getMessage());
         }
         if (Debug.infoOn()) {
-            Debug.logInfo("in createBinaryFileMethod, file:" + file, module);
-            Debug.logInfo("in createBinaryFileMethod, imageData:" + imageData.length, module);
+            Debug.logInfo("in createBinaryFileMethod, file:" + file, MODULE);
+            Debug.logInfo("in createBinaryFileMethod, imageData:" + imageData.length, MODULE);
         }
         if (imageData != null && imageData.length > 0) {
-            try (
-                FileOutputStream out = new FileOutputStream(file);
-            ) {
+            try (FileOutputStream out = new FileOutputStream(file);) {
                 out.write(imageData);
-                if (Debug.infoOn()) {
-                    Debug.logInfo("in createBinaryFileMethod, length:" + file.length(), module);
+                // Check if a webshell is not uploaded
+                if (!org.apache.ofbiz.security.SecuredUpload.isValidFile(file.getAbsolutePath(), "All", delegator)) {
+                    String errorMessage = UtilProperties.getMessage("SecurityUiLabels", "SupportedFileFormatsIncludingSvg", locale);
+                    return ServiceUtil.returnError(errorMessage);
                 }
-            } catch (IOException e) {
-                Debug.logWarning(e, module);
+                if (Debug.infoOn()) {
+                    Debug.logInfo("in createBinaryFileMethod, length:" + file.length(), MODULE);
+                }
+            } catch (IOException | ImageReadException e) {
+                Debug.logWarning(e, MODULE);
                 throw new GenericServiceException(e.getMessage());
             }
         }
@@ -628,42 +667,46 @@ public class DataServices {
         return result;
     }
 
-    public static Map<String, Object> updateBinaryFileMethod(DispatchContext dctx, Map<String, ? extends Object> context) throws GenericServiceException {
+    public static Map<String, Object> updateBinaryFileMethod(DispatchContext dctx, Map<String, ? extends Object> context)
+            throws GenericServiceException {
+        Delegator delegator = dctx.getDelegator();
         Map<String, Object> result = new HashMap<>();
         GenericValue dataResource = (GenericValue) context.get("dataResource");
         String dataResourceTypeId = (String) dataResource.get("dataResourceTypeId");
         String objectInfo = (String) dataResource.get("objectInfo");
-        byte [] imageData = (byte []) context.get("imageData");
-        String rootDir = (String)context.get("rootDir");
+        byte[] imageData = (byte[]) context.get("imageData");
+        String rootDir = (String) context.get("rootDir");
+        Locale locale = (Locale) context.get("locale");
         File file = null;
         if (Debug.infoOn()) {
-            Debug.logInfo("in updateBinaryFileMethod, dataResourceTypeId:" + dataResourceTypeId, module);
-            Debug.logInfo("in updateBinaryFileMethod, objectInfo:" + objectInfo, module);
-            Debug.logInfo("in updateBinaryFileMethod, rootDir:" + rootDir, module);
+            Debug.logInfo("in updateBinaryFileMethod, dataResourceTypeId:" + dataResourceTypeId, MODULE);
+            Debug.logInfo("in updateBinaryFileMethod, objectInfo:" + objectInfo, MODULE);
+            Debug.logInfo("in updateBinaryFileMethod, rootDir:" + rootDir, MODULE);
         }
         try {
             file = DataResourceWorker.getContentFile(dataResourceTypeId, objectInfo, rootDir);
-        } catch (FileNotFoundException e) {
-            Debug.logWarning(e, module);
+        } catch (FileNotFoundException | GeneralException e) {
+            Debug.logWarning(e, MODULE);
             throw new GenericServiceException(e.getMessage());
-        } catch (GeneralException e2) {
-            Debug.logWarning(e2, module);
-            throw new GenericServiceException(e2.getMessage());
         }
         if (Debug.infoOn()) {
-            Debug.logInfo("in updateBinaryFileMethod, file:" + file, module);
-            Debug.logInfo("in updateBinaryFileMethod, imageData:" + Arrays.toString(imageData), module);
+            Debug.logInfo("in updateBinaryFileMethod, file:" + file, MODULE);
+            Debug.logInfo("in updateBinaryFileMethod, imageData:" + Arrays.toString(imageData), MODULE);
         }
         if (imageData != null && imageData.length > 0) {
-            try (
-                    FileOutputStream out = new FileOutputStream(file);
-                    ){
+            try (FileOutputStream out = new FileOutputStream(file);) {
                 out.write(imageData);
-                if (Debug.infoOn()) {
-                    Debug.logInfo("in updateBinaryFileMethod, length:" + file.length(), module);
+                // Check if a webshell is not uploaded
+                if (!org.apache.ofbiz.security.SecuredUpload.isValidFile(file.getAbsolutePath(), "All", delegator)) {
+                    String errorMessage = UtilProperties.getMessage("SecurityUiLabels", "SupportedFileFormatsIncludingSvg", locale);
+                    return ServiceUtil.returnError(errorMessage);
                 }
-            } catch (IOException e) {
-                Debug.logWarning(e, module);
+
+                if (Debug.infoOn()) {
+                    Debug.logInfo("in updateBinaryFileMethod, length:" + file.length(), MODULE);
+                }
+            } catch (IOException | ImageReadException e) {
+                Debug.logWarning(e, MODULE);
                 throw new GenericServiceException(e.getMessage());
             }
         }

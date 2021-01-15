@@ -31,12 +31,11 @@ import org.w3c.dom.Element;
 
 /**
  * Implements the &lt;transaction-begin&gt; element.
- * 
  * @see <a href="https://cwiki.apache.org/confluence/display/OFBIZ/Mini+Language+-+minilang+-+simple-method+-+Reference">Mini-language Reference</a>
  */
 public final class TransactionBegin extends MethodOperation {
 
-    public static final String module = TransactionBegin.class.getName();
+    private static final String MODULE = TransactionBegin.class.getName();
 
     private final FlexibleMapAccessor<Boolean> beganTransactionFma;
 
@@ -47,7 +46,8 @@ public final class TransactionBegin extends MethodOperation {
             MiniLangValidate.expressionAttributes(simpleMethod, element, "began-transaction-name");
             MiniLangValidate.noChildElements(simpleMethod, element);
         }
-        beganTransactionFma = FlexibleMapAccessor.getInstance(MiniLangValidate.checkAttribute(element.getAttribute("began-transaction-name"), "beganTransaction"));
+        beganTransactionFma = FlexibleMapAccessor.getInstance(MiniLangValidate.checkAttribute(element.getAttribute("began-transaction-name"),
+                "beganTransaction"));
     }
 
     @Override
@@ -57,8 +57,8 @@ public final class TransactionBegin extends MethodOperation {
             beganTransaction = TransactionUtil.begin();
         } catch (GenericTransactionException e) {
             String errMsg = "Exception thrown while beginning transaction: " + e.getMessage();
-            Debug.logWarning(e, errMsg, module);
-            simpleMethod.addErrorMessage(methodContext, errMsg);
+            Debug.logWarning(e, errMsg, MODULE);
+            getSimpleMethod().addErrorMessage(methodContext, errMsg);
             return false;
         }
         beganTransactionFma.put(methodContext.getEnvMap(), beganTransaction);

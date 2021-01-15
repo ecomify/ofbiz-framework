@@ -42,12 +42,11 @@ import org.apache.ofbiz.security.Security;
  */
 public class ContentEvents {
 
-    public static final String module = ContentEvents.class.getName();
-    public static final String resource = "ContentErrorUiLabels";
+    private static final String MODULE = ContentEvents.class.getName();
+    private static final String RESOURCE = "ContentErrorUiLabels";
 
     /**
      * Updates/adds keywords for all contents
-     *
      * @param request HTTPRequest object for the current request
      * @param response HTTPResponse object for the current request
      * @return String specifying the exit status of this event
@@ -57,14 +56,14 @@ public class ContentEvents {
         Security security = (Security) request.getAttribute("security");
 
         String updateMode = "CREATE";
-        String errMsg=null;
+        String errMsg = null;
 
         String doAll = request.getParameter("doAll");
 
         // check permissions before moving on...
         if (!security.hasEntityPermission("CONTENTMGR", "_" + updateMode, request.getSession())) {
             Map<String, String> messageMap = UtilMisc.toMap("updateMode", updateMode);
-            errMsg = UtilProperties.getMessage(resource,"contentevents.not_sufficient_permissions", messageMap, UtilHttp.getLocale(request));
+            errMsg = UtilProperties.getMessage(RESOURCE, "contentevents.not_sufficient_permissions", messageMap, UtilHttp.getLocale(request));
             request.setAttribute("_ERROR_MESSAGE_", errMsg);
             return "error";
         }
@@ -74,13 +73,13 @@ public class ContentEvents {
 
         boolean beganTx = false;
         EntityQuery contentQuery = EntityQuery.use(delegator).from("Content");
-        
+
         try {
             // begin the transaction
             beganTx = TransactionUtil.begin(7200);
             if (Debug.infoOn()) {
                 long count = contentQuery.queryCount();
-                Debug.logInfo("========== Found " + count + " contents to index ==========", module);
+                Debug.logInfo("========== Found " + count + " contents to index ==========", MODULE);
             }
             GenericValue content;
             try (EntityListIterator entityListIterator = contentQuery.queryIterator()) {
@@ -88,24 +87,24 @@ public class ContentEvents {
                     ContentKeywordIndex.indexKeywords(content, "Y".equals(doAll));
                     numConts++;
                     if (numConts % 500 == 0) {
-                        Debug.logInfo("Keywords indexed for " + numConts + " so far", module);
+                        Debug.logInfo("Keywords indexed for " + numConts + " so far", MODULE);
                     }
                 }
             } catch (GenericEntityException e) {
                 errMsg = "[ContentEvents.updateAllContentKeywords] Could not create content-keyword (write error); message: " + e.getMessage();
-                Debug.logWarning(errMsg, module);
+                Debug.logWarning(errMsg, MODULE);
                 errConts++;
                 request.setAttribute("_ERROR_MESSAGE_", errMsg);
             }
         } catch (GenericEntityException gee) {
-            Debug.logWarning(gee, gee.getMessage(), module);
+            Debug.logWarning(gee, gee.getMessage(), MODULE);
             Map<String, String> messageMap = UtilMisc.toMap("gee", gee.toString());
-            errMsg = UtilProperties.getMessage(resource,"contentevents.error_getting_content_list", messageMap, UtilHttp.getLocale(request));
+            errMsg = UtilProperties.getMessage(RESOURCE, "contentevents.error_getting_content_list", messageMap, UtilHttp.getLocale(request));
             request.setAttribute("_ERROR_MESSAGE_", errMsg);
             try {
                 TransactionUtil.rollback(beganTx, gee.getMessage(), gee);
             } catch (GenericTransactionException e1) {
-                Debug.logError(e1, module);
+                Debug.logError(e1, MODULE);
             }
             return "error";
 
@@ -114,18 +113,20 @@ public class ContentEvents {
         try {
             TransactionUtil.commit(beganTx);
         } catch (GenericTransactionException e) {
-            Debug.logError(e, module);
+            Debug.logError(e, MODULE);
         }
 
         if (errConts == 0) {
             Map<String, String> messageMap = UtilMisc.toMap("numConts", Integer.toString(numConts));
-            errMsg = UtilProperties.getMessage(resource,"contentevents.keyword_creation_complete_for_contents", messageMap, UtilHttp.getLocale(request));
+            errMsg = UtilProperties.getMessage(RESOURCE, "contentevents.keyword_creation_complete_for_contents", messageMap,
+                    UtilHttp.getLocale(request));
             request.setAttribute("_EVENT_MESSAGE_", errMsg);
             return "success";
         } else {
             Map<String, String> messageMap = UtilMisc.toMap("numConts", Integer.toString(numConts));
             messageMap.put("errConts", Integer.toString(errConts));
-            errMsg = UtilProperties.getMessage(resource,"contentevents.keyword_creation_complete_for_contents_with_errors", messageMap, UtilHttp.getLocale(request));
+            errMsg = UtilProperties.getMessage(RESOURCE, "contentevents.keyword_creation_complete_for_contents_with_errors",
+                    messageMap, UtilHttp.getLocale(request));
             request.setAttribute("_ERROR_MESSAGE_", errMsg);
             return "error";
         }

@@ -37,19 +37,22 @@ import org.xml.sax.SAXException;
  */
 public class EntityDataAssert {
 
-    public static final String module = EntityDataAssert.class.getName();
+    private static final String MODULE = EntityDataAssert.class.getName();
 
-    public static int assertData(URL dataUrl, Delegator delegator, List<Object> errorMessages) throws GenericEntityException, SAXException, ParserConfigurationException, IOException {
+    public static int assertData(URL dataUrl, Delegator delegator, List<Object> errorMessages) throws GenericEntityException,
+            SAXException, ParserConfigurationException, IOException {
         int rowsChecked = 0;
 
         if (dataUrl == null) {
             String errMsg = "Cannot assert/check data, dataUrl was null";
             errorMessages.add(errMsg);
-            Debug.logError(errMsg, module);
+            Debug.logError(errMsg, MODULE);
             return 0;
         }
 
-        if (Debug.verboseOn()) Debug.logVerbose("Loading XML Resource: " + dataUrl.toExternalForm(), module);
+        if (Debug.verboseOn()) {
+            Debug.logVerbose("Loading XML Resource: " + dataUrl.toExternalForm(), MODULE);
+        }
 
         try {
             for (GenericValue checkValue: delegator.readXmlDocument(dataUrl)) {
@@ -58,7 +61,7 @@ public class EntityDataAssert {
             }
         } catch (GenericEntityException e) {
             String xmlError = "Error checking/asserting XML Resource: " + dataUrl.toExternalForm() + "; Error was: " + e.getMessage();
-            Debug.logError(e, xmlError, module);
+            Debug.logError(e, xmlError, MODULE);
             // instead of adding this as a message, throw the real exception; then caller has more control
             //errorMessages.add(xmlError);
             throw e;
@@ -94,8 +97,8 @@ public class EntityDataAssert {
             ModelEntity modelEntity = checkValue.getModelEntity();
             for (String nonpkFieldName: modelEntity.getNoPkFieldNames()) {
                 // skip the fields the entity engine maintains
-                if (ModelEntity.CREATE_STAMP_FIELD.equals(nonpkFieldName) || ModelEntity.CREATE_STAMP_TX_FIELD.equals(nonpkFieldName) ||
-                        ModelEntity.STAMP_FIELD.equals(nonpkFieldName) || ModelEntity.STAMP_TX_FIELD.equals(nonpkFieldName)) {
+                if (ModelEntity.CREATE_STAMP_FIELD.equals(nonpkFieldName) || ModelEntity.CREATE_STAMP_TX_FIELD.equals(nonpkFieldName)
+                        || ModelEntity.STAMP_FIELD.equals(nonpkFieldName) || ModelEntity.STAMP_TX_FIELD.equals(nonpkFieldName)) {
                     continue;
                 }
 
@@ -103,8 +106,8 @@ public class EntityDataAssert {
                 Object currentField = currentValue.get(nonpkFieldName);
 
                 if (checkField != null && !checkField.equals(currentField)) {
-                    errorMessages.add("Field [" + modelEntity.getEntityName() + "." + nonpkFieldName +
-                            "] did not match; file value [" + checkField + "], db value [" + currentField + "] pk [" + checkPK + "]");
+                    errorMessages.add("Field [" + modelEntity.getEntityName() + "." + nonpkFieldName
+                            + "] did not match; file value [" + checkField + "], db value [" + currentField + "] pk [" + checkPK + "]");
                 }
             }
         } catch (GenericEntityException e) {
@@ -117,7 +120,7 @@ public class EntityDataAssert {
                 errMsg = "Error checking entity [" + checkPK.getEntityName() + "] with pk [" + checkPK.getAllFields() + "]: " + t.toString();
             }
             errorMessages.add(errMsg);
-            Debug.logError(t, errMsg, module);
+            Debug.logError(t, errMsg, MODULE);
         }
     }
 }

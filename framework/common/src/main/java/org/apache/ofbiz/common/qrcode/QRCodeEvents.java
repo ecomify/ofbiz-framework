@@ -44,7 +44,7 @@ import org.apache.ofbiz.service.ServiceUtil;
  */
 public class QRCodeEvents {
 
-    public static final String module = QRCodeEvents.class.getName();
+    private static final String MODULE = QRCodeEvents.class.getName();
 
     /** Streams QR Code to the output. */
     public static String serveQRCodeImage(HttpServletRequest request, HttpServletResponse response) {
@@ -79,18 +79,19 @@ public class QRCodeEvents {
         try {
             response.setContentType(mimeType);
             OutputStream os = response.getOutputStream();
-            Map<String, Object> context = UtilMisc.<String, Object>toMap("message", message, "format", format, "userLogin", userLogin, "locale", locale);
+            Map<String, Object> context = UtilMisc.<String, Object>toMap("message", message, "format", format, "userLogin", userLogin,
+                    "locale", locale);
             if (UtilValidate.isNotEmpty(width)) {
                 try {
                     context.put("width", Integer.parseInt(width));
                 } catch (NumberFormatException e) {
-                    Debug.logWarning(e, e.getMessage(), module);
+                    Debug.logWarning(e, e.getMessage(), MODULE);
                 }
                 if (UtilValidate.isEmpty(height)) {
                     try {
                         context.put("height", Integer.parseInt(width));
                     } catch (NumberFormatException e) {
-                        Debug.logWarning(e, e.getMessage(), module);
+                        Debug.logWarning(e, e.getMessage(), MODULE);
                     }
                 }
             }
@@ -98,13 +99,13 @@ public class QRCodeEvents {
                 try {
                     context.put("height", Integer.parseInt(height));
                 } catch (NumberFormatException e) {
-                    Debug.logWarning(e, e.getMessage(), module);
+                    Debug.logWarning(e, e.getMessage(), MODULE);
                 }
                 if (UtilValidate.isEmpty(width)) {
                     try {
                         context.put("width", Integer.parseInt(height));
                     } catch (NumberFormatException e) {
-                        Debug.logWarning(e, e.getMessage(), module);
+                        Debug.logWarning(e, e.getMessage(), MODULE);
                     }
                 }
             }
@@ -118,21 +119,21 @@ public class QRCodeEvents {
                 try {
                     context.put("logoImageMaxWidth", Integer.parseInt(logoImageMaxWidth));
                 } catch (NumberFormatException e) {
-                    Debug.logWarning(e, e.getMessage(), module);
+                    Debug.logWarning(e, e.getMessage(), MODULE);
                 }
             }
             if (UtilValidate.isNotEmpty(logoImageMaxHeight)) {
                 try {
                     context.put("logoImageMaxHeight", Integer.parseInt(logoImageMaxHeight));
                 } catch (NumberFormatException e) {
-                    Debug.logWarning(e, e.getMessage(), module);
+                    Debug.logWarning(e, e.getMessage(), MODULE);
                 }
             }
             Map<String, Object> results = dispatcher.runSync("generateQRCodeImage", context);
             if (ServiceUtil.isSuccess(results)) {
                 BufferedImage bufferedImage = (BufferedImage) results.get("bufferedImage");
                 if (!ImageIO.write(bufferedImage, format, os)) {
-                    String errMsg = UtilProperties.getMessage("QRCodeUiLabels", "ErrorWriteFormatToFile", new Object[] { format }, locale);
+                    String errMsg = UtilProperties.getMessage("QRCodeUiLabels", "ErrorWriteFormatToFile", new Object[] {format }, locale);
                     request.setAttribute("_ERROR_MESSAGE_", errMsg);
                     return "error";
                 }
@@ -143,7 +144,7 @@ public class QRCodeEvents {
                 return "error";
             }
         } catch (IOException | GenericServiceException e) {
-            String errMsg = UtilProperties.getMessage("QRCodeUiLabels", "ErrorGenerateQRCode", new Object[] { e.getMessage() }, locale);
+            String errMsg = UtilProperties.getMessage("QRCodeUiLabels", "ErrorGenerateQRCode", new Object[] {e.getMessage() }, locale);
             request.setAttribute("_ERROR_MESSAGE_", errMsg);
             return "error";
         }

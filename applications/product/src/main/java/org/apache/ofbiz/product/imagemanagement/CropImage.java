@@ -44,17 +44,18 @@ import org.apache.ofbiz.service.ServiceUtil;
 
 public class CropImage {
 
-    public static final String module = CropImage.class.getName();
-    public static final String resourceError = "ProductErrorUiLabels";
-    public static final String resource = "ProductUiLabels";
+    private static final String MODULE = CropImage.class.getName();
+    private static final String RES_ERROR = "ProductErrorUiLabels";
+    private static final String RESOURCE = "ProductUiLabels";
 
     public static Map<String, Object> imageCrop(DispatchContext dctx, Map<String, ? extends Object> context)
             throws IOException {
         LocalDispatcher dispatcher = dctx.getDispatcher();
         Delegator delegator = dispatcher.getDelegator();
-        Locale locale = (Locale)context.get("locale");
+        Locale locale = (Locale) context.get("locale");
         GenericValue userLogin = (GenericValue) context.get("userLogin");
-        String nameOfThumb = FlexibleStringExpander.expandString(EntityUtilProperties.getPropertyValue("catalog", "image.management.nameofthumbnail", delegator), context);
+        String nameOfThumb = FlexibleStringExpander.expandString(EntityUtilProperties.getPropertyValue("catalog",
+                "image.management.nameofthumbnail", delegator), context);
 
         String productId = (String) context.get("productId");
         String imageName = (String) context.get("imageName");
@@ -74,7 +75,7 @@ public class CropImage {
                     return ServiceUtil.returnError(ServiceUtil.getErrorMessage(contentResult));
                 }
             } catch (GenericServiceException e) {
-                Debug.logError(e, module);
+                Debug.logError(e, MODULE);
                 return ServiceUtil.returnError(e.getMessage());
             }
 
@@ -88,7 +89,7 @@ public class CropImage {
                     return ServiceUtil.returnError(ServiceUtil.getErrorMessage(contentThumbResult));
                 }
             } catch (GenericServiceException e) {
-                Debug.logError(e, module);
+                Debug.logError(e, MODULE);
                 return ServiceUtil.returnError(e.getMessage());
             }
 
@@ -97,8 +98,10 @@ public class CropImage {
             String filenameToUse = (String) contentResult.get("contentId") + ".jpg";
             String filenameTouseThumb = (String) contentResult.get("contentId") + nameOfThumb + ".jpg";
 
-            String imageServerPath = FlexibleStringExpander.expandString(EntityUtilProperties.getPropertyValue("catalog", "image.management.path", delegator), context);
-            String imageServerUrl = FlexibleStringExpander.expandString(EntityUtilProperties.getPropertyValue("catalog", "image.management.url", delegator), context);
+            String imageServerPath = FlexibleStringExpander.expandString(EntityUtilProperties.getPropertyValue("catalog",
+                    "image.management.path", delegator), context);
+            String imageServerUrl = FlexibleStringExpander.expandString(EntityUtilProperties.getPropertyValue("catalog",
+                    "image.management.url", delegator), context);
             BufferedImage bufImg = ImageIO.read(new File(imageServerPath + "/" + productId + "/" + imageName));
 
             int x = Integer.parseInt(imageX);
@@ -114,7 +117,8 @@ public class CropImage {
             double imgWidth = bufNewImg.getWidth();
 
             Map<String, Object> resultResize = ImageManagementServices.resizeImageThumbnail(bufNewImg, imgHeight, imgWidth);
-            ImageIO.write((RenderedImage) resultResize.get("bufferedImage"), mimeType, new File(imageServerPath + "/" + productId + "/" + filenameTouseThumb));
+            ImageIO.write((RenderedImage) resultResize.get("bufferedImage"), mimeType, new File(imageServerPath
+                    + "/" + productId + "/" + filenameTouseThumb));
 
             String imageUrlResource = imageServerUrl + "/" + productId + "/" + filenameToUse;
             String imageUrlThumb = imageServerUrl + "/" + productId + "/" + filenameTouseThumb;
@@ -134,7 +138,7 @@ public class CropImage {
                     return ServiceUtil.returnError(ServiceUtil.getErrorMessage(serviceResult));
                 }
             } catch (GenericServiceException e) {
-                Debug.logError(e, module);
+                Debug.logError(e, MODULE);
                 return ServiceUtil.returnError(e.getMessage());
             }
 
@@ -146,12 +150,12 @@ public class CropImage {
             productContentCtx.put("contentId", contentId);
             productContentCtx.put("statusId", "IM_PENDING");
             try {
-                Map<String, Object> serviceResult= dispatcher.runSync("createProductContent", productContentCtx);
+                Map<String, Object> serviceResult = dispatcher.runSync("createProductContent", productContentCtx);
                 if (ServiceUtil.isError(serviceResult)) {
                     return ServiceUtil.returnError(ServiceUtil.getErrorMessage(serviceResult));
                 }
             } catch (GenericServiceException e) {
-                Debug.logError(e, module);
+                Debug.logError(e, MODULE);
                 return ServiceUtil.returnError(e.getMessage());
             }
 
@@ -164,15 +168,15 @@ public class CropImage {
                     return ServiceUtil.returnError(ServiceUtil.getErrorMessage(serviceResult));
                 }
             } catch (GenericServiceException e) {
-                Debug.logError(e, module);
+                Debug.logError(e, MODULE);
                 return ServiceUtil.returnError(e.getMessage());
             }
         } else {
-            String errMsg = UtilProperties.getMessage(resourceError, "ProductPleaseSelectImage", locale);
-            Debug.logFatal(errMsg, module);
+            String errMsg = UtilProperties.getMessage(RES_ERROR, "ProductPleaseSelectImage", locale);
+            Debug.logFatal(errMsg, MODULE);
             return ServiceUtil.returnError(errMsg);
         }
-        String successMsg = UtilProperties.getMessage(resource, "ProductCropImageSuccessfully", locale);
+        String successMsg = UtilProperties.getMessage(RESOURCE, "ProductCropImageSuccessfully", locale);
         Map<String, Object> result = ServiceUtil.returnSuccess(successMsg);
         return result;
     }

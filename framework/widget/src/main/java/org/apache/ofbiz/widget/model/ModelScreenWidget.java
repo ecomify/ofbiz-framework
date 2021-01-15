@@ -65,7 +65,7 @@ import org.xml.sax.SAXException;
  */
 @SuppressWarnings("serial")
 public abstract class ModelScreenWidget extends ModelWidget {
-    public static final String module = ModelScreenWidget.class.getName();
+    private static final String MODULE = ModelScreenWidget.class.getName();
 
     private final ModelScreen modelScreen;
 
@@ -73,11 +73,12 @@ public abstract class ModelScreenWidget extends ModelWidget {
         super(widgetElement);
         this.modelScreen = modelScreen;
         if (Debug.verboseOn()) {
-            Debug.logVerbose("Reading Screen sub-widget with name: " + widgetElement.getNodeName(), module);
+            Debug.logVerbose("Reading Screen sub-widget with name: " + widgetElement.getNodeName(), MODULE);
         }
     }
 
-    public abstract void renderWidgetString(Appendable writer, Map<String, Object> context, ScreenStringRenderer screenStringRenderer) throws GeneralException, IOException;
+    public abstract void renderWidgetString(Appendable writer, Map<String, Object> context,
+                                            ScreenStringRenderer screenStringRenderer) throws GeneralException, IOException;
 
     protected static List<ModelScreenWidget> readSubWidgets(ModelScreen modelScreen, List<? extends Element> subElementList) {
         if (subElementList.isEmpty()) {
@@ -90,13 +91,16 @@ public abstract class ModelScreenWidget extends ModelWidget {
         return Collections.unmodifiableList(subWidgets);
     }
 
-    protected static void renderSubWidgetsString(List<ModelScreenWidget> subWidgets, Appendable writer, Map<String, Object> context, ScreenStringRenderer screenStringRenderer) throws GeneralException, IOException {
+    protected static void renderSubWidgetsString(List<ModelScreenWidget> subWidgets, Appendable writer,
+                                                 Map<String, Object> context, ScreenStringRenderer screenStringRenderer)
+                                                    throws GeneralException, IOException {
         if (subWidgets == null) {
             return;
         }
         for (ModelScreenWidget subWidget: subWidgets) {
             if (Debug.verboseOn()) {
-                Debug.logVerbose("Rendering screen " + subWidget.getModelScreen().getName() + "; widget class is " + subWidget.getClass().getName(), module);
+                Debug.logVerbose("Rendering screen " + subWidget.getModelScreen().getName()
+                        + "; widget class is " + subWidget.getClass().getName(), MODULE);
             }
 
             // render the sub-widget itself
@@ -104,6 +108,10 @@ public abstract class ModelScreenWidget extends ModelWidget {
         }
     }
 
+    /**
+     * Gets model screen.
+     * @return the model screen
+     */
     public ModelScreen getModelScreen() {
         return this.modelScreen;
     }
@@ -263,7 +271,9 @@ public abstract class ModelScreenWidget extends ModelWidget {
         }
 
         @Override
-        public void renderWidgetString(Appendable writer, Map<String, Object> context, ScreenStringRenderer screenStringRenderer) throws GeneralException, IOException {
+        public void renderWidgetString(Appendable writer, Map<String, Object> context,
+                                       ScreenStringRenderer screenStringRenderer) throws GeneralException {
+
             // check the condition, if there is one
             boolean condTrue = true;
             if (this.condition != null) {
@@ -286,8 +296,9 @@ public abstract class ModelScreenWidget extends ModelWidget {
 
                     screenStringRenderer.renderSectionEnd(writer, context, this);
                 } catch (IOException e) {
-                    String errMsg = "Error rendering widgets section [" + getName() + "] in screen named [" + getModelScreen().getName() + "]: " + e.toString();
-                    Debug.logError(e, errMsg, module);
+                    String errMsg = "Error rendering widgets section [" + getName() + "] in screen named ["
+                            + getModelScreen().getName() + "]: " + e.toString();
+                    Debug.logError(e, errMsg, MODULE);
                     throw new RuntimeException(errMsg);
                 }
             } else {
@@ -300,8 +311,9 @@ public abstract class ModelScreenWidget extends ModelWidget {
 
                     screenStringRenderer.renderSectionEnd(writer, context, this);
                 } catch (IOException e) {
-                    String errMsg = "Error rendering fail-widgets section [" + this.getName() + "] in screen named [" + getModelScreen().getName() + "]: " + e.toString();
-                    Debug.logError(e, errMsg, module);
+                    String errMsg = "Error rendering fail-widgets section [" + this.getName() + "] in screen named ["
+                            + getModelScreen().getName() + "]: " + e.toString();
+                    Debug.logError(e, errMsg, MODULE);
                     throw new RuntimeException(errMsg);
                 }
             }
@@ -361,12 +373,13 @@ public abstract class ModelScreenWidget extends ModelWidget {
         }
 
         @Override
-        public void renderWidgetString(Appendable writer, Map<String, Object> context, ScreenStringRenderer screenStringRenderer) throws GeneralException, IOException {
+        public void renderWidgetString(Appendable writer, Map<String, Object> context,
+                                       ScreenStringRenderer screenStringRenderer) throws GeneralException, IOException {
             try {
                 screenStringRenderer.renderColumnContainer(writer, context, this);
             } catch (IOException e) {
                 String errMsg = "Error rendering container in screen named [" + getModelScreen().getName() + "]: " + e.toString();
-                Debug.logError(e, errMsg, module);
+                Debug.logError(e, errMsg, MODULE);
                 throw new RuntimeException(errMsg);
             }
         }
@@ -457,7 +470,8 @@ public abstract class ModelScreenWidget extends ModelWidget {
         }
 
         @Override
-        public void renderWidgetString(Appendable writer, Map<String, Object> context, ScreenStringRenderer screenStringRenderer) throws GeneralException, IOException {
+        public void renderWidgetString(Appendable writer, Map<String, Object> context,
+                                       ScreenStringRenderer screenStringRenderer) throws GeneralException, IOException {
             try {
                 screenStringRenderer.renderContainerBegin(writer, context, this);
 
@@ -467,7 +481,7 @@ public abstract class ModelScreenWidget extends ModelWidget {
                 screenStringRenderer.renderContainerEnd(writer, context, this);
             } catch (IOException e) {
                 String errMsg = "Error rendering container in screen named [" + getModelScreen().getName() + "]: " + e.toString();
-                Debug.logError(e, errMsg, module);
+                Debug.logError(e, errMsg, MODULE);
                 throw new RuntimeException(errMsg);
             }
         }
@@ -596,7 +610,8 @@ public abstract class ModelScreenWidget extends ModelWidget {
         }
 
         @Override
-        public void renderWidgetString(Appendable writer, Map<String, Object> context, ScreenStringRenderer screenStringRenderer) throws GeneralException, IOException {
+        public void renderWidgetString(Appendable writer, Map<String, Object> context,
+                                       ScreenStringRenderer screenStringRenderer) throws GeneralException, IOException {
             boolean collapsed = getInitiallyCollapsed(context);
             if (this.collapsible) {
                 String preferenceKey = getPreferenceKey(context) + "_collapsed";
@@ -616,7 +631,7 @@ public abstract class ModelScreenWidget extends ModelWidget {
                 screenStringRenderer.renderScreenletEnd(writer, context, this);
             } catch (IOException e) {
                 String errMsg = "Error rendering screenlet in screen named [" + getModelScreen().getName() + "]: ";
-                Debug.logError(e, errMsg, module);
+                Debug.logError(e, errMsg, MODULE);
                 throw new RuntimeException(errMsg + e);
             }
         }
@@ -722,7 +737,8 @@ public abstract class ModelScreenWidget extends ModelWidget {
         }
 
         @Override
-        public void renderWidgetString(Appendable writer, Map<String, Object> context, ScreenStringRenderer screenStringRenderer) throws GeneralException, IOException {
+        public void renderWidgetString(Appendable writer, Map<String, Object> context,
+                                       ScreenStringRenderer screenStringRenderer) throws GeneralException, IOException {
             screenStringRenderer.renderHorizontalSeparator(writer, context, this);
         }
 
@@ -762,7 +778,8 @@ public abstract class ModelScreenWidget extends ModelWidget {
         }
 
         @Override
-        public void renderWidgetString(Appendable writer, Map<String, Object> context, ScreenStringRenderer screenStringRenderer) throws GeneralException, IOException {
+        public void renderWidgetString(Appendable writer, Map<String, Object> context,
+                                       ScreenStringRenderer screenStringRenderer) throws GeneralException, IOException {
             // if we are not sharing the scope, protect it using the MapStack
             boolean protectScope = !shareScope(context);
             if (protectScope) {
@@ -784,13 +801,15 @@ public abstract class ModelScreenWidget extends ModelWidget {
                 context.put("_WIDGETTRAIL_", widgetTrail);
             }
 
-            // don't need the renderer here, will just pass this on down to another screen call; screenStringRenderer.renderContainerBegin(writer, context, this);
+            // don't need the renderer here, will just pass this on down to another screen call;
+            // screenStringRenderer.renderContainerBegin(writer, context, this);
             String name = this.getName(context);
             String location = this.getLocation(context);
 
             if (name.isEmpty()) {
                 if (Debug.verboseOn()) {
-                    Debug.logVerbose("In the include-screen tag the screen name was empty, ignoring include; in screen [" + getModelScreen().getName() + "]", module);
+                    Debug.logVerbose("In the include-screen tag the screen name was empty, ignoring include; in screen ["
+                            + getModelScreen().getName() + "]", MODULE);
                 }
                 return;
             }
@@ -854,7 +873,8 @@ public abstract class ModelScreenWidget extends ModelWidget {
         }
 
         @Override
-        public void renderWidgetString(Appendable writer, Map<String, Object> context, ScreenStringRenderer screenStringRenderer) throws GeneralException, IOException {
+        public void renderWidgetString(Appendable writer, Map<String, Object> context,
+                                       ScreenStringRenderer screenStringRenderer) throws GeneralException, IOException {
             // isolate the scope
             if (!(context instanceof MapStack)) {
                 context = MapStack.create(context);
@@ -862,7 +882,8 @@ public abstract class ModelScreenWidget extends ModelWidget {
 
             MapStack<String> contextMs = UtilGenerics.cast(context);
 
-            // create a standAloneStack, basically a "save point" for this SectionsRenderer, and make a new "screens" object just for it so it is isolated and doesn't follow the stack down
+            // create a standAloneStack, basically a "save point" for this SectionsRenderer,
+            // and make a new "screens" object just for it so it is isolated and doesn't follow the stack down
             MapStack<String> standAloneStack = contextMs.standAloneChildStack();
             standAloneStack.put("screens", new ScreenRenderer(writer, standAloneStack, screenStringRenderer));
             SectionsRenderer sections = new SectionsRenderer(this.sectionMap, standAloneStack, writer, screenStringRenderer);
@@ -918,7 +939,8 @@ public abstract class ModelScreenWidget extends ModelWidget {
         }
 
         @Override
-        public void renderWidgetString(Appendable writer, Map<String, Object> context, ScreenStringRenderer screenStringRenderer) throws GeneralException, IOException {
+        public void renderWidgetString(Appendable writer, Map<String, Object> context,
+                                       ScreenStringRenderer screenStringRenderer) throws GeneralException, IOException {
             // render sub-widgets
             renderSubWidgetsString(this.subWidgets, writer, context, screenStringRenderer);
         }
@@ -941,21 +963,23 @@ public abstract class ModelScreenWidget extends ModelWidget {
         }
 
         @Override
-        public void renderWidgetString(Appendable writer, Map<String, Object> context, ScreenStringRenderer screenStringRenderer) throws GeneralException, IOException {
+        public void renderWidgetString(Appendable writer, Map<String, Object> context,
+                                       ScreenStringRenderer screenStringRenderer) throws GeneralException, IOException {
             Map<String, ? extends Object> preRenderedContent = UtilGenerics.cast(context.get("preRenderedContent"));
             if (preRenderedContent != null && preRenderedContent.containsKey(getName())) {
                 try {
                     writer.append((String) preRenderedContent.get(getName()));
                 } catch (IOException e) {
                     String errMsg = "Error rendering pre-rendered content in screen named [" + getModelScreen().getName() + "]: " + e.toString();
-                    Debug.logError(e, errMsg, module);
+                    Debug.logError(e, errMsg, MODULE);
                     throw new RuntimeException(errMsg);
                 }
             } else {
                 SectionsRenderer sections = (SectionsRenderer) context.get("sections");
                 // for now if sections is null, just log a warning; may be permissible to make the screen for flexible
                 if (sections == null) {
-                    Debug.logWarning("In decorator-section-include could not find sections object in the context, not rendering section with name [" + getName() + "]", module);
+                    Debug.logWarning("In decorator-section-include could not find sections object in the context, "
+                            + "not rendering section with name [" + getName() + "]", MODULE);
                 } else {
                     sections.render(getName());
                 }
@@ -995,7 +1019,7 @@ public abstract class ModelScreenWidget extends ModelWidget {
                 screenStringRenderer.renderLabel(writer, context, this);
             } catch (IOException e) {
                 String errMsg = "Error rendering label in screen named [" + getModelScreen().getName() + "]: " + e.toString();
-                Debug.logError(e, errMsg, module);
+                Debug.logError(e, errMsg, MODULE);
                 throw new RuntimeException(errMsg);
             }
         }
@@ -1054,7 +1078,9 @@ public abstract class ModelScreenWidget extends ModelWidget {
             // Output format might not support forms, so make form rendering optional.
             FormStringRenderer formStringRenderer = (FormStringRenderer) context.get("formStringRenderer");
             if (formStringRenderer == null) {
-                if (Debug.verboseOn()) Debug.logVerbose("FormStringRenderer instance not found in rendering context, form not rendered.", module);
+                if (Debug.verboseOn()) {
+                    Debug.logVerbose("FormStringRenderer instance not found in rendering context, form not rendered.", MODULE);
+                }
                 return;
             }
             boolean protectScope = !shareScope(context);
@@ -1069,8 +1095,9 @@ public abstract class ModelScreenWidget extends ModelWidget {
                 FormRenderer renderer = new FormRenderer(modelForm, formStringRenderer);
                 renderer.render(writer, context);
             } catch (Exception e) {
-                String errMsg = "Error rendering included form named [" + getName() + "] at location [" + this.getLocation(context) + "]: " + e.toString();
-                Debug.logError(e, errMsg, module);
+                String errMsg = "Error rendering included form named [" + getName() + "] at location ["
+                        + this.getLocation(context) + "]: " + e.toString();
+                Debug.logError(e, errMsg, MODULE);
                 throw new RuntimeException(errMsg + e);
             }
 
@@ -1082,8 +1109,9 @@ public abstract class ModelScreenWidget extends ModelWidget {
         public ModelForm getModelForm(Map<String, Object> context) throws IOException, SAXException, ParserConfigurationException {
             String name = this.getName(context);
             String location = this.getLocation(context);
+            VisualTheme visualTheme = (VisualTheme) context.get("visualTheme");
             return FormFactory.getFormFromLocation(location, name, getModelScreen().getDelegator(context).getModelReader(),
-                    getModelScreen().getDispatcher(context).getDispatchContext());
+                    visualTheme, getModelScreen().getDispatcher(context).getDispatchContext());
         }
 
         public String getName(Map<String, Object> context) {
@@ -1140,7 +1168,9 @@ public abstract class ModelScreenWidget extends ModelWidget {
             // Output format might not support forms, so make form rendering optional.
             FormStringRenderer formStringRenderer = (FormStringRenderer) context.get("formStringRenderer");
             if (formStringRenderer == null) {
-                if (Debug.verboseOn()) Debug.logVerbose("FormStringRenderer instance not found in rendering context, form not rendered.", module);
+                if (Debug.verboseOn()) {
+                    Debug.logVerbose("FormStringRenderer instance not found in rendering context, form not rendered.", MODULE);
+                }
                 return;
             }
             boolean protectScope = !shareScope(context);
@@ -1155,8 +1185,9 @@ public abstract class ModelScreenWidget extends ModelWidget {
             try {
                 renderer.render(writer, context);
             } catch (Exception e) {
-                String errMsg = "Error rendering included grid named [" + getName() + "] at location [" + this.getLocation(context) + "]: " + e.toString();
-                Debug.logError(e, errMsg, module);
+                String errMsg = "Error rendering included grid named [" + getName() + "] at location ["
+                        + this.getLocation(context) + "]: " + e.toString();
+                Debug.logError(e, errMsg, MODULE);
                 throw new RuntimeException(errMsg + e);
             }
             if (protectScope) {
@@ -1169,12 +1200,14 @@ public abstract class ModelScreenWidget extends ModelWidget {
             String name = this.getName(context);
             String location = this.getLocation(context);
             try {
-                modelForm = GridFactory.getGridFromLocation(location, name, getModelScreen().getDelegator(context).getModelReader(), getModelScreen().getDispatcher(context).getDispatchContext());
+                VisualTheme visualTheme = (VisualTheme) context.get("visualTheme");
+                modelForm = GridFactory.getGridFromLocation(location, name, getModelScreen().getDelegator(context).getModelReader(),
+                        visualTheme, getModelScreen().getDispatcher(context).getDispatchContext());
             } catch (RuntimeException e) {
                 throw e;
             } catch (Exception e) {
                 String errMsg = "Error rendering included form named [" + name + "] at location [" + location + "]: ";
-                Debug.logError(e, errMsg, module);
+                Debug.logError(e, errMsg, MODULE);
                 throw new RuntimeException(errMsg + e);
             }
             return modelForm;
@@ -1230,11 +1263,14 @@ public abstract class ModelScreenWidget extends ModelWidget {
         }
 
         @Override
-        public void renderWidgetString(Appendable writer, Map<String, Object> context, ScreenStringRenderer screenStringRenderer) throws GeneralException, IOException {
+        public void renderWidgetString(Appendable writer, Map<String, Object> context,
+                                       ScreenStringRenderer screenStringRenderer) throws GeneralException, IOException {
             // Output format might not support trees, so make tree rendering optional.
             TreeStringRenderer treeStringRenderer = (TreeStringRenderer) context.get("treeStringRenderer");
             if (treeStringRenderer == null) {
-                if (Debug.verboseOn()) Debug.logVerbose("TreeStringRenderer instance not found in rendering context, tree not rendered.", module);
+                if (Debug.verboseOn()) {
+                    Debug.logVerbose("TreeStringRenderer instance not found in rendering context, tree not rendered.", MODULE);
+                }
                 return;
             }
             boolean protectScope = !shareScope(context);
@@ -1249,10 +1285,11 @@ public abstract class ModelScreenWidget extends ModelWidget {
             String location = this.getLocation(context);
             ModelTree modelTree = null;
             try {
-                modelTree = TreeFactory.getTreeFromLocation(this.getLocation(context), this.getName(context), getModelScreen().getDelegator(context), getModelScreen().getDispatcher(context));
+                modelTree = TreeFactory.getTreeFromLocation(this.getLocation(context), this.getName(context),
+                        getModelScreen().getDelegator(context), getModelScreen().getDispatcher(context));
             } catch (IOException | SAXException | ParserConfigurationException e) {
                 String errMsg = "Error rendering included tree named [" + name + "] at location [" + location + "]: " + e.toString();
-                Debug.logError(e, errMsg, module);
+                Debug.logError(e, errMsg, MODULE);
                 throw new RuntimeException(errMsg);
             }
             modelTree.renderTreeString(writer, context, treeStringRenderer);
@@ -1312,7 +1349,8 @@ public abstract class ModelScreenWidget extends ModelWidget {
                     } else if ("xls".equals(childElement.getNodeName())) {
                         subWidgets.put("xls", new HtmlWidget(modelScreen, childElement));
                     } else {
-                        throw new IllegalArgumentException("Tag not supported under the platform-specific tag with name: " + childElement.getNodeName());
+                        throw new IllegalArgumentException("Tag not supported under the platform-specific tag with name: "
+                                + childElement.getNodeName());
                     }
                 }
             }
@@ -1320,12 +1358,14 @@ public abstract class ModelScreenWidget extends ModelWidget {
         }
 
         @Override
-        public void renderWidgetString(Appendable writer, Map<String, Object> context, ScreenStringRenderer screenStringRenderer) throws GeneralException, IOException {
+        public void renderWidgetString(Appendable writer, Map<String, Object> context,
+                                       ScreenStringRenderer screenStringRenderer) throws GeneralException, IOException {
             ModelScreenWidget subWidget = null;
             subWidget = subWidgets.get(screenStringRenderer.getRendererName());
             if (subWidget == null) {
                 // This is here for backward compatibility
-                Debug.logWarning("In platform-dependent could not find template for " + screenStringRenderer.getRendererName() + ", using the one for html.", module);
+                Debug.logWarning("In platform-dependent could not find template for "
+                        + screenStringRenderer.getRendererName() + ", using the one for html.", MODULE);
                 subWidget = subWidgets.get("html");
             }
             if (subWidget != null) {
@@ -1402,7 +1442,7 @@ public abstract class ModelScreenWidget extends ModelWidget {
                         content = EntityQuery.use(delegator).from("Content").where("contentId", expandedContentId).cache().queryOne();
                     } else {
                         String errMsg = "contentId is empty.";
-                        Debug.logError(errMsg, module);
+                        Debug.logError(errMsg, MODULE);
                         return;
                     }
                     if (content != null) {
@@ -1411,7 +1451,7 @@ public abstract class ModelScreenWidget extends ModelWidget {
                         }
                     } else {
                         String errMsg = "Could not find content with contentId [" + expandedContentId + "] ";
-                        Debug.logError(errMsg, module);
+                        Debug.logError(errMsg, MODULE);
                         throw new RuntimeException(errMsg);
                     }
                 }
@@ -1438,7 +1478,7 @@ public abstract class ModelScreenWidget extends ModelWidget {
                 UtilGenerics.<MapStack<String>>cast(context).pop();
             } catch (IOException | GenericEntityException e) {
                 String errMsg = "Error rendering content with contentId [" + getContentId(context) + "]: " + e.toString();
-                Debug.logError(e, errMsg, module);
+                Debug.logError(e, errMsg, MODULE);
                 throw new RuntimeException(errMsg);
             }
         }
@@ -1536,7 +1576,7 @@ public abstract class ModelScreenWidget extends ModelWidget {
                 screenStringRenderer.renderSubContentEnd(writer, context, this);
             } catch (IOException e) {
                 String errMsg = "Error rendering subContent with contentId [" + getContentId(context) + "]: " + e.toString();
-                Debug.logError(e, errMsg, module);
+                Debug.logError(e, errMsg, MODULE);
                 throw new RuntimeException(errMsg);
             }
         }
@@ -1588,7 +1628,9 @@ public abstract class ModelScreenWidget extends ModelWidget {
             // Output format might not support menus, so make menu rendering optional.
             MenuStringRenderer menuStringRenderer = (MenuStringRenderer) context.get("menuStringRenderer");
             if (menuStringRenderer == null) {
-                if (Debug.verboseOn()) Debug.logVerbose("MenuStringRenderer instance not found in rendering context, menu not rendered.", module);
+                if (Debug.verboseOn()) {
+                    Debug.logVerbose("MenuStringRenderer instance not found in rendering context, menu not rendered.", MODULE);
+                }
                 return;
             }
             ModelMenu modelMenu = getModelMenu(context);
@@ -1603,7 +1645,7 @@ public abstract class ModelScreenWidget extends ModelWidget {
                 modelMenu = MenuFactory.getMenuFromLocation(location, name, (VisualTheme) context.get("visualTheme"));
             } catch (Exception e) {
                 String errMsg = "Error rendering included menu named [" + name + "] at location [" + location + "]: ";
-                Debug.logError(e, errMsg, module);
+                Debug.logError(e, errMsg, MODULE);
                 throw new RuntimeException(errMsg + e);
             }
             return modelMenu;
@@ -1758,7 +1800,7 @@ public abstract class ModelScreenWidget extends ModelWidget {
                 screenStringRenderer.renderLink(writer, context, this);
             } catch (IOException e) {
                 String errMsg = "Error rendering link with id [" + link.getId(context) + "]: " + e.toString();
-                Debug.logError(e, errMsg, module);
+                Debug.logError(e, errMsg, MODULE);
                 throw new RuntimeException(errMsg);
             }
         }
@@ -1853,7 +1895,7 @@ public abstract class ModelScreenWidget extends ModelWidget {
                 screenStringRenderer.renderImage(writer, context, this);
             } catch (IOException e) {
                 String errMsg = "Error rendering image with id [" + image.getId(context) + "]: " + e.toString();
-                Debug.logError(e, errMsg, module);
+                Debug.logError(e, errMsg, MODULE);
                 throw new RuntimeException(errMsg);
             }
         }
@@ -1901,14 +1943,15 @@ public abstract class ModelScreenWidget extends ModelWidget {
             }
             if (portalPage == null) {
                 String errMsg = "Could not find PortalPage with portalPageId [" + expandedPortalPageId + "] ";
-                Debug.logError(errMsg, module);
+                Debug.logError(errMsg, MODULE);
                 throw new RuntimeException(errMsg);
             }
             return portalPage;
         }
 
         @Override
-        public void renderWidgetString(Appendable writer, Map<String, Object> context, ScreenStringRenderer screenStringRenderer) throws GeneralException, IOException {
+        public void renderWidgetString(Appendable writer, Map<String, Object> context,
+                                       ScreenStringRenderer screenStringRenderer) throws GeneralException, IOException {
             try {
                 Delegator delegator = (Delegator) context.get("delegator");
                 List<GenericValue> portalPageColumns = null;
@@ -1930,8 +1973,8 @@ public abstract class ModelScreenWidget extends ModelWidget {
                 String prevColumnSeqId = "";
 
                 // Iterates through the PortalPage columns
-                ListIterator <GenericValue>columnsIterator = portalPageColumns.listIterator();
-                while(columnsIterator.hasNext()) {
+                ListIterator<GenericValue> columnsIterator = portalPageColumns.listIterator();
+                while (columnsIterator.hasNext()) {
                     GenericValue columnValue = columnsIterator.next();
                     String columnSeqId = columnValue.getString("columnSeqId");
 
@@ -1955,8 +1998,8 @@ public abstract class ModelScreenWidget extends ModelWidget {
                     }
 
                     // Iterates through the Portlets in the Column
-                    ListIterator <GenericValue>portletsIterator = portalPagePortlets.listIterator();
-                    while(portletsIterator.hasNext()) {
+                    ListIterator<GenericValue> portletsIterator = portalPagePortlets.listIterator();
+                    while (portletsIterator.hasNext()) {
                         GenericValue portletValue = portletsIterator.next();
 
                         // If not the last portlet in the column, get the next nextPortletId and nextPortletSeqId
@@ -1978,10 +2021,12 @@ public abstract class ModelScreenWidget extends ModelWidget {
                         // Get portlet's attributes
                         portletAttributes = EntityQuery.use(delegator)
                                                        .from("PortletAttribute")
-                                                       .where("portalPageId", portletValue.get("portalPageId"), "portalPortletId", portletValue.get("portalPortletId"), "portletSeqId", portletValue.get("portletSeqId"))
+                                                       .where("portalPageId", portletValue.get("portalPageId"),
+                                                               "portalPortletId", portletValue.get("portalPortletId"),
+                                                               "portletSeqId", portletValue.get("portletSeqId"))
                                                        .queryList();
 
-                        ListIterator <GenericValue>attributesIterator = portletAttributes.listIterator();
+                        ListIterator<GenericValue> attributesIterator = portletAttributes.listIterator();
                         while (attributesIterator.hasNext()) {
                             GenericValue attribute = attributesIterator.next();
                             context.put(attribute.getString("attrName"), attribute.getString("attrValue"));
@@ -2012,7 +2057,7 @@ public abstract class ModelScreenWidget extends ModelWidget {
                 screenStringRenderer.renderPortalPageEnd(writer, context, this);
             } catch (IOException | GenericEntityException e) {
                 String errMsg = "Error rendering PortalPage with portalPageId [" + getId(context) + "]: " + e.toString();
-                Debug.logError(e, errMsg, module);
+                Debug.logError(e, errMsg, MODULE);
                 throw new RuntimeException(errMsg);
             }
         }
