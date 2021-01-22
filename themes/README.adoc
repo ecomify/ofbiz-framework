@@ -18,11 +18,11 @@ under the License.
 ////
 = Apache OFBiz Themes
 The Apache OFBiz® Project
-Release 17.12
+Release trunk
 
 This OFBiz component contains all elements needed to manage theming in OFBiz.
 
 == more information
-All detailled documtation are in file `../docs/themes.adoc` +
+All detailled documentation are in file `../docs/themes.adoc` +
 This detailled documentation is included in Developer manual > chapter Widget System
 
