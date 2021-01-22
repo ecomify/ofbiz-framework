@@ -48,6 +48,8 @@ def createDataResource() {
     GenericValue userLogin = parameters.userLogin
     newEntity.lastModifiedByUserLogin = userLogin.userLoginId
     newEntity.createdByUserLogin = userLogin.userLoginId
+    newEntity.lastModifiedDate = nowTimestamp
+    newEntity.createdDate = nowTimestamp
 
     if (!parameters.dataTemplateTypeId) {
         newEntity.dataTemplateTypeId = "NONE"
@@ -55,11 +57,10 @@ def createDataResource() {
 
     if (!parameters.statusId) {
         //get first status item
-        List < GenericValue > contentStatus = from("StatusItem")
+        GenericValue statusItem = from("StatusItem")
             .where("statusTypeId", "CONTENT_STATUS")
             .orderBy("sequenceId")
-            .queryList()
-        GenericValue statusItem = EntityUtil.getFirst(contentStatus)
+            .queryFirst()
         newEntity.statusId = statusItem.statusId
     }
 
@@ -87,9 +88,12 @@ def createDataResourceAndAssocToContent() {
     }
 
     Map serviceResult = run service: "createDataResource", with: parameters
+    if (!ServiceUtil.isSuccess(serviceResult)) {
+        return serviceResult
+    }
     GenericValue dataResource = serviceResult.dataResource
 
-    Map contentCtx = [: ]
+    Map contentCtx = [:]
     if (parameters.templateDataResource && parameters.templateDataResource == "Y") {
         contentCtx.put("templateDataResourceId", parameters.dataResourceId)
     } else {
@@ -98,6 +102,9 @@ def createDataResourceAndAssocToContent() {
     contentCtx.put("contentId", parameters.contentId)
 
     Map result = run service: "updateContent", with: contentCtx
+    if (!ServiceUtil.isSuccess(result)) {
+        return result
+    }
 
     result.contentId = parameters.contentId
     if (dataResource.dataResourceTypeId &&
@@ -105,37 +112,6 @@ def createDataResourceAndAssocToContent() {
             dataResource.dataResourceTypeId == "IMAGE_OBJECT")) {
         result.put(ModelService.RESPONSE_MESSAGE, "${dataResource.dataResourceTypeId}")
     }
-    return result
-}
-
-/**
- * Create Electronic Text with Form code
- *
- * @return
- */
-def createElectronicTextForm() {
-    Map result = success()
-    GenericValue newEntity = makeValue("ElectronicText", parameters)
-    newEntity.create()
-    result.dataResourceId = newEntity.dataResourceId
-    return result
-}
-
-/**
- * Update Electronic Text with Form code
- *
- * @return
- */
-def updateElectronicTextForm() {
-    Map result = success()
-    GenericValue lookupKeyValue = makeValue("ElectronicText")
-    lookupKeyValue.setPKFields(parameters)
-
-    GenericValue lookedUpValue = findOne("ElectronicText", lookupKeyValue, false)
-    lookedUpValue.setNonPKFields(parameters)
-
-    lookedUpValue.store()
-    result.dataResourceId = lookedUpValue.dataResourceId
     return result
 }
 
@@ -161,7 +137,7 @@ def getElectronicText() {
         return error(UtilProperties.getMessage("ContentUiLabels", "ContentDataResourceNotFound", parameters.locale))
     }
     result.dataResourceId = currentContent.dataResourceId
-    GenericValue eText = from("ElectronicText").where(parameters).queryOne()
+    GenericValue eText = from("ElectronicText").where("dataResourceId", currentContent.dataResourceId).queryOne()
     if (!eText) {
         return error(UtilProperties.getMessage("ContentUiLabels", "ContentElectronicTextNotFound", parameters.locale))
     }
@@ -270,6 +246,7 @@ def saveLocalFileDataResource(String mode) {
     }
     if (!parameters._uploadedFile_fileName) {
         if (isUpdate) {
+            // upload is found on an update; its okay, don't do anything just return
             result.dataResourceId = dataResource.dataResourceId
             result.mimeTypeId = dataResource.mimeTypeId
             return result
@@ -319,12 +296,13 @@ def saveExtFileDataResource(boolean isUpdate, String mode) {
     List errorList = []
     GenericValue dataResource = from("DataResource")
         .where("dataResourceId", parameters.dataResourceId)
-        .queryFirst()
+        .queryOne()
     if (!dataResource) {
         errorList.add(UtilProperties.getMessage("ContentUiLabels", "ContentDataResourceNotFound", parameters.locale))
     }
     if (!parameters._uploadedFile_fileName) {
         if (isUpdate) {
+            // upload is found on an update; its okay, don't do anything just return
             result.dataResourceId = dataResource.dataResourceId
             result.mimeTypeId = dataResource.mimeTypeId
             return result
