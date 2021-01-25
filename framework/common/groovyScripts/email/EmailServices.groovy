@@ -34,8 +34,8 @@ def sendMailFromTemplateSetting() {
         return error(UtilProperties.getMessage("CommonUiLabels", "CommonEmailShouldBeSpecified", parameters.locale))
     }
     if (parameters.partyIdTo && !parameters.sendTo) {
-        Map getMail = [partyId: parameters.partyIdTo]
-        Map serviceResult = run service: "getPartyEmail", with: getMail
+        Map getEmail = [partyId: parameters.partyIdTo]
+        Map serviceResult = run service: "getPartyEmail", with: getEmail
         if (!ServiceUtil.isSuccess(serviceResult)) {
             return serviceResult
         }
