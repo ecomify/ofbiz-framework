@@ -153,6 +153,8 @@ def reserveProductInventory() {
                     // this is a little trick to get the InventoryItem value object without doing a query,
                     // possible since all fields on InventoryItem are also on InventoryItemAndLocation with the same names
                     inventoryItem = makeValue("InventoryItem", inventoryItemAndLocation)
+                    Map resultReserve = reserveForInventoryItemInline(inventoryItem)
+                    lastNonSerInventoryItem = resultReserve.lastNonSerInventoryItem
 
                 }
             }
@@ -180,7 +182,8 @@ def reserveProductInventory() {
 
             for (GenericValue inventoryItemInfo : inventoryItemsInfo) {
                 if ((Double) parameters.quantityNotReserved > 0.0 && !inventoryItem.locationSeqId) {
-                    reserveForInventoryItemInline(inventoryItem)
+                    Map resultReserve = reserveForInventoryItemInline(inventoryItem)
+                    lastNonSerInventoryItem = resultReserve.lastNonSerInventoryItem
                 }
             }
         }
@@ -326,7 +329,7 @@ def reserveProductInventory() {
         }
 
     }
-    result.quantityNotReserved = parameters.quantityNotReserved
+    result.put("quantityNotReserved", parameters.quantityNotReserved)
 
     return result
 }
