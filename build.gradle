@@ -281,6 +281,20 @@ sourceSets {
             srcDirs = getDirectoryInActiveComponentsIfExists('src/test/resources')
         }
     }
+
+    groovyScripts {
+        groovy {
+            srcDirs += getDirectoryInActiveComponentsIfExists('groovyScripts')
+            compileClasspath += sourceSets.main.compileClasspath
+            compileClasspath += sourceSets.main.output
+        }
+    }
+}
+
+tasks.named('compileGroovyScriptsGroovy') {
+    // We don't want to build groovyScripts as they should be considered as standalone elements executed in
+    // isolation by ofbiz. Building them will result in numerous error due to duplicated classes.
+    enabled = false
 }
 
 jar.manifest.attributes(
@@ -296,7 +310,7 @@ checkstyle {
     // the sum of errors found last time it was changed after using the
     // ‘checkstyle’ tool present in the framework and in the official
     // plugins.
-    tasks.checkstyleMain.maxErrors = 279
+    tasks.checkstyleMain.maxErrors = 278
     // Currently there are a lot of errors so we need to temporarily
     // hide them to avoid polluting the terminal output.
     showViolations = false
@@ -1104,5 +1118,17 @@ new File("${gradle.getGradleUserHomeDir().getAbsolutePath()}/daemon/${gradle.get
     if (it.getName().endsWith('.out.log')) {
         logger.debug("Cleaning up daemon log file $it")
         it.delete()
+    }
+}
+
+tasks.startScripts {
+    doLast {
+        // Alter the start script for Unix systems.
+        unixScript.text =
+                unixScript.text.replace('CLASSPATH=$APP_HOME/lib','CLASSPATH=$APP_HOME/config/:$APP_HOME/lib-extra/*:$APP_HOME/lib')
+        // Alter the start script for Windows systems.
+        windowsScript.text =
+                windowsScript.text.replace('CLASSPATH=%APP_HOME%\\lib',
+ 'CLASSPATH=%APP_HOME%\\conf\\;%APP_HOME%\\lib-extra\\*;%APP_HOME%\\lib')
     }
 }
