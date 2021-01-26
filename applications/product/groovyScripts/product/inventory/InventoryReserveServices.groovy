@@ -65,77 +65,46 @@ def reserveProductInventory() {
         if (productType.isPhysical.equals("N")) {
             parameters.quantityNotReserved = (BigDecimal) 0
         }
-    }
-    else {
-        GenericValue orderHeader = from("OrderHeader").where(parameters).queryOne()
-        String orderByString = null
 
-        // before we do the find, put together the orderBy list based on which reserveOrderEnumId is specified
-        // FIFO=first in first out, so it should be order by ASCending receive or expire date
-        // LIFO=last in first out, so it means order by DESCending receive or expire date
-        if (parameters.reserveOrderEnumId.equals("INVRO_GUNIT_COST")) {
-            orderByString = "-unitCost"
-        }
-        else if (parameters.reserveOrderEnumId.equals("INVRO_LUNIT_COST")) {
-            orderByString = "+unitCost"
-        }
-        else if (parameters.reserveOrderEnumId.equals("INVRO_FIFO_EXP")) {
-            orderByString = "+expireDate"
-        }
-        else if (parameters.reserveOrderEnumId.equals("INVRO_LIFO_EXP")) {
-            orderByString = "-expireDate"
-        }
-        else if (parameters.reserveOrderEnumId.equals("INVRO_LIFO_REC")) {
-            orderByString = "-datetimeReceived"
-        }
-        // the default reserveOrderEnumId is INVRO_FIFO_REC, ie FIFO based on date received
         else {
-            orderByString = "+datetimeReceived"
-            parameters.reserveOrderEnumId ="INVRO_FIFO_REC"
-        }
+            GenericValue orderHeader = from("OrderHeader").where(parameters).queryOne()
+            String orderByString = null
 
-        parameters.quantityNotReserved = parameters.quantity
-
-        // first reserve against InventoryItems in FLT_PICKLOC type locations, then FLT_BULK locations, then InventoryItems with no locations
-        conditionList = [
-            EntityCondition.makeCondition("productId", EntityOperator.EQUALS, parameters.productId),
-            EntityCondition.makeCondition("availableToPromiseTotal",  EntityOperator.GREATER_THAN, "0.0"),
-            EntityCondition.makeCondition("locationTypeEnumId", EntityOperator.EQUALS, "FLT_PICKLOC"),
-            EntityCondition.makeCondition("statusId", EntityOperator.NOT_EQUAL, "INV_NS_DEFECTIVE"),
-            EntityCondition.makeCondition("statusId", EntityOperator.NOT_EQUAL, "INV_DEFECTIVE")
-        ]
-
-        if (parameters.facilityId && parameters.facilityId != null) {
-            conditionList.add(EntityCondition.makeCondition("facilityId", EntityOperator.EQUALS, parameters.facilityId))
-        }
-        if (parameters.containerId && parameters.containerId != null) {
-            conditionList.add(EntityCondition.makeCondition("containerId", EntityOperator.EQUALS, parameters.containerId))
-        }
-        if (parameters.lotId && parameters.lotId != null) {
-            conditionList.add(EntityCondition.makeCondition("lotId", EntityOperator.EQUALS, parameters.lotId))
-        }
-
-        inventoryItemAndLocations = from("InventoryItemAndLocation").where(conditionList).orderBy(orderByString).queryList()
-
-        for (GenericValue inventoryItemAndLocation : inventoryItemAndLocations) {
-            if ((Double) parameters.quantityNotReserved > 0.0) {
-                // this is a little trick to get the InventoryItem value object without doing a query,
-                // possible since all fields on InventoryItem are also on InventoryItemAndLocation with the same names
-                inventoryItem = makeValue("InventoryItem", inventoryItemAndLocation)
-                Map resultReserve = reserveForInventoryItemInline(inventoryItem)
-                lastNonSerInventoryItem = resultReserve.lastNonSerInventoryItem
+            // before we do the find, put together the orderBy list based on which reserveOrderEnumId is specified
+            // FIFO=first in first out, so it should be order by ASCending receive or expire date
+            // LIFO=last in first out, so it means order by DESCending receive or expire date
+            if (parameters.reserveOrderEnumId.equals("INVRO_GUNIT_COST")) {
+                orderByString = "-unitCost"
             }
-        }
+            else if (parameters.reserveOrderEnumId.equals("INVRO_LUNIT_COST")) {
+                orderByString = "+unitCost"
+            }
+            else if (parameters.reserveOrderEnumId.equals("INVRO_FIFO_EXP")) {
+                orderByString = "+expireDate"
+            }
+            else if (parameters.reserveOrderEnumId.equals("INVRO_LIFO_EXP")) {
+                orderByString = "-expireDate"
+            }
+            else if (parameters.reserveOrderEnumId.equals("INVRO_LIFO_REC")) {
+                orderByString = "-datetimeReceived"
+            }
+            // the default reserveOrderEnumId is INVRO_FIFO_REC, ie FIFO based on date received
+            else {
+                orderByString = "+datetimeReceived"
+                parameters.reserveOrderEnumId ="INVRO_FIFO_REC"
+            }
 
-        // still some left? try the FLT_BULK locations
-        if ((BigDecimal) parameters.quantityNotReserved > 0.0 ) {
+            parameters.quantityNotReserved = parameters.quantity
+
+            // first reserve against InventoryItems in FLT_PICKLOC type locations, then FLT_BULK locations, then InventoryItems with no locations
             conditionList = [
                 EntityCondition.makeCondition("productId", EntityOperator.EQUALS, parameters.productId),
-                EntityCondition.makeCondition("availableToPromiseTotal",  EntityOperator.GREATER_THAN, "0.0"),
-                EntityCondition.makeCondition("locationTypeEnumId", EntityOperator.EQUALS, "FLT_BULK"),
+                EntityCondition.makeCondition("availableToPromiseTotal",  EntityOperator.GREATER_THAN, (BigDecimal) 0.0),
+                EntityCondition.makeCondition("locationTypeEnumId", EntityOperator.EQUALS, "FLT_PICKLOC"),
                 EntityCondition.makeCondition("statusId", EntityOperator.NOT_EQUAL, "INV_NS_DEFECTIVE"),
                 EntityCondition.makeCondition("statusId", EntityOperator.NOT_EQUAL, "INV_DEFECTIVE")
             ]
+
             if (parameters.facilityId && parameters.facilityId != null) {
                 conditionList.add(EntityCondition.makeCondition("facilityId", EntityOperator.EQUALS, parameters.facilityId))
             }
@@ -155,179 +124,207 @@ def reserveProductInventory() {
                     inventoryItem = makeValue("InventoryItem", inventoryItemAndLocation)
                     Map resultReserve = reserveForInventoryItemInline(inventoryItem)
                     lastNonSerInventoryItem = resultReserve.lastNonSerInventoryItem
-
                 }
             }
-        }
 
-        // last of all try reserving in InventoryItems that have no locationSeqId, ie are not in any particular location
-        if ((BigDecimal) parameters.quantityNotReserved > 0.0) {
-            conditionList = [
-                EntityCondition.makeCondition("productId", EntityOperator.EQUALS, parameters.productId),
-                EntityCondition.makeCondition("availableToPromiseTotal",  EntityOperator.GREATER_THAN, "0.0"),
-                EntityCondition.makeCondition("locationSeqId", EntityOperator.EQUALS, null),
-                EntityCondition.makeCondition("statusId", EntityOperator.NOT_EQUAL, "INV_NS_DEFECTIVE"),
-                EntityCondition.makeCondition("statusId", EntityOperator.NOT_EQUAL, "INV_DEFECTIVE")
-            ]
-            if (parameters.facilityId && parameters.facilityId != null) {
-                conditionList.add(EntityCondition.makeCondition("facilityId", EntityOperator.EQUALS, parameters.facilityId))
-            }
-            if (parameters.containerId && parameters.containerId != null) {
-                conditionList.add(EntityCondition.makeCondition("containerId", EntityOperator.EQUALS, parameters.containerId))
-            }
-            if (parameters.lotId && parameters.lotId != null) {
-                conditionList.add(EntityCondition.makeCondition("lotId", EntityOperator.EQUALS, parameters.lotId))
-            }
-            GenericValue inventoryItemsInfo = from("InventoryItemAndLocation").where(conditionList).orderBy(orderByString).queryList()
+            // still some left? try the FLT_BULK locations
+            if ((BigDecimal) parameters.quantityNotReserved > 0.0 ) {
+                conditionList = [
+                    EntityCondition.makeCondition("productId", EntityOperator.EQUALS, parameters.productId),
+                    EntityCondition.makeCondition("availableToPromiseTotal",  EntityOperator.GREATER_THAN, (BigDecimal) 0.0),
+                    EntityCondition.makeCondition("locationTypeEnumId", EntityOperator.EQUALS, "FLT_BULK"),
+                    EntityCondition.makeCondition("statusId", EntityOperator.NOT_EQUAL, "INV_NS_DEFECTIVE"),
+                    EntityCondition.makeCondition("statusId", EntityOperator.NOT_EQUAL, "INV_DEFECTIVE")
+                ]
+                if (parameters.facilityId && parameters.facilityId != null) {
+                    conditionList.add(EntityCondition.makeCondition("facilityId", EntityOperator.EQUALS, parameters.facilityId))
+                }
+                if (parameters.containerId && parameters.containerId != null) {
+                    conditionList.add(EntityCondition.makeCondition("containerId", EntityOperator.EQUALS, parameters.containerId))
+                }
+                if (parameters.lotId && parameters.lotId != null) {
+                    conditionList.add(EntityCondition.makeCondition("lotId", EntityOperator.EQUALS, parameters.lotId))
+                }
 
-            for (GenericValue inventoryItemInfo : inventoryItemsInfo) {
-                if ((Double) parameters.quantityNotReserved > 0.0 && !inventoryItem.locationSeqId) {
-                    Map resultReserve = reserveForInventoryItemInline(inventoryItem)
-                    lastNonSerInventoryItem = resultReserve.lastNonSerInventoryItem
+                inventoryItemAndLocations = from("InventoryItemAndLocation").where(conditionList).orderBy(orderByString).queryList()
+
+                for (GenericValue inventoryItemAndLocation : inventoryItemAndLocations) {
+                    if ((Double) parameters.quantityNotReserved > 0.0) {
+                        // this is a little trick to get the InventoryItem value object without doing a query,
+                        // possible since all fields on InventoryItem are also on InventoryItemAndLocation with the same names
+                        inventoryItem = makeValue("InventoryItem", inventoryItemAndLocation)
+                        Map resultReserve = reserveForInventoryItemInline(inventoryItem)
+                        lastNonSerInventoryItem = resultReserve.lastNonSerInventoryItem
+                    }
                 }
             }
-        }
 
-        // if inventory is not required for purchase and quantityNotReserved != 0:
-        //      - subtract the remaining quantityNotReserved from the availableToPromise of the last non-serialized inventory item
-        //      - or if none was found create a non-ser InventoryItem with availableToPromise = -quantityNotReserved
-        if ((BigDecimal) parameters.quantityNotReserved != 0.0) {
-            if (parameters.requireInventory.equals("Y")) {
-                // use this else pattern to accomplish the anything but Y logic, ie if not specified default to inventory NOT required
+            // last of all try reserving in InventoryItems that have no locationSeqId, ie are not in any particular location
+            if ((BigDecimal) parameters.quantityNotReserved > 0.0) {
+                conditionList = [
+                    EntityCondition.makeCondition("productId", EntityOperator.EQUALS, parameters.productId),
+                    EntityCondition.makeCondition("availableToPromiseTotal",  EntityOperator.GREATER_THAN, (BigDecimal) 0.0),
+                    EntityCondition.makeCondition("locationSeqId", EntityOperator.EQUALS, null),
+                    EntityCondition.makeCondition("statusId", EntityOperator.NOT_EQUAL, "INV_NS_DEFECTIVE"),
+                    EntityCondition.makeCondition("statusId", EntityOperator.NOT_EQUAL, "INV_DEFECTIVE")
+                ]
+                if (parameters.facilityId && parameters.facilityId != null) {
+                    conditionList.add(EntityCondition.makeCondition("facilityId", EntityOperator.EQUALS, parameters.facilityId))
+                }
+                if (parameters.containerId && parameters.containerId != null) {
+                    conditionList.add(EntityCondition.makeCondition("containerId", EntityOperator.EQUALS, parameters.containerId))
+                }
+                if (parameters.lotId && parameters.lotId != null) {
+                    conditionList.add(EntityCondition.makeCondition("lotId", EntityOperator.EQUALS, parameters.lotId))
+                }
+                GenericValue inventoryItemsInfo = from("InventoryItemAndLocation").where(conditionList).orderBy(orderByString).queryList()
+
+                for (GenericValue inventoryItemInfo : inventoryItemsInfo) {
+                    if ((Double) parameters.quantityNotReserved > 0.0 && !inventoryItem.locationSeqId) {
+                        Map resultReserve = reserveForInventoryItemInline(inventoryItem)
+                        lastNonSerInventoryItem = resultReserve.lastNonSerInventoryItem
+                    }
+                }
             }
-            else {
-                if (lastNonSerInventoryItem) {
-                    // subtract from quantityNotReserved from the availableToPromise of existing inventory item
-                    // instead of updating InventoryItem, add an InventoryItemDetail
-                    Map createDetailMap = [inventoryItemId: lastNonSerInventoryItem.inventoryItemId, orderId: parameters.orderId,
-                        orderItemSeqId: parameters.orderItemSeqId, shipGroupSeqId: parameters.shipGroupSeqId]
-                    BigDecimal availableToPromiseDiff = createDetailMap.availableToPromiseDiff - parameters.quantityNotReserved
-                    createDetailMap.availableToPromiseDiff = availableToPromiseDiff.setScale(6)
 
-                    if(parameters.reserveReasonEnumId) {
-                        createDetailMap.reasonEnumId = parameters.reserveReasonEnumId
-                    }
-                    serviceResult = run service: "createInventoryItemDetail", with: createDetailMap
-                    if (!ServiceUtil.isSuccess(serviceResult)) {
-                        return error(serviceResult.errorMessage)
-                    }
-                    createDetailMap.clear()
-
-                    // get the promiseDatetime
-                    GenericValue productFacility = lastNonSerInventoryItem.getRelatedOne("ProductFacility", false)
-                    daysToShip = productFacility.daysToShip
-                    if (!daysToShip) {
-                        // if the product does not have its own days to ship, use Facility.defaultDaysToShip,
-                        // if not then use 30 days as a USA industry default
-                        if (facility.defaultDaysToShip) {
-                            daysToShip = (Long) facility.defaultDaysToShip
-                        }
-                        else {
-                            daysToShip = (Long) 30
-                        }
-
-                    }
-
-                    //TODO war vorher groovy Script
-                    Timestamp orderDate = orderHeader.getTimestamp("orderDate")
-                    Calendar cal = Calendar.getInstance()
-                    cal.setTimeInMillis(orderDate.getTime())
-                    cal.add(Calendar.DAY_OF_YEAR, daysToShip.intValue())
-                    return UtilMisc.toMap("promisedDatetime", new Timestamp(cal.getTimeInMillis()))
-
-                    // create or update OrderItemShipGrpInvRes record
-                    Map reserveOisgirMap = [orderId: parameters.orderId, orderItemSeqId: parameters.orderItemSeqId,
-                        shipGroupSeqId: parameters.shipGroupSeqId, inventoryItemId: lastNonSerInventoryItem.inventoryItemId,
-                        reserveOrderEnumId: parameters.reserveOrderEnumId]
-                    reserveOisgirMap.quantity = (BigDecimal) parameters.quantityNotReserved
-                    reserveOisgirMap.quantityNotAvailable = (BigDecimal) parameters.quantityNotReserved
-                    reserveOisgirMap.reservedDatetime = parameters.reservedDatetime
-                    reserveOisgirMap.promisedDatetime = promisedDatetime
-                    reserveOisgirMap.sequenceId = parameters.sequenceId
-                    reserveOisgirMap.priority = parameters.priority
-                    serviceResult = run service: "reserveOrderItemInventory", with: reserveOisgirMap
-                    if (!ServiceUtil.isSuccess(serviceResult)) {
-                        return error(serviceResult.errorMessage)
-                    }
-                    reserveOisgirMap.clear()
+            // if inventory is not required for purchase and quantityNotReserved != 0:
+            //      - subtract the remaining quantityNotReserved from the availableToPromise of the last non-serialized inventory item
+            //      - or if none was found create a non-ser InventoryItem with availableToPromise = -quantityNotReserved
+            if ((BigDecimal) parameters.quantityNotReserved != 0.0) {
+                if (parameters.requireInventory.equals("Y")) {
+                    // use this else pattern to accomplish the anything but Y logic, ie if not specified default to inventory NOT required
                 }
                 else {
-                    // no non-ser inv item, create a non-ser InventoryItem with availableToPromise = -quantityNotReserved
-                    Map createInventoryItemInMap = [:]
-                    Map createInventoryItemOutMap = [:]
-                    // the createInventoryItem service is run by the the system user here
-                    GenericValue permUserLogin = from("UserLogin").where(userLoginId: "system").queryOne()
-                    createInventoryItemInMap.productId = parameters.productId
-                    createInventoryItemInMap.facilityId = parameters.facilityId
-                    createInventoryItemInMap.containerId = parameters.containerId
-                    createInventoryItemInMap.inventoryItemTypeId = "NON_SERIAL_INV_ITEM"
-                    createInventoryItemInMap.userLogin = permUserLogin
-                    serviceResult = run service: "createInventoryItem", with: createInventoryItemInMap
-                    if (!ServiceUtil.isSuccess(serviceResult)) {
-                        return error(serviceResult.errorMessage)
-                    }
-                    createInventoryItemOutMap.inventoryItemId = serviceResult.inventoryItemId
-                    GenericValue newNonSerInventoryItem = from("InventoryItem").where(inventoryItemId: createInventoryItemOutMap.inventoryItemId).queryOne()
+                    if (lastNonSerInventoryItem) {
+                        // subtract from quantityNotReserved from the availableToPromise of existing inventory item
+                        // instead of updating InventoryItem, add an InventoryItemDetail
+                        Map createDetailMap = [inventoryItemId: lastNonSerInventoryItem.inventoryItemId, orderId: parameters.orderId,
+                            orderItemSeqId: parameters.orderItemSeqId, shipGroupSeqId: parameters.shipGroupSeqId]
+                        BigDecimal availableToPromiseDiff = createDetailMap.availableToPromiseDiff - parameters.quantityNotReserved
+                        createDetailMap.availableToPromiseDiff = availableToPromiseDiff.setScale(6)
 
-                    // also create a detail record with the quantities
-                    Map createDetailMap = [inventoryItemId: newNonSerInventoryItem.inventoryItemId, orderId: parameters.orderId,
-                        orderItemSeqId: parameters.orderItemSeqId, shipGroupSeqId: parameters.shipGroupSeqId]
-                    BigDecimal availableToPromiseDiff = createDetailMap.availableToPromiseDiff - parameters.quantityNotReserved
-                    createDetailMap.availableToPromiseDiff = availableToPromiseDiff.setScale(6)
-                    if ( parameters.reserveReasonEnumId) {
-                        createDetailMap.reasonEnumId = parameters.reserveReasonEnumId
-
-                    }
-                    serviceResult = run service: "createInventoryItemDetail", with: createDetailMap
-                    if (!ServiceUtil.isSuccess(serviceResult)) {
-                        return error(serviceResult.errorMessage)
-                    }
-                    createDetailMap.clear()
-
-                    // get the promiseDatetime
-                    GenericValue productFacility = newNonSerInventoryItem.getRelatedOne("ProductFacility", false)
-                    daysToShip.clear()
-                    daysToShip = productFacility.daysToShip
-                    if (!daysToShip) {
-                        // if the product does not have its own days to ship, use Facility.defaultDaysToShip,
-                        // if not then use 30 days as a USA industry default
-                        if (facility.defaultDaysToShip) {
-                            daysToShip = (Long) facility.defaultDaysToShip
+                        if(parameters.reserveReasonEnumId) {
+                            createDetailMap.reasonEnumId = parameters.reserveReasonEnumId
                         }
-                        else {
-                            daysToShip = (Long) 30
+                        serviceResult = run service: "createInventoryItemDetail", with: createDetailMap
+                        if (!ServiceUtil.isSuccess(serviceResult)) {
+                            return error(serviceResult.errorMessage)
+                        }
+                        createDetailMap.clear()
+
+                        // get the promiseDatetime
+                        GenericValue productFacility = lastNonSerInventoryItem.getRelatedOne("ProductFacility", false)
+                        daysToShip = productFacility.daysToShip
+                        if (!daysToShip) {
+                            // if the product does not have its own days to ship, use Facility.defaultDaysToShip,
+                            // if not then use 30 days as a USA industry default
+                            if (facility.defaultDaysToShip) {
+                                daysToShip = (Long) facility.defaultDaysToShip
+                            }
+                            else {
+                                daysToShip = (Long) 30
+                            }
                         }
 
-                    }
-                    java.sql.Timestamp orderDate = orderHeader.getTimestamp("orderDate")
-                    com.ibm.icu.util.Calendar cal = com.ibm.icu.util.Calendar.getInstance()
-                    cal.setTimeInMillis(orderDate.getTime())
-                    cal.add(com.ibm.icu.util.Calendar.DAY_OF_YEAR, daysToShip.intValue())
-                    return org.apache.ofbiz.base.util.UtilMisc.toMap("promisedDatetime", new java.sql.Timestamp(cal.getTimeInMillis()))
+                        //TODO war vorher groovy Script
+                        Timestamp orderDate = orderHeader.getTimestamp("orderDate")
+                        Calendar cal = Calendar.getInstance()
+                        cal.setTimeInMillis(orderDate.getTime())
+                        cal.add(Calendar.DAY_OF_YEAR, daysToShip.intValue())
+                        return UtilMisc.toMap("promisedDatetime", new Timestamp(cal.getTimeInMillis()))
 
-
-                    // create OrderItemShipGrpInvRes record
-                    Map reserveOisgirMap = [orderId : parameters.orderId,
-                        orderItemSeqId: parameters.orderItemSeqId,
-                        shipGroupSeqId: parameters.shipGroupSeqId,
-                        inventoryItemId: newNonSerInventoryItem.inventoryItemId,
-                        reserveOrderEnumId: parameters.reserveOrderEnumId]
-                    reserveOisgirMap.quantity = (BigDecimal) parameters.quantityNotReserved
-                    reserveOisgirMap.quantityNotAvailable = (BigDecimal) parameters.quantityNotReserved
-                    reserveOisgirMap.reservedDatetime = parameters.reservedDatetime
-                    reserveOisgirMap.promisedDatetime = promisedDatetime
-                    reserveOisgirMap.sequenceId = parameters.sequenceId
-                    reserveOisgirMap.priority = parameters.priority
-                    serviceResult = run service: "reserveOrderItemInventory", with: reserveOisgirMap
-                    if (!ServiceUtil.isSuccess(serviceResult)) {
-                        return error(serviceResult.errorMessage)
+                        // create or update OrderItemShipGrpInvRes record
+                        Map reserveOisgirMap = [orderId: parameters.orderId, orderItemSeqId: parameters.orderItemSeqId,
+                            shipGroupSeqId: parameters.shipGroupSeqId, inventoryItemId: lastNonSerInventoryItem.inventoryItemId,
+                            reserveOrderEnumId: parameters.reserveOrderEnumId]
+                        reserveOisgirMap.quantity = (BigDecimal) parameters.quantityNotReserved
+                        reserveOisgirMap.quantityNotAvailable = (BigDecimal) parameters.quantityNotReserved
+                        reserveOisgirMap.reservedDatetime = parameters.reservedDatetime
+                        reserveOisgirMap.promisedDatetime = promisedDatetime
+                        reserveOisgirMap.sequenceId = parameters.sequenceId
+                        reserveOisgirMap.priority = parameters.priority
+                        serviceResult = run service: "reserveOrderItemInventory", with: reserveOisgirMap
+                        if (!ServiceUtil.isSuccess(serviceResult)) {
+                            return error(serviceResult.errorMessage)
+                        }
+                        reserveOisgirMap.clear()
                     }
-                    reserveOisgirMap.clear()
+                    else {
+                        // no non-ser inv item, create a non-ser InventoryItem with availableToPromise = -quantityNotReserved
+                        Map createInventoryItemInMap = [:]
+                        Map createInventoryItemOutMap = [:]
+                        // the createInventoryItem service is run by the the system user here
+                        GenericValue permUserLogin = from("UserLogin").where(userLoginId: "system").queryOne()
+                        createInventoryItemInMap.productId = parameters.productId
+                        createInventoryItemInMap.facilityId = parameters.facilityId
+                        createInventoryItemInMap.containerId = parameters.containerId
+                        createInventoryItemInMap.inventoryItemTypeId = "NON_SERIAL_INV_ITEM"
+                        createInventoryItemInMap.userLogin = permUserLogin
+                        serviceResult = run service: "createInventoryItem", with: createInventoryItemInMap
+                        if (!ServiceUtil.isSuccess(serviceResult)) {
+                            return error(serviceResult.errorMessage)
+                        }
+                        createInventoryItemOutMap.inventoryItemId = serviceResult.inventoryItemId
+                        GenericValue newNonSerInventoryItem = from("InventoryItem").where(inventoryItemId: createInventoryItemOutMap.inventoryItemId).queryOne()
+
+                        // also create a detail record with the quantities
+                        Map createDetailMap = [inventoryItemId: newNonSerInventoryItem.inventoryItemId, orderId: parameters.orderId,
+                            orderItemSeqId: parameters.orderItemSeqId, shipGroupSeqId: parameters.shipGroupSeqId]
+                        BigDecimal availableToPromiseDiff = createDetailMap.availableToPromiseDiff - parameters.quantityNotReserved
+                        createDetailMap.availableToPromiseDiff = availableToPromiseDiff.setScale(6)
+                        if ( parameters.reserveReasonEnumId) {
+                            createDetailMap.reasonEnumId = parameters.reserveReasonEnumId
+
+                        }
+                        serviceResult = run service: "createInventoryItemDetail", with: createDetailMap
+                        if (!ServiceUtil.isSuccess(serviceResult)) {
+                            return error(serviceResult.errorMessage)
+                        }
+                        createDetailMap.clear()
+
+                        // get the promiseDatetime
+                        GenericValue productFacility = newNonSerInventoryItem.getRelatedOne("ProductFacility", false)
+                        daysToShip.clear()
+                        daysToShip = productFacility.daysToShip
+                        if (!daysToShip) {
+                            // if the product does not have its own days to ship, use Facility.defaultDaysToShip,
+                            // if not then use 30 days as a USA industry default
+                            if (facility.defaultDaysToShip) {
+                                daysToShip = (Long) facility.defaultDaysToShip
+                            }
+                            else {
+                                daysToShip = (Long) 30
+                            }
+
+                        }
+                        java.sql.Timestamp orderDate = orderHeader.getTimestamp("orderDate")
+                        com.ibm.icu.util.Calendar cal = com.ibm.icu.util.Calendar.getInstance()
+                        cal.setTimeInMillis(orderDate.getTime())
+                        cal.add(com.ibm.icu.util.Calendar.DAY_OF_YEAR, daysToShip.intValue())
+                        return org.apache.ofbiz.base.util.UtilMisc.toMap("promisedDatetime", new java.sql.Timestamp(cal.getTimeInMillis()))
+
+                        // create OrderItemShipGrpInvRes record
+                        Map reserveOisgirMap = [orderId : parameters.orderId,
+                            orderItemSeqId: parameters.orderItemSeqId,
+                            shipGroupSeqId: parameters.shipGroupSeqId,
+                            inventoryItemId: newNonSerInventoryItem.inventoryItemId,
+                            reserveOrderEnumId: parameters.reserveOrderEnumId]
+                        reserveOisgirMap.quantity = (BigDecimal) parameters.quantityNotReserved
+                        reserveOisgirMap.quantityNotAvailable = (BigDecimal) parameters.quantityNotReserved
+                        reserveOisgirMap.reservedDatetime = parameters.reservedDatetime
+                        reserveOisgirMap.promisedDatetime = promisedDatetime
+                        reserveOisgirMap.sequenceId = parameters.sequenceId
+                        reserveOisgirMap.priority = parameters.priority
+                        serviceResult = run service: "reserveOrderItemInventory", with: reserveOisgirMap
+                        if (!ServiceUtil.isSuccess(serviceResult)) {
+                            return error(serviceResult.errorMessage)
+                        }
+                        reserveOisgirMap.clear()
+                    }
+                    parameters.quantityNotReserved = (BigDecimal) 0.0
                 }
-                parameters.quantityNotReserved = (BigDecimal) 0.0
             }
         }
-
     }
     result.put("quantityNotReserved", parameters.quantityNotReserved)
 
