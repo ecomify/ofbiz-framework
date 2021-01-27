@@ -679,8 +679,8 @@ under the License.
         <attribute name="orderItemSeqId" type="String" mode="IN" optional="true"/>
         <attribute name="shipGroupSeqId" type="String" mode="IN" optional="true"/>
     </service>
-    <service name="cancelOrderItemInvResQty" engine="simple"
-            location="component://product/minilang/product/inventory/InventoryReserveServices.xml" invoke="cancelOrderItemInvResQty" auth="true">
+    <service name="cancelOrderItemInvResQty" engine="groovy"
+            location="component://product/groovyScripts/product/inventory/InventoryReserveServices.groovy" invoke="cancelOrderItemInvResQty" auth="true">
         <description>Cancel a specific quantity for an order item</description>
         <attribute name="orderId" type="String" mode="IN" optional="false">
         <type-validate>
