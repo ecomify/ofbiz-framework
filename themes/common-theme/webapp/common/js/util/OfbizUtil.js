@@ -1430,7 +1430,7 @@ function submitPagination(obj, url) {
         return false;
     } else {
         if (obj.tagName == "SELECT" || obj.tagName == "INPUT") {
-            location.href = url;
+            lookupPaginationAjaxRequest(url, (obj.tagName == "SELECT" ? "select" : "input"));
             return false;
         } else {
             obj.href = url;
