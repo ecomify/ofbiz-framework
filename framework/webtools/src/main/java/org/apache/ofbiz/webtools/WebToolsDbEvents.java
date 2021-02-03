@@ -54,7 +54,7 @@ public class WebToolsDbEvents {
     private static final String DEFAULTS = "======================== Defaults =======================";
     private static final String HEADER = "======================== Data Model =====================";
     private static final String XMLN_NAME = "xmlns:xsi";
-    private static final String XMLN_VALUE= "http://www.w3.org/2001/XMLSchema-instance";
+    private static final String XMLN_VALUE = "http://www.w3.org/2001/XMLSchema-instance";
     private static final String XSI_NAME = "xsi:noNamespaceSchemaLocation";
     private static final String XSI_VALUE = "http://ofbiz.apache.org/dtds/entitymodel.xsd";
 
