@@ -40,7 +40,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 public class WebToolsDbEvents {
-    private static final String module = WebToolsDbEvents.class.getName();
+    private static final String MODULE = WebToolsDbEvents.class.getName();
     public static final String resource = "WebtoolsUiLabels";
     private static Document document;
     private static final String TITLE = "Entities of an Apache Open For Business Project (Apache OFBiz) Component";
@@ -54,7 +54,7 @@ public class WebToolsDbEvents {
     private static final String DEFAULTS = "======================== Defaults =======================";
     private static final String HEADER = "======================== Data Model =====================";
     private static final String XMLN_NAME = "xmlns:xsi";
-    private static final String XMLN_VALUE= "http://www.w3.org/2001/XMLSchema-instance";
+    private static final String XMLN_VALUE = "http://www.w3.org/2001/XMLSchema-instance";
     private static final String XSI_NAME = "xsi:noNamespaceSchemaLocation";
     private static final String XSI_VALUE = "http://ofbiz.apache.org/dtds/entitymodel.xsd";
 
@@ -111,13 +111,10 @@ public class WebToolsDbEvents {
             UtilXml.addChildElementValue(entitymodel, "author", AUTHOR, document);
             UtilXml.addChildElementValue(entitymodel, "version", VERSION, document);
 
-            entitymodel
-                    .appendChild(document.createComment(SEPARATOR));
-            entitymodel
-                    .appendChild(document.createComment(HEADER));
+            entitymodel.appendChild(document.createComment(SEPARATOR));
+            entitymodel.appendChild(document.createComment(HEADER));
             entitymodel.appendChild(document.createComment(INTRO));
-            entitymodel
-                    .appendChild(document.createComment(SEPARATOR));
+            entitymodel.appendChild(document.createComment(SEPARATOR));
         }
         GenericDAO dao = GenericDAO.getGenericDAO(new GenericHelperInfo(null, datasourceName));
         List<ModelEntity> newEntList = dao.induceModelFromDb(new ArrayList<String>());
