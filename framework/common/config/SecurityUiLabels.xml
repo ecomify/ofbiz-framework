@@ -83,10 +83,6 @@
         <value xml:lang="zh">把用户登录添加到安全组</value>
         <value xml:lang="zh-TW">把使用者登入增加到安全群組</value>
     </property>
-    <property key="AnswerSecurityQuestion">
-        <value xml:lang="en">Answer your Security Question</value>
-        <value xml:lang="fr">Répondez à votre question de sécurité</value>
-    </property>
     <property key="CertComponent">
         <value xml:lang="de">Komponente</value>
         <value xml:lang="en">Component</value>
@@ -715,10 +711,6 @@
         <value xml:lang="en">Click Here To Reset Password</value>
         <value xml:lang="fr">Cliquez ici pour créer un nouveau mot de passe</value>
     </property>
-    <property key="SecurityAnswer">
-        <value xml:lang="en">Security Answer</value>
-        <value xml:lang="fr">Réponse de sécurité</value>
-    </property>
     <property key="SecurityGroups">
         <value xml:lang="de">Sicherheitsgruppen</value>
         <value xml:lang="en">Security Groups</value>
@@ -753,10 +745,6 @@
         <value xml:lang="zh">安全组列表</value>
         <value xml:lang="zh-TW">安全群組清單</value>
     </property>
-    <property key="SecurityQuestion">
-        <value xml:lang="en">Security Question</value>
-        <value xml:lang="fr">Question de sécurité</value>
-    </property>
     <property key="SecurityViewPermissionError">
         <value xml:lang="de">Sicherheitsfehler: Sie haben nicht die Berechtigung diese Seite anzusehen. ("SECURITY_VIEW" oder "SECURITY_ADMIN" benötigt) </value>
         <value xml:lang="en">SecurityViewPermissionError You do not have permission to view this page. ("SECURITY_VIEW" or "SECURITY_ADMIN" needed)</value>
@@ -773,6 +761,26 @@
         <value xml:lang="th">ผิดพลาด ! ความปลอดภัยของกลุ่มผู้ใช้ในการได้รับอนุญาตในการดู  คุณยังไม่ได้รับอุญาตให้ดูหน้านี้ ("SECURITY_VIEW" หรือ "SECURITY_ADMIN" ตามที่คุณต้องการ)</value>
         <value xml:lang="zh">SecurityViewPermissionError 你没有权限浏览本页面。 (需要"SECURITY_VIEW" 或 "SECURITY_ADMIN")</value>
         <value xml:lang="zh-TW">SecurityViewPermissionError 你沒有權限檢視本頁面. (需要"SECURITY_VIEW" 或 "SECURITY_ADMIN")</value>
+    </property>
+    <property key="SupportedFileFormatsIncludingSvg">
+        <value xml:lang="en">For security reason only valid files of supported image formats (GIF, JPEG, PNG, TIFF), SVG, PDF, and ZIP or text files with safe contents are accepted.</value>
+        <value xml:lang="fr">Pour des raisons de sécurité, seuls les fichiers valides de formats d'image pris en charge (GIF, JPEG, PNG, TIFF), les fichiers SVG, PDF, et les fichiers ZIP ou texte aux contenus sûrs sont acceptés.</value>
+    </property>
+     <property key="SupportedFileFormats">
+        <value xml:lang="en">For security reason only valid files of supported image formats (GIF, JPEG, PNG, TIFF), PDF or text files with safe contents are accepted.</value>
+        <value xml:lang="fr">Pour des raisons de sécurité, seuls les fichiers valides de formats d'image pris en charge (GIF, JPEG, PNG, TIFF), les fichiers PDF ou les fichiers texte aux contenus sûrs sont acceptés.</value>
+    </property>
+    <property key="SupportedImageFormatsIncludingSvg">
+        <value xml:lang="en">For security reason only valid files of supported image formats (GIF, JPEG, PNG, TIFF), or SVG format are accepted.</value>
+        <value xml:lang="fr">Pour des raisons de sécurité, seuls les fichiers valides des formats d'image pris en charge (GIF, JPEG, PNG, TIFF) ou au format SVG sont acceptés.</value>
+    </property>
+    <property key="SupportedImageFormats">
+        <value xml:lang="en">For security reason only valid files of supported image formats (GIF, JPEG, PNG, TIFF) are accepted.</value>
+        <value xml:lang="fr">Pour des raisons de sécurité, seuls les fichiers valides des formats d'image pris en charge (GIF, JPEG, PNG, TIFF) sont acceptés.</value>
+    </property>
+    <property key="SupportedTextFileFormats">
+        <value xml:lang="en">For security reason only text files with safe contents are accepted.</value>
+        <value xml:lang="fr">Pour des raisons de sécurité, seuls les fichiers texte dont les contenus sont sûrs sont acceptés.</value>
     </property>
     <property key="UserLogin">
         <value xml:lang="de">Benutzeranmeldung</value>

@@ -73,10 +73,10 @@ import freemarker.template.TemplateHashModel;
  * SAX XML Parser Content Handler for Entity Engine XML files
  */
 public class EntitySaxReader extends DefaultHandler {
-    public static final String module = EntitySaxReader.class.getName();
+    private static final String MODULE = EntitySaxReader.class.getName();
     public static final int DEFAULT_TX_TIMEOUT = 7200;
 
-    protected org.xml.sax.Locator locator;
+    private org.xml.sax.Locator locator;
     private Delegator delegator;
     private EntityEcaHandler<?> ecaHandler = null;
     private GenericValue currentValue = null;
@@ -97,7 +97,7 @@ public class EntitySaxReader extends DefaultHandler {
     private boolean createDummyFks = false;
     private boolean checkDataOnly = false;
     private boolean continueOnFail = false;
-    private enum Action {CREATE, CREATE_UPDATE, CREATE_REPLACE, DELETE}
+    private enum Action { CREATE, CREATE_UPDATE, CREATE_REPLACE, DELETE }
     private List<String> actionTags = UtilMisc.toList("create", "create-update", "create-replace", "delete");
     private Action currentAction = Action.CREATE_UPDATE;
     private List<Object> messageList = null;
@@ -110,9 +110,10 @@ public class EntitySaxReader extends DefaultHandler {
     private Node rootNodeForTemplate = null;
     private Node currentNodeForTemplate = null;
     private Document documentForTemplate = null;
-    private Map<String, Object> placeholderValues = null; //contains map of values for corresponding placeholders (eg. ${key}) in the entity xml data file.
+    private Map<String, Object> placeholderValues = null;
+    //contains map of values for corresponding placeholders (eg. ${key}) in the entity xml data file.
 
-    protected EntitySaxReader() {}
+    protected EntitySaxReader() { }
 
     public EntitySaxReader(Delegator delegator, int transactionTimeout) {
         // clone the delegator right off so there is no chance of making change to the initial object
@@ -124,14 +125,27 @@ public class EntitySaxReader extends DefaultHandler {
         this(delegator, DEFAULT_TX_TIMEOUT);
     }
 
+    /**
+     * Gets transaction timeout.
+     * @return the transaction timeout
+     */
     public int getTransactionTimeout() {
         return this.transactionTimeout;
     }
 
+    /**
+     * Sets use try insert method.
+     * @param value the value
+     */
     public void setUseTryInsertMethod(boolean value) {
         this.useTryInsertMethod = value;
     }
 
+    /**
+     * Sets transaction timeout.
+     * @param transactionTimeout the transaction timeout
+     * @throws GenericTransactionException the generic transaction exception
+     */
     public void setTransactionTimeout(int transactionTimeout) throws GenericTransactionException {
         if (this.transactionTimeout != transactionTimeout) {
             TransactionUtil.setTransactionTimeout(transactionTimeout);
@@ -139,26 +153,50 @@ public class EntitySaxReader extends DefaultHandler {
         }
     }
 
+    /**
+     * Sets maintain tx stamps.
+     * @param maintainTxStamps the maintain tx stamps
+     */
     public void setMaintainTxStamps(boolean maintainTxStamps) {
         this.maintainTxStamps = maintainTxStamps;
     }
 
+    /**
+     * Sets create dummy fks.
+     * @param createDummyFks the create dummy fks
+     */
     public void setCreateDummyFks(boolean createDummyFks) {
         this.createDummyFks = createDummyFks;
     }
 
+    /**
+     * Sets check data only.
+     * @param checkDataOnly the check data only
+     */
     public void setCheckDataOnly(boolean checkDataOnly) {
         this.checkDataOnly = checkDataOnly;
     }
 
+    /**
+     * Sets continue on fail.
+     * @param continueOnFail the continue on fail
+     */
     public void setContinueOnFail(boolean continueOnFail) {
         this.continueOnFail = continueOnFail;
     }
 
-    public void setPlaceholderValues(Map<String,Object> placeholderValues) {
+    /**
+     * Sets placeholder values.
+     * @param placeholderValues the placeholder values
+     */
+    public void setPlaceholderValues(Map<String, Object> placeholderValues) {
         this.placeholderValues = placeholderValues;
     }
 
+    /**
+     * Gets message list.
+     * @return the message list
+     */
     public List<Object> getMessageList() {
         if (this.checkDataOnly && this.messageList == null) {
             messageList = new LinkedList<>();
@@ -166,6 +204,10 @@ public class EntitySaxReader extends DefaultHandler {
         return this.messageList;
     }
 
+    /**
+     * Sets disable eeca.
+     * @param disableEeca the disable eeca
+     */
     public void setDisableEeca(boolean disableEeca) {
         if (disableEeca) {
             if (this.ecaHandler == null) {
@@ -183,23 +225,37 @@ public class EntitySaxReader extends DefaultHandler {
         this.currentAction = action;
     }
 
+    /**
+     * Parse long.
+     * @param content the content
+     * @return the long
+     * @throws SAXException the sax exception
+     * @throws IOException the io exception
+     */
     public long parse(String content) throws SAXException, java.io.IOException {
         if (content == null) {
-            Debug.logWarning("content was null, doing nothing", module);
+            Debug.logWarning("content was null, doing nothing", MODULE);
             return 0;
         }
 
         try (ByteArrayInputStream bis = new ByteArrayInputStream(content.getBytes("UTF-8"))) {
-        return this.parse(bis, "Internal Content");
+            return this.parse(bis, "Internal Content");
         }
     }
 
+    /**
+     * Parse long.
+     * @param location the location
+     * @return the long
+     * @throws SAXException the sax exception
+     * @throws IOException the io exception
+     */
     public long parse(URL location) throws SAXException, java.io.IOException {
         if (location == null) {
-            Debug.logWarning("location URL was null, doing nothing", module);
+            Debug.logWarning("location URL was null, doing nothing", MODULE);
             return 0;
         }
-        Debug.logImportant("Beginning import from URL: " + location.toExternalForm(), module);
+        Debug.logImportant("Beginning import from URL: " + location.toExternalForm(), MODULE);
         long numberRead = 0;
         try (InputStream is = location.openStream()) {
             numberRead = this.parse(is, location.toString());
@@ -211,7 +267,7 @@ public class EntitySaxReader extends DefaultHandler {
         SAXParser parser;
         try {
             parser = SAXParserFactory.newInstance().newSAXParser();
-        } catch(ParserConfigurationException pce) {
+        } catch (ParserConfigurationException pce) {
             throw new SAXException("Unable to create the SAX parser", pce);
         }
         numberRead = 0;
@@ -219,7 +275,7 @@ public class EntitySaxReader extends DefaultHandler {
             boolean beganTransaction = false;
             if (transactionTimeout > -1) {
                 beganTransaction = TransactionUtil.begin(transactionTimeout);
-                Debug.logImportant("Transaction Timeout set to " + transactionTimeout / 3600 + " hours (" + transactionTimeout + " seconds)", module);
+                Debug.logImportant("Transaction Timeout set to " + transactionTimeout / 3600 + " hours (" + transactionTimeout + " seconds)", MODULE);
             }
             try {
                 parser.parse(is, this);
@@ -235,18 +291,18 @@ public class EntitySaxReader extends DefaultHandler {
                 TransactionUtil.commit(beganTransaction);
             } catch (GenericEntityException | IOException | IllegalArgumentException | SAXException e) {
                 String errMsg = "An error occurred saving the data, rolling back transaction (" + beganTransaction + ")";
-                Debug.logError(e, errMsg, module);
+                Debug.logError(e, errMsg, MODULE);
                 TransactionUtil.rollback(beganTransaction, errMsg, e);
                 throw new SAXException("A transaction error occurred reading data", e);
             }
         } catch (GenericTransactionException e) {
             throw new SAXException("A transaction error occurred reading data", e);
         }
-        Debug.logImportant("Finished " + numberRead + " values from " + docDescription, module);
-        if (Debug.verboseOn()) { 
-            Debug.logVerbose("  Detail created : " + numberCreated + ", skipped : " + numberSkipped +
-                    ", updated : " + numberUpdated + ", replaced : " + numberReplaced +
-                    ", deleted : " + numberDeleted, module);
+        Debug.logImportant("Finished " + numberRead + " values from " + docDescription, MODULE);
+        if (Debug.verboseOn()) {
+            Debug.logVerbose("  Detail created : " + numberCreated + ", skipped : " + numberSkipped
+                    + ", updated : " + numberUpdated + ", replaced : " + numberReplaced
+                    + ", deleted : " + numberDeleted, MODULE);
         }
         return numberRead;
     }
@@ -260,11 +316,17 @@ public class EntitySaxReader extends DefaultHandler {
     }
 
     private void countValue(boolean skip, boolean exist) {
-        if (skip) numberSkipped++;
-        else if (Action.DELETE == currentAction) numberDeleted++;
-        else if (Action.CREATE == currentAction || !exist) numberCreated++;
-        else if (Action.CREATE_REPLACE == currentAction) numberReplaced++;
-        else numberUpdated++;
+        if (skip) {
+            numberSkipped++;
+        } else if (Action.DELETE == currentAction) {
+            numberDeleted++;
+        } else if (Action.CREATE == currentAction || !exist) {
+            numberCreated++;
+        } else if (Action.CREATE_REPLACE == currentAction) {
+            numberReplaced++;
+        } else {
+            numberUpdated++;
+        }
     }
 
     // ======== ContentHandler interface implementation ========
@@ -297,7 +359,9 @@ public class EntitySaxReader extends DefaultHandler {
 
     @Override
     public void endElement(String namespaceURI, String localName, String fullNameString) throws SAXException {
-        if (Debug.verboseOn()) Debug.logVerbose("endElement: localName=" + localName + ", fullName=" + fullNameString + ", numberRead=" + numberRead, module);
+        if (Debug.verboseOn()) {
+            Debug.logVerbose("endElement: localName=" + localName + ", fullName=" + fullNameString + ", numberRead=" + numberRead, MODULE);
+        }
         if ("entity-engine-xml".equals(fullNameString)) {
             return;
         }
@@ -314,7 +378,7 @@ public class EntitySaxReader extends DefaultHandler {
                 throw new SAXException("Could not find transform template with resource path: " + templatePath);
             } else {
                 try {
-                    BufferedReader templateReader = new BufferedReader(new InputStreamReader(templateUrl.openStream(),StandardCharsets.UTF_8));
+                    BufferedReader templateReader = new BufferedReader(new InputStreamReader(templateUrl.openStream(), StandardCharsets.UTF_8));
 
                     StringWriter outWriter = new StringWriter();
                     Configuration config = FreeMarkerWorker.newConfiguration();
@@ -331,14 +395,16 @@ public class EntitySaxReader extends DefaultHandler {
                     context.put("doc", nodeModel);
                     template.process(context, outWriter);
                     String s = outWriter.toString();
-                    if (Debug.verboseOn()) Debug.logVerbose("transformed xml: " + s, module);
+                    if (Debug.verboseOn()) {
+                        Debug.logVerbose("transformed xml: " + s, MODULE);
+                    }
 
                     EntitySaxReader reader = new EntitySaxReader(delegator);
                     reader.setUseTryInsertMethod(this.useTryInsertMethod);
                     try {
                         reader.setTransactionTimeout(this.transactionTimeout);
                     } catch (GenericTransactionException e1) {
-                        Debug.logWarning("couldn't set tx timeout, hopefully shouldn't be a big deal", module);
+                        Debug.logWarning("couldn't set tx timeout, hopefully shouldn't be a big deal", MODULE);
                     }
 
                     numberRead += reader.parse(s);
@@ -376,13 +442,14 @@ public class EntitySaxReader extends DefaultHandler {
                         }
                     } else {
                         Debug.logWarning("Ignoring invalid field name [" + currentFieldName + "] found for the entity: "
-                                + currentValue.getEntityName() + " with value=" + currentFieldValue.toString(), module);
+                                + currentValue.getEntityName() + " with value=" + currentFieldValue.toString(), MODULE);
                     }
                     currentFieldValue = null;
                 }
                 currentFieldName = null;
             } else {
-                // before we write currentValue check to see if PK is there, if not and it is one field, generate it from a sequence using the entity name
+                // before we write currentValue check to see if PK is there, if not and it is one field, generate it
+                // from a sequence using the entity name
                 if (!currentValue.containsPrimaryKey()) {
                     if (currentValue.getModelEntity().getPksSize() == 1) {
                         ModelField modelField = currentValue.getModelEntity().getOnlyPk();
@@ -403,10 +470,15 @@ public class EntitySaxReader extends DefaultHandler {
                         if (currentValue.containsPrimaryKey()) {
                             try {
                                 helper.findByPrimaryKey(currentValue.getPrimaryKey());
-                            } catch (GenericEntityNotFoundException e) {exist = false;}
+                            } catch (GenericEntityNotFoundException e) {
+                                exist = false;
+                            }
                         }
-                        if (Action.CREATE == currentAction && exist) { skip = true; }
-                        else if (Action.DELETE == currentAction && !exist) { skip = true; }
+                        if (Action.CREATE == currentAction && exist) {
+                            skip = true;
+                        } else if (Action.DELETE == currentAction && !exist) {
+                            skip = true;
+                        }
                     }
                     if (!skip) {
                         if (this.useTryInsertMethod && !this.checkDataOnly) {
@@ -434,12 +506,12 @@ public class EntitySaxReader extends DefaultHandler {
                     numberRead++;
                     if (Debug.verboseOn()) countValue(skip, exist);
                     if ((numberRead % valuesPerMessage) == 0) {
-                        Debug.logImportant("Another " + valuesPerMessage + " values imported: now up to " + numberRead, module);
+                        Debug.logImportant("Another " + valuesPerMessage + " values imported: now up to " + numberRead, MODULE);
                     }
                     currentValue = null;
                 } catch (GenericEntityException e) {
                     String errMsg = "Error performing action " + currentAction;
-                    Debug.logError(e, errMsg, module);
+                    Debug.logError(e, errMsg, MODULE);
                     throw new SAXException(errMsg, e);
                 }
             }
@@ -453,7 +525,9 @@ public class EntitySaxReader extends DefaultHandler {
 
     @Override
     public void startElement(String namepsaceURI, String localName, String fullNameString, Attributes attributes) throws SAXException {
-        if (Debug.verboseOn()) Debug.logVerbose("startElement: localName=" + localName + ", fullName=" + fullNameString + ", attributes=" + attributes, module);
+        if (Debug.verboseOn()) {
+            Debug.logVerbose("startElement: localName=" + localName + ", fullName=" + fullNameString + ", attributes=" + attributes, MODULE);
+        }
         if ("entity-engine-xml".equals(fullNameString)) {
             // check the maintain-timestamp flag
             CharSequence maintainTx = attributes.getValue("maintain-timestamps");
@@ -536,7 +610,7 @@ public class EntitySaxReader extends DefaultHandler {
                 }
             } catch (Exception e) {
                 if (continueOnFail) {
-                    Debug.logError(e, module);
+                    Debug.logError(e, MODULE);
                 } else {
                     throw new SAXException(e);
                 }
@@ -570,11 +644,12 @@ public class EntitySaxReader extends DefaultHandler {
                                 currentValue.setString(name.toString(), valueString);
                                 if (Action.CREATE_REPLACE == currentAction && absentFields != null) absentFields.remove(name);
                             } else {
-                                Debug.logWarning("Ignoring invalid field name [" + name + "] found for the entity: " + currentValue.getEntityName() + " with value=" + value, module);
+                                Debug.logWarning("Ignoring invalid field name [" + name + "] found for the entity: " + currentValue.getEntityName()
+                                        + " with value=" + value, MODULE);
                             }
                         }
                     } catch (Exception e) {
-                        Debug.logWarning(e, "Could not set field " + entityName + "." + name + " to the value " + value, module);
+                        Debug.logWarning(e, "Could not set field " + entityName + "." + name + " to the value " + value, MODULE);
                     }
                 }
                 if (Action.CREATE_REPLACE == currentAction && absentFields != null) {
@@ -590,17 +665,17 @@ public class EntitySaxReader extends DefaultHandler {
 
     @Override
     public void error(org.xml.sax.SAXParseException exception) throws SAXException {
-        Debug.logWarning(exception, "Error reading XML on line " + exception.getLineNumber() + ", column " + exception.getColumnNumber(), module);
+        Debug.logWarning(exception, "Error reading XML on line " + exception.getLineNumber() + ", column " + exception.getColumnNumber(), MODULE);
     }
 
     @Override
     public void fatalError(org.xml.sax.SAXParseException exception) throws SAXException {
-        Debug.logError(exception, "Fatal Error reading XML on line " + exception.getLineNumber() + ", column " + exception.getColumnNumber(), module);
+        Debug.logError(exception, "Fatal Error reading XML on line " + exception.getLineNumber() + ", column " + exception.getColumnNumber(), MODULE);
         throw new SAXException("Fatal Error reading XML on line " + exception.getLineNumber() + ", column " + exception.getColumnNumber(), exception);
     }
 
     @Override
     public void warning(org.xml.sax.SAXParseException exception) throws SAXException {
-        Debug.logWarning(exception, "Warning reading XML on line " + exception.getLineNumber() + ", column " + exception.getColumnNumber(), module);
+        Debug.logWarning(exception, "Warning reading XML on line " + exception.getLineNumber() + ", column " + exception.getColumnNumber(), MODULE);
     }
 }

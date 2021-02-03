@@ -31,12 +31,11 @@ import org.w3c.dom.Element;
 
 /**
  * Implements the &lt;entity-one&gt; element.
- * 
  * @see <a href="https://cwiki.apache.org/confluence/display/OFBIZ/Mini+Language+-+minilang+-+simple-method+-+Reference">Mini-language Reference</a>
  */
 public final class EntityOne extends EntityOperation {
 
-    public static final String module = EntityOne.class.getName();
+    private static final String MODULE = EntityOne.class.getName();
 
     private final PrimaryKeyFinder finder;
 
@@ -58,8 +57,8 @@ public final class EntityOne extends EntityOperation {
             this.finder.runFind(methodContext.getEnvMap(), delegator);
         } catch (GeneralException e) {
             String errMsg = "Exception thrown while performing entity find: " + e.getMessage();
-            Debug.logWarning(e, errMsg, module);
-            simpleMethod.addErrorMessage(methodContext, errMsg);
+            Debug.logWarning(e, errMsg, MODULE);
+            getSimpleMethod().addErrorMessage(methodContext, errMsg);
             return false;
         }
         return true;

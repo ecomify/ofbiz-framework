@@ -55,10 +55,10 @@ import org.apache.ofbiz.service.ServiceUtil;
  */
 public class PromoServices {
 
-    public final static String module = PromoServices.class.getName();
-    public static final String resource = "ProductUiLabels";
-    private final static char[] smartChars = { 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'K', 'L', 'M', 'N', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y',
-            'Z', '2', '3', '4', '5', '6', '7', '8', '9' };
+    private static final String MODULE = PromoServices.class.getName();
+    private static final String RESOURCE = "ProductUiLabels";
+    private static final char[] SMART_CHARS = {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'K', 'L', 'M', 'N', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W',
+            'X', 'Y', 'Z', '2', '3', '4', '5', '6', '7', '8', '9' };
 
     public static Map<String, Object> createProductPromoCodeSet(DispatchContext dctx, Map<String, ? extends Object> context) {
         Locale locale = (Locale) context.get("locale");
@@ -79,7 +79,7 @@ public class PromoServices {
 
         String newPromoCodeId = "";
         StringBuilder bankOfNumbers = new StringBuilder();
-        bankOfNumbers.append(UtilProperties.getMessage(resource, "ProductPromoCodesCreated", locale));
+        bankOfNumbers.append(UtilProperties.getMessage(RESOURCE, "ProductPromoCodesCreated", locale));
         for (long i = 0; i < quantity; i++) {
             Map<String, Object> createProductPromoCodeMap = null;
             boolean foundUniqueNewCode = false;
@@ -87,16 +87,16 @@ public class PromoServices {
 
             while (!foundUniqueNewCode) {
                 if (useSmartLayout) {
-                    newPromoCodeId = RandomStringUtils.random(codeLength, smartChars);
+                    newPromoCodeId = RandomStringUtils.random(codeLength, SMART_CHARS);
                 } else if (useNormalLayout) {
                     newPromoCodeId = RandomStringUtils.randomAlphanumeric(codeLength);
                 }
                 GenericValue existingPromoCode = null;
                 try {
-                    existingPromoCode = EntityQuery.use(delegator).from("ProductPromoCode").where("productPromoCodeId", newPromoCodeId).cache().queryOne();
-                }
-                catch (GenericEntityException e) {
-                    Debug.logWarning("Could not find ProductPromoCode for just generated ID: " + newPromoCodeId, module);
+                    existingPromoCode = EntityQuery.use(delegator).from("ProductPromoCode").where("productPromoCodeId",
+                            newPromoCodeId).cache().queryOne();
+                } catch (GenericEntityException e) {
+                    Debug.logWarning("Could not find ProductPromoCode for just generated ID: " + newPromoCodeId, MODULE);
                 }
                 if (existingPromoCode == null) {
                     foundUniqueNewCode = true;
@@ -112,11 +112,12 @@ public class PromoServices {
                 newContext.put("productPromoCodeId", newPromoCodeId);
                 createProductPromoCodeMap = dispatcher.runSync("createProductPromoCode", newContext);
             } catch (GenericServiceException err) {
-                return ServiceUtil.returnError(UtilProperties.getMessage(resource, "ProductPromoCodeCannotBeCreated", locale), null, null, null);
+                return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE, "ProductPromoCodeCannotBeCreated", locale), null, null, null);
             }
             if (ServiceUtil.isError(createProductPromoCodeMap)) {
                 // what to do here? try again?
-                return ServiceUtil.returnError(UtilProperties.getMessage(resource, "ProductPromoCodeCannotBeCreated", locale), null, null, createProductPromoCodeMap);
+                return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE, "ProductPromoCodeCannotBeCreated", locale), null,
+                        null, createProductPromoCodeMap);
             }
             bankOfNumbers.append((String) createProductPromoCodeMap.get("productPromoCodeId"));
             bankOfNumbers.append(",");
@@ -147,8 +148,8 @@ public class PromoServices {
                 productStorePromo.remove();
             }
         } catch (GenericEntityException e) {
-            Debug.logError(e, "Error removing expired ProductStorePromo records: " + e.toString(), module);
-            return ServiceUtil.returnError(UtilProperties.getMessage(resource,
+            Debug.logError(e, "Error removing expired ProductStorePromo records: " + e.toString(), MODULE);
+            return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE,
                     "ProductPromoCodeCannotBeRemoved", UtilMisc.toMap("errorString", e.toString()), locale));
         }
 
@@ -162,7 +163,7 @@ public class PromoServices {
         // check the uploaded file
         ByteBuffer fileBytes = (ByteBuffer) context.get("uploadedFile");
         if (fileBytes == null) {
-            return ServiceUtil.returnError(UtilProperties.getMessage(resource,
+            return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE,
                     "ProductPromoCodeImportUploadedFileNotValid", locale));
         }
 
@@ -173,7 +174,7 @@ public class PromoServices {
         try {
             promoModel = dispatcher.getDispatchContext().getModelService("createProductPromoCode");
         } catch (GenericServiceException e) {
-            Debug.logError(e, module);
+            Debug.logError(e, MODULE);
             return ServiceUtil.returnError(e.getMessage());
         }
 
@@ -190,7 +191,7 @@ public class PromoServices {
         try {
             while ((line = reader.readLine()) != null) {
                 // check to see if we should ignore this line
-                if (line.length() > 0 && !line.startsWith("#")) {
+                if (!line.isEmpty() && !line.startsWith("#")) {
                     if (line.length() <= 20) {
                         // valid promo code
                         Map<String, Object> inContext = new HashMap<>();
@@ -202,27 +203,27 @@ public class PromoServices {
                         }
                     } else {
                         // not valid ignore and notify
-                        errors.add(line + UtilProperties.getMessage(resource, "ProductPromoCodeInvalidCode", locale));
+                        errors.add(line + UtilProperties.getMessage(RESOURCE, "ProductPromoCodeInvalidCode", locale));
                     }
                     ++lines;
                 }
             }
         } catch (IOException | GenericServiceException e) {
-            Debug.logError(e, module);
+            Debug.logError(e, MODULE);
             return ServiceUtil.returnError(e.getMessage());
         } finally {
             try {
                 reader.close();
             } catch (IOException e) {
-                Debug.logError(e, module);
+                Debug.logError(e, MODULE);
             }
         }
 
         // return errors or success
-        if (errors.size() > 0) {
+        if (!errors.isEmpty()) {
             return ServiceUtil.returnError(errors);
         } else if (lines == 0) {
-            return ServiceUtil.returnError(UtilProperties.getMessage(resource,
+            return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE,
                     "ProductPromoCodeImportEmptyFile", locale));
         }
 
@@ -238,7 +239,7 @@ public class PromoServices {
         ByteBuffer bytebufferwrapper = (ByteBuffer) context.get("uploadedFile");
 
         if (bytebufferwrapper == null) {
-            return ServiceUtil.returnError(UtilProperties.getMessage(resource, "ProductPromoCodeImportUploadedFileNotValid", locale));
+            return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE, "ProductPromoCodeImportUploadedFileNotValid", locale));
         }
 
         byte[] wrapper = bytebufferwrapper.array();
@@ -252,12 +253,40 @@ public class PromoServices {
         // read the uploaded file and process each line
         try {
             while ((line = reader.readLine()) != null) {
-                if (line.length() > 0 && !line.startsWith("#")) {
+                if (!line.isEmpty() && !line.startsWith("#")) {
                     if (UtilValidate.isEmail(line)) {
                         // valid email address
-                        Map<String, Object> result = dispatcher.runSync("createProductPromoCodeEmail", UtilMisc.<String, Object>toMap("productPromoCodeId",
-                                productPromoCodeId, "emailAddress", line, "userLogin", userLogin));
-                        if (result != null && ServiceUtil.isError(result)) {
+                        GenericValue contactMech;
+                        String contactMechId;
+                        try {
+                            //check for existing contactMechId
+                            contactMech = EntityQuery.use(dctx.getDelegator()).from("ContactMech")
+                                    .where("infoString", line).queryOne();
+                        } catch (GenericEntityException e) {
+                            Debug.logError(e, MODULE);
+                            errors.add(line + ": Too many contactMechIds found ");
+                            continue;
+                        }
+                        Map<String, Object> result = new HashMap<>();
+                        if (contactMech == null) {
+                            //If no contactMech found create new
+                            result = dispatcher.runSync("createContactMech",
+                                    UtilMisc.toMap("contactMechTypeId", "EMAIL_ADDRESS", "infoString", line,
+                                            "userLogin", userLogin));
+                            if (ServiceUtil.isError(result)) {
+                                errors.add(line + ": " + ServiceUtil.getErrorMessage(result));
+                                continue;
+                            } else {
+                                contactMechId = (String) result.get("contactMechId");
+                            }
+                        } else {
+                            contactMechId = contactMech.getString("contactMechId");
+                        }
+                        result.clear();
+                        result = dispatcher.runSync("createProductPromoCodeContactMech",
+                                UtilMisc.<String, Object>toMap("productPromoCodeId",
+                                productPromoCodeId, "contactMechId", contactMechId, "userLogin", userLogin));
+                        if (ServiceUtil.isError(result)) {
                             errors.add(line + ": " + ServiceUtil.getErrorMessage(result));
                         }
                     } else {
@@ -268,21 +297,21 @@ public class PromoServices {
                 }
             }
         } catch (IOException | GenericServiceException e) {
-            Debug.logError(e, module);
+            Debug.logError(e, MODULE);
             return ServiceUtil.returnError(e.getMessage());
         } finally {
             try {
                 reader.close();
             } catch (IOException e) {
-                Debug.logError(e, module);
+                Debug.logError(e, MODULE);
             }
         }
 
         // return errors or success
-        if (errors.size() > 0) {
+        if (!errors.isEmpty()) {
             return ServiceUtil.returnError(errors);
         } else if (lines == 0) {
-            return ServiceUtil.returnError(UtilProperties.getMessage(resource,
+            return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE,
                     "ProductPromoCodeImportEmptyFile", locale));
         }
 

@@ -36,25 +36,29 @@ import org.w3c.dom.Element;
  */
 public class ServiceEcaSetField {
 
-    public static final String module = ServiceEcaSetField.class.getName();
+    private static final String MODULE = ServiceEcaSetField.class.getName();
 
-    protected String fieldName = null;
-    protected String mapName = null;
-    protected String envName = null;
-    protected String value = null;
-    protected String format = null;
+    private String fieldName = null;
+    private String mapName = null;
+    private String envName = null;
+    private String value = null;
+    private String format = null;
 
     public ServiceEcaSetField(Element set) {
         this.fieldName = set.getAttribute("field-name");
         if (UtilValidate.isNotEmpty(this.fieldName) && this.fieldName.indexOf('.') != -1) {
             this.mapName = fieldName.substring(0, this.fieldName.indexOf('.'));
-            this.fieldName = this.fieldName.substring(this.fieldName.indexOf('.') +1);
+            this.fieldName = this.fieldName.substring(this.fieldName.indexOf('.') + 1);
         }
         this.envName = set.getAttribute("env-name");
         this.value = set.getAttribute("value");
         this.format = set.getAttribute("format");
     }
 
+    /**
+     * Eval.
+     * @param context the context
+     */
     public void eval(Map<String, Object> context) {
         if (fieldName != null) {
             // try to expand the envName
@@ -64,7 +68,7 @@ public class ServiceEcaSetField {
                 if (UtilValidate.isNotEmpty(s)) {
                     value = s;
                 }
-                Debug.logInfo("Expanded String: " + s, module);
+                Debug.logInfo("Expanded String: " + s, MODULE);
             }
             // TODO: rewrite using the ContextAccessor.java see hack below to be able to use maps for email notifications
             // check if target is a map and create/get from contaxt
@@ -93,6 +97,12 @@ public class ServiceEcaSetField {
         }
     }
 
+    /**
+     * Format object.
+     * @param s the s
+     * @param c the c
+     * @return the object
+     */
     protected Object format(String s, Map<String, ? extends Object> c) {
         if (UtilValidate.isEmpty(s) || UtilValidate.isEmpty(format)) {
             return s;
@@ -137,7 +147,7 @@ public class ServiceEcaSetField {
             return ModelUtil.javaNameToDbName(s);
         }
 
-        Debug.logWarning("Format function not found [" + format + "] return string unchanged - " + s, module);
+        Debug.logWarning("Format function not found [" + format + "] return string unchanged - " + s, MODULE);
         return s;
     }
 

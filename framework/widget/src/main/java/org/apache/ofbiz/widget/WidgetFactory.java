@@ -41,8 +41,8 @@ import org.w3c.dom.Element;
  */
 public class WidgetFactory {
 
-    public static final String module = WidgetFactory.class.getName();
-    protected static final Map<String, Constructor<? extends ModelScreenWidget>> screenWidgets = new ConcurrentHashMap<>();
+    private static final String MODULE = WidgetFactory.class.getName();
+    protected static final Map<String, Constructor<? extends ModelScreenWidget>> SCREEN_WIDGETS = new ConcurrentHashMap<>();
 
     static {
         loadStandardWidgets();
@@ -53,7 +53,7 @@ public class WidgetFactory {
                 WidgetLoader widgetLoader = widgetLoaders.next();
                 widgetLoader.loadWidgets();
             } catch (Exception e) {
-                Debug.logError(e, module);
+                Debug.logError(e, MODULE);
             }
         }
     }
@@ -61,7 +61,6 @@ public class WidgetFactory {
     /**
      * Returns a <code>ModelScreenWidget</code> instance that implements the specified
      * XML element.
-     * 
      * @param modelScreen The containing screen for the widget
      * @param element The widget XML element
      * @return a <code>ModelScreenWidget</code> instance that implements the specified
@@ -71,7 +70,7 @@ public class WidgetFactory {
     public static ModelScreenWidget getModelScreenWidget(ModelScreen modelScreen, Element element) {
         Assert.notNull("modelScreen", modelScreen, "element", element);
         String tagName = UtilXml.getTagNameIgnorePrefix(element);
-        Constructor<? extends ModelScreenWidget> widgetConst = screenWidgets.get(tagName);
+        Constructor<? extends ModelScreenWidget> widgetConst = SCREEN_WIDGETS.get(tagName);
         if (widgetConst == null) {
             throw new IllegalArgumentException("ModelScreenWidget class not found for element " + tagName);
         }
@@ -79,7 +78,7 @@ public class WidgetFactory {
             return widgetConst.newInstance(modelScreen, element);
         } catch (Exception e) {
             // log the original exception since the rethrown exception doesn't include much info about it and hides the cause
-            Debug.logError(e, "Error getting widget for element " + element.getTagName(), module);
+            Debug.logError(e, "Error getting widget for element " + element.getTagName(), MODULE);
             throw new IllegalArgumentException(e.getMessage() + " for element " + element.getTagName());
         }
     }
@@ -100,17 +99,17 @@ public class WidgetFactory {
                             registerScreenWidget(fieldObject.toString(), widgetClass);
                         }
                     } catch (Exception e) {
-                        Debug.logError(e, module);
+                        Debug.logError(e, MODULE);
                     }
                 }
             } catch (Exception e) {
-                Debug.logError(e, module);
+                Debug.logError(e, MODULE);
             }
         }
         try {
             registerScreenWidget("iterate-section", IterateSectionWidget.class);
         } catch (Exception e) {
-            Debug.logError(e, module);
+            Debug.logError(e, MODULE);
         }
     }
 
@@ -119,19 +118,19 @@ public class WidgetFactory {
      * registered, the new widget replaces the existing one.<p>The class supplied
      * to the method must have a public two-argument constructor that takes a
      * <code>ModelScreen</code> instance and an <code>Element</code> instance.</p>
-     * 
      * @param tagName The XML element tag name for this widget
      * @param widgetClass The class that implements the widget element
      * @throws SecurityException
      * @throws NoSuchMethodException
      */
-    public static void registerScreenWidget(String tagName, Class<? extends ModelScreenWidget> widgetClass) throws SecurityException, NoSuchMethodException {
+    public static void registerScreenWidget(String tagName, Class<? extends ModelScreenWidget> widgetClass)
+            throws SecurityException, NoSuchMethodException {
         Assert.notNull("tagName", tagName, "widgetClass", widgetClass);
-        screenWidgets.put(tagName, widgetClass.getConstructor(ModelScreen.class, Element.class));
+        SCREEN_WIDGETS.put(tagName, widgetClass.getConstructor(ModelScreen.class, Element.class));
         if (Debug.verboseOn()) {
-            Debug.logVerbose("Registered " + widgetClass.getName() + " with tag name " + tagName, module);
+            Debug.logVerbose("Registered " + widgetClass.getName() + " with tag name " + tagName, MODULE);
         }
     }
 
-    private WidgetFactory() {}
+    private WidgetFactory() { }
 }

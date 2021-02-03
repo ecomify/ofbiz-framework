@@ -38,7 +38,7 @@ import com.ibm.icu.util.Calendar;
  */
 public class RecurrenceRule {
 
-    public static final String module = RecurrenceRule.class.getName();
+    private static final String MODULE = RecurrenceRule.class.getName();
 
     // **********************
     // * byXXX constants
@@ -85,20 +85,20 @@ public class RecurrenceRule {
     // **********************
     // * GenericValue object
     // **********************
-    protected GenericValue rule;
+    private GenericValue rule;
 
     // **********************
     // * Parsed byXXX lists
     // **********************
-    protected List<String> bySecondList;
-    protected List<String> byMinuteList;
-    protected List<String> byHourList;
-    protected List<String> byDayList;
-    protected List<String> byMonthDayList;
-    protected List<String> byYearDayList;
-    protected List<String> byWeekNoList;
-    protected List<String> byMonthList;
-    protected List<String> bySetPosList;
+    private List<String> bySecondList;
+    private List<String> byMinuteList;
+    private List<String> byHourList;
+    private List<String> byDayList;
+    private List<String> byMonthDayList;
+    private List<String> byYearDayList;
+    private List<String> byWeekNoList;
+    private List<String> byMonthList;
+    private List<String> bySetPosList;
 
     /**
      * Creates a new RecurrenceRule object from a RecurrenceInfo entity.
@@ -174,21 +174,27 @@ public class RecurrenceRule {
      */
     public long getEndTime() {
         if (rule == null) {
-            if (Debug.verboseOn()) Debug.logVerbose("Rule is null.", module);
+            if (Debug.verboseOn()) {
+                Debug.logVerbose("Rule is null.", MODULE);
+            }
             return -1;
         }
         long time = 0;
         java.sql.Timestamp stamp = null;
 
         stamp = rule.getTimestamp("untilDateTime");
-        if (Debug.verboseOn()) Debug.logVerbose("Stamp value: " + stamp, module);
+        if (Debug.verboseOn()) {
+            Debug.logVerbose("Stamp value: " + stamp, MODULE);
+        }
 
         if (stamp != null) {
             long nanos = stamp.getNanos();
             time = stamp.getTime();
             time += (nanos / 1000000);
         }
-        if (Debug.verboseOn()) Debug.logVerbose("Returning time: " + time, module);
+        if (Debug.verboseOn()) {
+            Debug.logVerbose("Returning time: " + time, MODULE);
+        }
         return time;
     }
 
@@ -285,7 +291,7 @@ public class RecurrenceRule {
             return 0;
         }
         if (Debug.verboseOn()) {
-            Debug.logVerbose("Rule NOT expired by end time.", module);
+            Debug.logVerbose("Rule NOT expired by end time.", MODULE);
         }
 
         // Test the recurrence limit.
@@ -293,7 +299,7 @@ public class RecurrenceRule {
             return 0;
         }
         if (Debug.verboseOn()) {
-            Debug.logVerbose("Rule NOT expired by max count.", module);
+            Debug.logVerbose("Rule NOT expired by max count.", MODULE);
         }
 
         boolean isSeeking = true;
@@ -413,7 +419,7 @@ public class RecurrenceRule {
 
         // Check for validity of the current frequency.
         if (validByRule(cal.getTime())) {
-             return cal.getTime().getTime();
+            return cal.getTime().getTime();
         }
 
         return 0;
@@ -612,7 +618,7 @@ public class RecurrenceRule {
                 try {
                     day = Integer.parseInt(dayStr);
                 } catch (NumberFormatException nfe) {
-                    Debug.logError(nfe, "Error parsing day string " + dayStr + ": " + nfe.toString(), module);
+                    Debug.logError(nfe, "Error parsing day string " + dayStr + ": " + nfe.toString(), MODULE);
                 }
                 int maxDay = cal.getActualMaximum(Calendar.DAY_OF_MONTH);
                 int currentDay = cal.get(Calendar.DAY_OF_MONTH);
@@ -639,7 +645,7 @@ public class RecurrenceRule {
                 try {
                     day = Integer.parseInt(dayStr);
                 } catch (NumberFormatException nfe) {
-                    Debug.logError(nfe, "Error parsing day string " + dayStr + ": " + nfe.toString(), module);
+                    Debug.logError(nfe, "Error parsing day string " + dayStr + ": " + nfe.toString(), MODULE);
                 }
                 int maxDay = cal.getActualMaximum(Calendar.DAY_OF_YEAR);
                 int currentDay = cal.get(Calendar.DAY_OF_YEAR);
@@ -666,7 +672,7 @@ public class RecurrenceRule {
                 try {
                     week = Integer.parseInt(weekStr);
                 } catch (NumberFormatException nfe) {
-                    Debug.logError(nfe, "Error parsing week string " + weekStr + ": " + nfe.toString(), module);
+                    Debug.logError(nfe, "Error parsing week string " + weekStr + ": " + nfe.toString(), MODULE);
                 }
                 int maxWeek = cal.getActualMaximum(Calendar.WEEK_OF_YEAR);
                 int currentWeek = cal.get(Calendar.WEEK_OF_YEAR);
@@ -693,7 +699,7 @@ public class RecurrenceRule {
                 try {
                     month = Integer.parseInt(monthStr);
                 } catch (NumberFormatException nfe) {
-                    Debug.logError(nfe, "Error parsing month string " + monthStr + ": " + nfe.toString(), module);
+                    Debug.logError(nfe, "Error parsing month string " + monthStr + ": " + nfe.toString(), MODULE);
                 }
                 if (month == cal.get(Calendar.MONTH)) {
                     foundMonth = true;
@@ -730,12 +736,11 @@ public class RecurrenceRule {
         }
         String numberStr = numberBuf.toString();
 
-        if (numberStr.length() > 0 && (numberStr.length() > 1 ||
-                (numberStr.charAt(0) != '+' && numberStr.charAt(0) != '-'))) {
+        if (!numberStr.isEmpty() && (numberStr.length() > 1 || (numberStr.charAt(0) != '+' && numberStr.charAt(0) != '-'))) {
             try {
                 number = Integer.parseInt(numberStr);
             } catch (NumberFormatException nfe) {
-                Debug.logError(nfe, "Error parsing daily number string " + numberStr + ": " + nfe.toString(), module);
+                Debug.logError(nfe, "Error parsing daily number string " + numberStr + ": " + nfe.toString(), MODULE);
             }
         }
         return number;
@@ -746,7 +751,7 @@ public class RecurrenceRule {
         StringBuilder sBuf = new StringBuilder();
 
         for (int i = 0; i < str.length(); i++) {
-            String thisChar = str.substring(i, i+1);
+            String thisChar = str.substring(i, i + 1);
 
             if (!hasNumber(thisChar)) {
                 sBuf.append(thisChar);
@@ -784,6 +789,10 @@ public class RecurrenceRule {
         return 0;
     }
 
+    /**
+     * Primary key string.
+     * @return the string
+     */
     public String primaryKey() {
         return rule.getString("recurrenceRuleId");
     }

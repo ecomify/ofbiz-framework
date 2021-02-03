@@ -49,16 +49,16 @@ import freemarker.template.TemplateTransformModel;
  * override this argument.</li>
  * <li><b>encode</b> (true/false) - encode the URL, defaults to true. Encoding is UTF-8.</li>
  * <li><b>webSiteId</b> - generate a full URL using the web site settings found in the WebSite entity.</li>
+ * <li><b>controlPath</b> - override the default control path.</li>
  * </ul>
  * <p>In addition, this transform accepts an environment variable - <b>urlPrefix</b>. If the variable
  * exists, it is prepended to the contents of the transform (the part between
  * <code>&lt;@ofbizUrl&gt;</code> and <code>&lt;/@ofbizUrl&gt;</code>), and all transform arguments are
  * ignored.</p>
- * 
  */
 public class OfbizUrlTransform implements TemplateTransformModel {
 
-    public final static String module = OfbizUrlTransform.class.getName();
+    private static final String MODULE = OfbizUrlTransform.class.getName();
 
     @SuppressWarnings("rawtypes")
     private static boolean checkBooleanArg(Map args, String key, boolean defaultValue) {
@@ -74,14 +74,14 @@ public class OfbizUrlTransform implements TemplateTransformModel {
         String result = "";
         if (o != null) {
             if (Debug.verboseOn()) {
-                 Debug.logVerbose("Arg Object : " + o.getClass().getName(), module);
+                Debug.logVerbose("Arg Object : " + o.getClass().getName(), MODULE);
             }
             if (o instanceof TemplateScalarModel) {
                 TemplateScalarModel s = (TemplateScalarModel) o;
                 try {
                     result = s.getAsString();
                 } catch (TemplateModelException e) {
-                    Debug.logError(e, "Template Exception", module);
+                    Debug.logError(e, "Template Exception", MODULE);
                 }
             } else {
                 result = o.toString();
@@ -151,7 +151,7 @@ public class OfbizUrlTransform implements TemplateTransformModel {
                         out.write(buf.toString());
                     }
                 } catch (Exception e) {
-                    Debug.logWarning(e, "Exception thrown while running ofbizUrl transform", module);
+                    Debug.logWarning(e, "Exception thrown while running ofbizUrl transform", MODULE);
                     throw new IOException(e);
                 }
             }

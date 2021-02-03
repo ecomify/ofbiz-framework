@@ -42,17 +42,14 @@ public class ModelGrid extends ModelForm {
      * ----------------------------------------------------------------------- *
      *                     DEVELOPERS PLEASE READ
      * ----------------------------------------------------------------------- *
-     *
      * This model is intended to be a read-only data structure that represents
      * an XML element. Outside of object construction, the class should not
      * have any behaviors. All behavior should be contained in model visitors.
-     *
      * Instances of this class will be shared by multiple threads - therefore
      * it is immutable. DO NOT CHANGE THE OBJECT'S STATE AT RUN TIME!
-     *
      */
 
-    public static final String module = ModelGrid.class.getName();
+    private static final String MODULE = ModelGrid.class.getName();
 
     /** XML Constructor */
     public ModelGrid(Element formElement, String formLocation, ModelReader entityModelReader,
@@ -83,7 +80,7 @@ public class ModelGrid extends ModelForm {
                             visualTheme, dispatchContext);
                 } catch (Exception e) {
                     Debug.logError(e, "Failed to load parent grid definition '" + parentGrid
-                            + "' at resource '" + parentResource + "'", module);
+                            + "' at resource '" + parentResource + "'", MODULE);
                 }
             } else if (!parentGrid.equals(gridElement.getAttribute("name"))) {
                 // try to find a grid definition in the same file
@@ -101,10 +98,10 @@ public class ModelGrid extends ModelForm {
                     }
                 }
                 if (parentModel == null) {
-                    Debug.logError("Failed to find parent grid definition '" + parentGrid + "' in same document.", module);
+                    Debug.logError("Failed to find parent grid definition '" + parentGrid + "' in same document.", MODULE);
                 }
             } else {
-                Debug.logError("Recursive grid definition found for '" + gridElement.getAttribute("name") + ".'", module);
+                Debug.logError("Recursive grid definition found for '" + gridElement.getAttribute("name") + ".'", MODULE);
             }
         }
         return parentModel;

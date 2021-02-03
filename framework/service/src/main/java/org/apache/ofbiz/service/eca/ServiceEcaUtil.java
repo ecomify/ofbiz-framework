@@ -48,12 +48,13 @@ import org.w3c.dom.Element;
  */
 public final class ServiceEcaUtil {
 
-    public static final String module = ServiceEcaUtil.class.getName();
+    private static final String MODULE = ServiceEcaUtil.class.getName();
 
-    // using a cache is dangerous here because if someone clears it the ECAs won't run: public static UtilCache ecaCache = new UtilCache("service.ServiceECAs", 0, 0, false);
+    // using a cache is dangerous here because if someone clears it the ECAs won't run: public static UtilCache ecaCache =
+    // new UtilCache("service.ServiceECAs", 0, 0, false);
     private static Map<String, Map<String, List<ServiceEcaRule>>> ecaCache = new ConcurrentHashMap<>();
 
-    private ServiceEcaUtil() {}
+    private ServiceEcaUtil() { }
 
     public static void reloadConfig() {
         ecaCache.clear();
@@ -72,11 +73,12 @@ public final class ServiceEcaUtil {
             serviceEcasList = ServiceConfigUtil.getServiceEngine().getServiceEcas();
         } catch (GenericConfigException e) {
             // FIXME: Refactor API so exceptions can be thrown and caught.
-            Debug.logError(e, module);
+            Debug.logError(e, MODULE);
             throw new RuntimeException(e.getMessage());
         }
         for (ServiceEcas serviceEcas : serviceEcasList) {
-            ResourceHandler handler = new MainResourceHandler(ServiceConfigUtil.getServiceEngineXmlFileName(), serviceEcas.getLoader(), serviceEcas.getLocation());
+            ResourceHandler handler = new MainResourceHandler(ServiceConfigUtil.getServiceEngineXmlFileName(), serviceEcas.getLoader(),
+                    serviceEcas.getLocation());
             futures.add(ExecutionPool.GLOBAL_FORK_JOIN.submit(createEcaLoaderCallable(handler)));
         }
 
@@ -105,7 +107,7 @@ public final class ServiceEcaUtil {
         try {
             rootElement = handler.getDocument().getDocumentElement();
         } catch (GenericConfigException e) {
-            Debug.logError(e, module);
+            Debug.logError(e, MODULE);
             return handlerRules;
         }
 
@@ -113,13 +115,13 @@ public final class ServiceEcaUtil {
         try {
             resourceLocation = handler.getURL().toExternalForm();
         } catch (GenericConfigException e) {
-            Debug.logError(e, "Could not get resource URL", module);
+            Debug.logError(e, "Could not get resource URL", MODULE);
         }
         for (Element e: UtilXml.childElementList(rootElement, "eca")) {
             handlerRules.add(new ServiceEcaRule(e, resourceLocation));
         }
         if (Debug.infoOn()) {
-            Debug.logInfo("Loaded [" + handlerRules.size() + "] Service ECA Rules from " + resourceLocation, module);
+            Debug.logInfo("Loaded [" + handlerRules.size() + "] Service ECA Rules from " + resourceLocation, MODULE);
         }
         return handlerRules;
     }
@@ -146,7 +148,7 @@ public final class ServiceEcaUtil {
             //remove the old rule if found and keep the recent one
             //This will prevent duplicate rule execution along with enabled/disabled seca workflow
             if (rules.remove(rule)) {
-                Debug.logWarning("Duplicate Service ECA [" + serviceName + "] on [" + eventName + "] ", module);
+                Debug.logWarning("Duplicate Service ECA [" + serviceName + "] on [" + eventName + "] ", MODULE);
             }
             rules.add(rule);
         }
@@ -173,7 +175,8 @@ public final class ServiceEcaUtil {
         return null;
     }
 
-    public static void evalRules(String serviceName, Map<String, List<ServiceEcaRule>> eventMap, String event, DispatchContext dctx, Map<String, Object> context, Map<String, Object> result, boolean isError, boolean isFailure) throws GenericServiceException {
+    public static void evalRules(String serviceName, Map<String, List<ServiceEcaRule>> eventMap, String event, DispatchContext dctx,
+            Map<String, Object> context, Map<String, Object> result, boolean isError, boolean isFailure) throws GenericServiceException {
         // if the eventMap is passed we save a Map lookup, but if not that's okay we'll just look it up now
         if (eventMap == null) eventMap = getServiceEventMap(serviceName);
         if (UtilValidate.isEmpty(eventMap)) {
@@ -185,7 +188,9 @@ public final class ServiceEcaUtil {
             return;
         }
 
-        if (Debug.verboseOn()) Debug.logVerbose("Running ECA (" + event + ").", module);
+        if (Debug.verboseOn()) {
+            Debug.logVerbose("Running ECA (" + event + ").", MODULE);
+        }
         Set<String> actionsRun = new TreeSet<>();
         for (ServiceEcaRule eca: rules) {
             eca.eval(serviceName, dctx, context, result, isError, isFailure, actionsRun);

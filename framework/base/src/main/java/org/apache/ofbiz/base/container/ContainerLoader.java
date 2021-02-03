@@ -47,13 +47,12 @@ import org.apache.ofbiz.base.util.UtilValidate;
  */
 public class ContainerLoader {
 
-    public static final String module = ContainerLoader.class.getName();
+    private static final String MODULE = ContainerLoader.class.getName();
 
     private final Deque<Container> loadedContainers = new LinkedList<>();
 
     /**
      * Starts the containers.
-     *
      * @param config Startup config
      * @param ofbizCommands Command-line arguments
      * @throws StartupException If an error was encountered. Throwing this exception
@@ -71,8 +70,8 @@ public class ContainerLoader {
         }
 
         // Load containers defined in components.
-        Debug.logInfo("[Startup] Loading containers...", module);
-        loadedContainers.addAll(loadContainersFromConfigurations(config.loaders, ofbizCommands));
+        Debug.logInfo("[Startup] Loading containers...", MODULE);
+        loadedContainers.addAll(loadContainersFromConfigurations(config.getLoaders(), ofbizCommands));
 
         // Start all containers loaded from above steps
         startLoadedContainers();
@@ -80,7 +79,6 @@ public class ContainerLoader {
 
     /**
      * Checks if two collections have an intersection or are both empty.
-     *
      * @param a the first collection which can be {@code null}
      * @param b the second collection which can be {@code null}
      * @return {@code true} if {@code a} and {@code b} have an intersection or are both empty.
@@ -92,7 +90,6 @@ public class ContainerLoader {
 
     /**
      * Loads the available containers which are matching the configured loaders.
-     *
      * @param loaders  the collection of loaders to match
      * @param ofbizCommands  the parsed commands line arguments used by the containers
      * @return a list of loaded containers.
@@ -103,10 +100,10 @@ public class ContainerLoader {
         List<Container> loadContainers = new ArrayList<>();
         for (ContainerConfig.Configuration containerCfg : ComponentConfig.getAllConfigurations()) {
             if (intersects(containerCfg.loaders(), loaders)) {
-                Debug.logInfo("Loading container: " + containerCfg.name(), module);
+                Debug.logInfo("Loading container: " + containerCfg.name(), MODULE);
                 Container tmpContainer = loadContainer(containerCfg, ofbizCommands);
                 loadContainers.add(tmpContainer);
-                Debug.logInfo("Loaded container: " + containerCfg.name(), module);
+                Debug.logInfo("Loaded container: " + containerCfg.name(), MODULE);
             }
         }
         return loadContainers;
@@ -149,15 +146,15 @@ public class ContainerLoader {
     }
 
     private void startLoadedContainers() throws StartupException {
-        Debug.logInfo("[Startup] Starting containers...", module);
+        Debug.logInfo("[Startup] Starting containers...", MODULE);
         for (Container container: loadedContainers) {
-            Debug.logInfo("Starting container " + container.getName(), module);
+            Debug.logInfo("Starting container " + container.getName(), MODULE);
             try {
                 container.start();
             } catch (ContainerException e) {
                 throw new StartupException("Cannot start() " + container.getClass().getName(), e);
             }
-            Debug.logInfo("Started container " + container.getName(), module);
+            Debug.logInfo("Started container " + container.getName(), MODULE);
         }
     }
 
@@ -165,15 +162,15 @@ public class ContainerLoader {
      * Stops the containers.
      */
     public synchronized void unload() {
-        Debug.logInfo("Shutting down containers", module);
+        Debug.logInfo("Shutting down containers", MODULE);
         loadedContainers.descendingIterator().forEachRemaining(loadedContainer -> {
-            Debug.logInfo("Stopping container " + loadedContainer.getName(), module);
+            Debug.logInfo("Stopping container " + loadedContainer.getName(), MODULE);
             try {
                 loadedContainer.stop();
             } catch (ContainerException e) {
-                Debug.logError(e, module);
+                Debug.logError(e, MODULE);
             }
-            Debug.logInfo("Stopped container " + loadedContainer.getName(), module);
+            Debug.logInfo("Stopped container " + loadedContainer.getName(), MODULE);
         });
     }
 }

@@ -34,10 +34,10 @@ import org.w3c.dom.Element;
  */
 public class ValidateMethod extends SimpleMapOperation {
 
-    public static final String module = ValidateMethod.class.getName();
+    private static final String MODULE = ValidateMethod.class.getName();
 
-    String className;
-    String methodName;
+    private String className;
+    private String methodName;
 
     public ValidateMethod(Element element, SimpleMapProcess simpleMapProcess) {
         super(element, simpleMapProcess);
@@ -47,7 +47,7 @@ public class ValidateMethod extends SimpleMapOperation {
 
     @Override
     public void exec(Map<String, Object> inMap, Map<String, Object> results, List<Object> messages, Locale locale, ClassLoader loader) {
-        Object obj = inMap.get(fieldName);
+        Object obj = inMap.get(getFieldName());
         String fieldValue = null;
         try {
             fieldValue = (String) ObjectType.simpleTypeOrObjectConvert(obj, "String", null, locale);
@@ -58,15 +58,15 @@ public class ValidateMethod extends SimpleMapOperation {
         if (loader == null) {
             loader = Thread.currentThread().getContextClassLoader();
         }
-        Class<?>[] paramTypes = new Class<?>[] { String.class };
-        Object[] params = new Object[] { fieldValue };
+        Class<?>[] paramTypes = new Class<?>[] {String.class };
+        Object[] params = new Object[] {fieldValue };
         Class<?> valClass;
         try {
             valClass = loader.loadClass(className);
         } catch (ClassNotFoundException cnfe) {
             String msg = "Could not find validation class: " + className;
             messages.add(msg);
-            Debug.logError("[ValidateMethod.exec] " + msg, module);
+            Debug.logError("[ValidateMethod.exec] " + msg, MODULE);
             return;
         }
         Method valMethod;
@@ -75,7 +75,7 @@ public class ValidateMethod extends SimpleMapOperation {
         } catch (NoSuchMethodException cnfe) {
             String msg = "Could not find validation method: " + methodName + " of class " + className;
             messages.add(msg);
-            Debug.logError("[ValidateMethod.exec] " + msg, module);
+            Debug.logError("[ValidateMethod.exec] " + msg, MODULE);
             return;
         }
         Boolean resultBool = Boolean.FALSE;
@@ -85,7 +85,7 @@ public class ValidateMethod extends SimpleMapOperation {
             String msg = "Error in validation method " + methodName + " of class " + className + ": " + e.getMessage();
 
             messages.add(msg);
-            Debug.logError("[ValidateMethod.exec] " + msg, module);
+            Debug.logError("[ValidateMethod.exec] " + msg, MODULE);
             return;
         }
         if (!resultBool) {

@@ -49,7 +49,7 @@ import org.apache.ofbiz.service.ServiceUtil;
 
 public class OrderTestServices {
 
-    public static final String module = OrderTestServices.class.getName();
+    private static final String MODULE = OrderTestServices.class.getName();
 
     public static Map<String, Object> createTestSalesOrders(DispatchContext dctx, Map<String, ? extends Object> context) {
         LocalDispatcher dispatcher = dctx.getDispatcher();
@@ -59,15 +59,16 @@ public class OrderTestServices {
         for (int i = 1; i <= numberOfOrdersInt; i++) {
             try {
                 ModelService modelService = dctx.getModelService("createTestSalesOrderSingle");
-                Map<String, Object> outputMap = dispatcher.runSync("createTestSalesOrderSingle", modelService.makeValid(context, ModelService.IN_PARAM));
+                Map<String, Object> outputMap = dispatcher.runSync("createTestSalesOrderSingle",
+                        modelService.makeValid(context, ModelService.IN_PARAM));
                 if (ServiceUtil.isError(outputMap)) {
                     return ServiceUtil.returnError(ServiceUtil.getErrorMessage(outputMap));
                 }
-                String orderId = (String)outputMap.get("orderId");
-                Debug.logInfo("Test sales order with id [" + orderId + "] has been processed.", module);
+                String orderId = (String) outputMap.get("orderId");
+                Debug.logInfo("Test sales order with id [" + orderId + "] has been processed.", MODULE);
             } catch (GenericServiceException e) {
                 String errMsg = "Error calling createTestSalesOrderSingle: " + e.toString();
-                Debug.logError(e, errMsg, module);
+                Debug.logError(e, errMsg, MODULE);
             }
         }
         return ServiceUtil.returnSuccess();
@@ -112,12 +113,10 @@ public class OrderTestServices {
             }
         } catch (GenericServiceException gse) {
             return ServiceUtil.returnError(gse.getMessage());
-        } catch (Exception e) {
-            return ServiceUtil.returnError(e.getMessage());
         }
-        if (productsList.size() == 0) {
+        if (productsList.isEmpty()) {
             return ServiceUtil.returnError(UtilProperties.getMessage("OrderUiLabels",
-                    "OrderCreateTestSalesOrderSingleError", 
+                    "OrderCreateTestSalesOrderSingleError",
                     UtilMisc.toMap("productCategoryId", productCategoryId), locale));
         }
 
@@ -135,7 +134,7 @@ public class OrderTestServices {
         try {
             cart.setUserLogin(userLogin, dispatcher);
         } catch (Exception exc) {
-            Debug.logWarning("Error setting userLogin in the cart: " + exc.getMessage(), module);
+            Debug.logWarning("Error setting userLogin in the cart: " + exc.getMessage(), MODULE);
         }
         int numberOfProductsPerOrderInt = numberOfProductsPerOrder;
         for (int j = 1; j <= numberOfProductsPerOrderInt; j++) {
@@ -146,7 +145,7 @@ public class OrderTestServices {
                                        null, null, null, null,
                                        null /*catalogId*/, null, null/*itemType*/, null/*itemGroupNumber*/, null, dispatcher);
             } catch (CartItemModifyException | ItemNotFoundException exc) {
-                Debug.logWarning("Error adding product with id " + productsList.get(k) + " to the cart: " + exc.getMessage(), module);
+                Debug.logWarning("Error adding product with id " + productsList.get(k) + " to the cart: " + exc.getMessage(), MODULE);
             }
         }
         cart.setDefaultCheckoutOptions(dispatcher);
@@ -157,9 +156,9 @@ public class OrderTestServices {
         Map<String, Object> resultMap = ServiceUtil.returnSuccess();
         // approve the order
         if (UtilValidate.isNotEmpty(orderId)) {
-            Debug.logInfo("Created test order with id: " + orderId, module);
+            Debug.logInfo("Created test order with id: " + orderId, MODULE);
             boolean approved = OrderChangeHelper.approveOrder(dispatcher, userLogin, orderId);
-            Debug.logInfo("Test order with id: " + orderId + " has been approved: " + approved, module);
+            Debug.logInfo("Test order with id: " + orderId + " has been approved: " + approved, MODULE);
             resultMap.put("orderId", orderId);
         }
         Boolean shipOrder = (Boolean) context.get("shipOrder");
@@ -169,11 +168,9 @@ public class OrderTestServices {
                 if (ServiceUtil.isError(result)) {
                     return ServiceUtil.returnError(ServiceUtil.getErrorMessage(result));
                 }
-                Debug.logInfo("Test sales order with id [" + orderId + "] has been shipped", module);
+                Debug.logInfo("Test sales order with id [" + orderId + "] has been shipped", MODULE);
             } catch (GenericServiceException gse) {
-                Debug.logWarning("Unable to quick ship test sales order with id [" + orderId + "] with error: " + gse.getMessage(), module);
-            } catch (Exception exc) {
-                Debug.logWarning("Unable to quick ship test sales order with id [" + orderId + "] with error: " + exc.getMessage(), module);
+                Debug.logWarning("Unable to quick ship test sales order with id [" + orderId + "] with error: " + gse.getMessage(), MODULE);
             }
         }
 

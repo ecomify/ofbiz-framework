@@ -38,12 +38,11 @@ import org.w3c.dom.Element;
 
 /**
  * Implements the &lt;entity-data&gt; element.
- * 
  * @see <a href="https://cwiki.apache.org/confluence/display/OFBIZ/Mini+Language+-+minilang+-+simple-method+-+Reference">Mini-language Reference</a>
  */
 public final class EntityData extends EntityOperation {
 
-    public static final String module = EntityData.class.getName();
+    private static final String MODULE = EntityData.class.getName();
 
     private final FlexibleMapAccessor<List<Object>> errorListFma;
     private final FlexibleStringExpander locationFse;
@@ -101,7 +100,7 @@ public final class EntityData extends EntityOperation {
             } catch (Exception e) {
                 String xmlError = "Error checking/asserting XML Resource \"" + dataUrl.toExternalForm() + "\"; Error was: " + e.getMessage();
                 messages.add(xmlError);
-                Debug.logWarning(e, xmlError, module);
+                Debug.logWarning(e, xmlError, MODULE);
             }
         } else {
             try {
@@ -115,7 +114,7 @@ public final class EntityData extends EntityOperation {
             } catch (Exception e) {
                 String xmlError = "Error loading XML Resource \"" + dataUrl.toExternalForm() + "\"; Error was: " + e.getMessage();
                 messages.add(xmlError);
-                Debug.logWarning(e, xmlError, module);
+                Debug.logWarning(e, xmlError, MODULE);
             }
         }
         return true;

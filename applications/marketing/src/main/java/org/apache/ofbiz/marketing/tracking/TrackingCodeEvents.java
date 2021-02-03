@@ -47,9 +47,10 @@ import org.apache.ofbiz.webapp.website.WebSiteWorker;
  */
 public class TrackingCodeEvents {
 
-    public static final String module = TrackingCodeEvents.class.getName();
+    private static final String MODULE = TrackingCodeEvents.class.getName();
 
-    /** If TrackingCode monitoring is desired this event should be added to the list
+    /**
+     * If TrackingCode monitoring is desired this event should be added to the list
      * of events that run on every request. This event looks for the parameter
      * <code>autoTrackingCode</code> or a shortened version: <code>atc</code>.
      */
@@ -64,12 +65,12 @@ public class TrackingCodeEvents {
             try {
                 trackingCode = EntityQuery.use(delegator).from("TrackingCode").where("trackingCodeId", trackingCodeId).cache().queryOne();
             } catch (GenericEntityException e) {
-                Debug.logError(e, "Error looking up TrackingCode with trackingCodeId [" + trackingCodeId + "], ignoring this trackingCodeId", module);
+                Debug.logError(e, "Error looking up TrackingCode with trackingCodeId [" + trackingCodeId + "], ignoring this trackingCodeId", MODULE);
                 return "error";
             }
 
             if (trackingCode == null) {
-                Debug.logInfo("TrackingCode not found for trackingCodeId [" + trackingCodeId + "], ignoring this trackingCodeId.", module);
+                Debug.logInfo("TrackingCode not found for trackingCodeId [" + trackingCodeId + "], ignoring this trackingCodeId.", MODULE);
                 return "success";
             }
 
@@ -79,10 +80,11 @@ public class TrackingCodeEvents {
         }
     }
 
-    /** If TrackingCode monitoring is desired this event should be added to the list
+    /**
+     * If TrackingCode monitoring is desired this event should be added to the list
      * of events that run on every request. This event looks for the parameter
      * <code>ptc</code> and handles the value as a Partner Managed Tracking Code.
-     *
+     * <p>
      * If the specified trackingCodeId exists then it is used as is, otherwise a new one
      * is created with the ptc value as the trackingCodeId. The values for the fields of
      * the new TrackingCode can come from one of two places: if a <code>dtc</code> parameter
@@ -100,7 +102,7 @@ public class TrackingCodeEvents {
             try {
                 trackingCode = EntityQuery.use(delegator).from("TrackingCode").where("trackingCodeId", trackingCodeId).cache().queryOne();
             } catch (GenericEntityException e) {
-                Debug.logError(e, "Error looking up TrackingCode with trackingCodeId [" + trackingCodeId + "], ignoring this trackingCodeId", module);
+                Debug.logError(e, "Error looking up TrackingCode with trackingCodeId [" + trackingCodeId + "], ignoring this trackingCodeId", MODULE);
                 return "error";
             }
 
@@ -116,7 +118,8 @@ public class TrackingCodeEvents {
                     try {
                         defaultTrackingCode = EntityQuery.use(delegator).from("TrackingCode").where("trackingCodeId", dtc).cache().queryOne();
                     } catch (GenericEntityException e) {
-                        Debug.logError(e, "Error looking up Default values TrackingCode with trackingCodeId [" + dtc + "], not using the dtc value for new TrackingCode defaults", module);
+                        Debug.logError(e, "Error looking up Default values TrackingCode with trackingCodeId [" + dtc + "], not using the dtc value "
+                                + "for new TrackingCode defaults", MODULE);
                     }
 
                     if (defaultTrackingCode != null) {
@@ -132,7 +135,8 @@ public class TrackingCodeEvents {
                         try {
                             trackingCode.create();
                         } catch (GenericEntityException e) {
-                            Debug.logError(e, "Error creating new Partner TrackingCode with trackingCodeId [" + trackingCodeId + "], ignoring this trackingCodeId", module);
+                            Debug.logError(e, "Error creating new Partner TrackingCode with trackingCodeId [" + trackingCodeId + "], ignoring this "
+                                    + "trackingCodeId", MODULE);
                             return "error";
                         }
                     }
@@ -154,12 +158,14 @@ public class TrackingCodeEvents {
 
                     trackingCode.set("comments", "This TrackingCode has default values because no default TrackingCode could be found.");
 
-                    Debug.logWarning("No default TrackingCode record was found, using a TrackingCode with hard coded default values: " + trackingCode, module);
+                    Debug.logWarning("No default TrackingCode record was found, using a TrackingCode with hard coded default values: "
+                            + trackingCode, MODULE);
 
                     try {
                         trackingCode.create();
                     } catch (GenericEntityException e) {
-                        Debug.logError(e, "Error creating new Partner TrackingCode with trackingCodeId [" + trackingCodeId + "], ignoring this trackingCodeId", module);
+                        Debug.logError(e, "Error creating new Partner TrackingCode with trackingCodeId [" + trackingCodeId + "], ignoring this "
+                                + "trackingCodeId", MODULE);
                         return "error";
                     }
                 }
@@ -171,18 +177,23 @@ public class TrackingCodeEvents {
         }
     }
 
-    public static String processTrackingCode(GenericValue trackingCode, HttpServletRequest request, HttpServletResponse response, String sourceEnumId) {
+    public static String processTrackingCode(GenericValue trackingCode, HttpServletRequest request, HttpServletResponse response,
+                                             String sourceEnumId) {
         Delegator delegator = (Delegator) request.getAttribute("delegator");
         String trackingCodeId = trackingCode.getString("trackingCodeId");
 
         //check effective dates
         java.sql.Timestamp nowStamp = UtilDateTime.nowTimestamp();
         if (trackingCode.get("fromDate") != null && nowStamp.before(trackingCode.getTimestamp("fromDate"))) {
-            if (Debug.infoOn()) Debug.logInfo("The TrackingCode with ID [" + trackingCodeId + "] has not yet gone into effect, ignoring this trackingCodeId", module);
+            if (Debug.infoOn()) {
+                Debug.logInfo("The TrackingCode with ID [" + trackingCodeId + "] has not yet gone into effect, ignoring this trackingCodeId", MODULE);
+            }
             return "success";
         }
         if (trackingCode.get("thruDate") != null && nowStamp.after(trackingCode.getTimestamp("thruDate"))) {
-            if (Debug.infoOn()) Debug.logInfo("The TrackingCode with ID [" + trackingCodeId + "] has expired, ignoring this trackingCodeId", module);
+            if (Debug.infoOn()) {
+                Debug.logInfo("The TrackingCode with ID [" + trackingCodeId + "] has expired, ignoring this trackingCodeId", MODULE);
+            }
             return "success";
         }
 
@@ -191,11 +202,11 @@ public class TrackingCodeEvents {
         if (visit != null) {
             GenericValue trackingCodeVisit = delegator.makeValue("TrackingCodeVisit",
                     UtilMisc.toMap("trackingCodeId", trackingCodeId, "visitId", visit.get("visitId"),
-                    "fromDate", UtilDateTime.nowTimestamp(), "sourceEnumId", sourceEnumId));
+                            "fromDate", UtilDateTime.nowTimestamp(), "sourceEnumId", sourceEnumId));
             try {
                 trackingCodeVisit.create();
             } catch (GenericEntityException e) {
-                Debug.logError(e, "Error while saving TrackingCodeVisit", module);
+                Debug.logError(e, "Error while saving TrackingCodeVisit", MODULE);
             }
         }
 
@@ -214,7 +225,7 @@ public class TrackingCodeEvents {
                     cookieDomain = webSite.getString("cookieDomain");
                 }
             } catch (GenericEntityException e) {
-                Debug.logWarning(e, "Problems with WebSite entity; using global default cookie domain", module);
+                Debug.logWarning(e, "Problems with WebSite entity; using global default cookie domain", MODULE);
             }
         }
 
@@ -222,25 +233,27 @@ public class TrackingCodeEvents {
             cookieDomain = EntityUtilProperties.getPropertyValue("url", "cookie.domain", "", delegator);
         }
 
-        // if trackingCode.trackableLifetime not null and is > 0 write a trackable cookie with name in the form: TKCDT_{trackingCode.trackingCodeTypeId} and timeout will be trackingCode.trackableLifetime
+        // if trackingCode.trackableLifetime not null and is > 0 write a trackable cookie with name in the form: TKCDT_{trackingCode
+        // .trackingCodeTypeId} and timeout will be trackingCode.trackableLifetime
         Long trackableLifetime = trackingCode.getLong("trackableLifetime");
         if (trackableLifetime != null && (trackableLifetime > 0 || trackableLifetime == -1)) {
             Cookie trackableCookie = new Cookie("TKCDT_" + trackingCode.getString("trackingCodeTypeId"), trackingCode.getString("trackingCodeId"));
             if (trackableLifetime > 0) trackableCookie.setMaxAge(trackableLifetime.intValue());
             trackableCookie.setPath("/");
-            if (cookieDomain.length() > 0) trackableCookie.setDomain(cookieDomain);
+            if (!cookieDomain.isEmpty()) trackableCookie.setDomain(cookieDomain);
             trackableCookie.setSecure(true);
             trackableCookie.setHttpOnly(true);
             response.addCookie(trackableCookie);
         }
 
-        // if trackingCode.billableLifetime not null and is > 0 write a billable cookie with name in the form: TKCDB_{trackingCode.trackingCodeTypeId} and timeout will be trackingCode.billableLifetime
+        // if trackingCode.billableLifetime not null and is > 0 write a billable cookie with name in the form: TKCDB_{trackingCode
+        // .trackingCodeTypeId} and timeout will be trackingCode.billableLifetime
         Long billableLifetime = trackingCode.getLong("billableLifetime");
         if (billableLifetime != null && (billableLifetime > 0 || billableLifetime == -1)) {
             Cookie billableCookie = new Cookie("TKCDB_" + trackingCode.getString("trackingCodeTypeId"), trackingCode.getString("trackingCodeId"));
             if (billableLifetime > 0) billableCookie.setMaxAge(billableLifetime.intValue());
             billableCookie.setPath("/");
-            if (cookieDomain.length() > 0) billableCookie.setDomain(cookieDomain);
+            if (!cookieDomain.isEmpty()) billableCookie.setDomain(cookieDomain);
             billableCookie.setSecure(true);
             billableCookie.setHttpOnly(true);
             response.addCookie(billableCookie);
@@ -252,7 +265,7 @@ public class TrackingCodeEvents {
         try {
             siteId = URLEncoder.encode(request.getParameter("siteId"), "UTF-8");
         } catch (UnsupportedEncodingException e) {
-            Debug.logError(e, "Error while saving TrackingCodeVisit", module);
+            Debug.logError(e, "Error while saving TrackingCodeVisit", MODULE);
         }
         if (UtilValidate.isNotEmpty(siteId)) {
             String visitorSiteIdCookieName = "Ofbiz.TKCD.SiteId";
@@ -269,27 +282,29 @@ public class TrackingCodeEvents {
             }
 
             if (visitorSiteId == null || (siteId != null && !visitorSiteId.equals(siteId))) {
-                // if trackingCode.siteId is  not null  write a trackable cookie with name in the form: Ofbiz.TKCSiteId and timeout will be 60 * 60 * 24 * 365
+                // if trackingCode.siteId is  not null  write a trackable cookie with name in the form: Ofbiz.TKCSiteId and timeout will be 60 * 60
+                // * 24 * 365
                 String siteIdEnc;
                 try {
                     siteIdEnc = URLEncoder.encode(siteId, "UTF-8");
-                }
-                catch (UnsupportedEncodingException e) {
-                    Debug.logWarning("There went something wrong while encoding for the cookie creation in TrackingCodeEvents.processTrackingCode", module);
+                } catch (UnsupportedEncodingException e) {
+                    Debug.logWarning("There went something wrong while encoding for the cookie creation in TrackingCodeEvents.processTrackingCode",
+                            MODULE);
                     return "error";
                 }
                 Cookie siteIdCookie = new Cookie("Ofbiz.TKCD.SiteId", siteIdEnc);
                 siteIdCookie.setMaxAge(siteIdCookieAge);
                 siteIdCookie.setPath("/");
-                if (cookieDomain.length() > 0) siteIdCookie.setDomain(cookieDomain);
+                if (!cookieDomain.isEmpty()) siteIdCookie.setDomain(cookieDomain);
                 siteIdCookie.setSecure(true);
                 siteIdCookie.setHttpOnly(true);
                 response.addCookie(siteIdCookie);
-                // if trackingCode.siteId is  not null  write a trackable cookie with name in the form: Ofbiz.TKCSiteId and timeout will be 60 * 60 * 24 * 365
+                // if trackingCode.siteId is  not null  write a trackable cookie with name in the form: Ofbiz.TKCSiteId and timeout will be 60 * 60
+                // * 24 * 365
                 Cookie updatedTimeStampCookie = new Cookie("Ofbiz.TKCD.UpdatedTimeStamp", UtilDateTime.nowTimestamp().toString());
                 updatedTimeStampCookie.setMaxAge(siteIdCookieAge);
                 updatedTimeStampCookie.setPath("/");
-                if (cookieDomain.length() > 0) updatedTimeStampCookie.setDomain(cookieDomain);
+                if (!cookieDomain.isEmpty()) updatedTimeStampCookie.setDomain(cookieDomain);
                 updatedTimeStampCookie.setSecure(true);
                 updatedTimeStampCookie.setHttpOnly(true);
                 response.addCookie(updatedTimeStampCookie);
@@ -299,15 +314,17 @@ public class TrackingCodeEvents {
         // if we have overridden logo, css and/or catalogId set some session attributes
         HttpSession session = request.getSession();
         String overrideLogo = trackingCode.getString("overrideLogo");
-        if (overrideLogo != null)
+        if (overrideLogo != null) {
             session.setAttribute("overrideLogo", overrideLogo);
+        }
         String overrideCss = trackingCode.getString("overrideCss");
-        if (overrideCss != null)
+        if (overrideCss != null) {
             session.setAttribute("overrideCss", overrideCss);
+        }
         String prodCatalogId = trackingCode.getString("prodCatalogId");
         if (UtilValidate.isNotEmpty(prodCatalogId)) {
             session.setAttribute("CURRENT_CATALOG_ID", prodCatalogId);
-            CategoryWorker.setTrail(request, new LinkedList<String>());
+            CategoryWorker.setTrail(request, new LinkedList<>());
         }
 
         // if forward/redirect is needed, do a response.sendRedirect and return null to tell the control servlet to not do any other requests/views
@@ -316,7 +333,7 @@ public class TrackingCodeEvents {
             try {
                 response.sendRedirect(redirectUrl);
             } catch (java.io.IOException e) {
-                Debug.logError(e, "Could not redirect as requested in the trackingCode to: " + redirectUrl, module);
+                Debug.logError(e, "Could not redirect as requested in the trackingCode to: " + redirectUrl, MODULE);
             }
             return null;
         }
@@ -324,7 +341,8 @@ public class TrackingCodeEvents {
         return "success";
     }
 
-    /** If attaching TrackingCode Cookies to the visit is desired this event should be added to the list
+    /**
+     * If attaching TrackingCode Cookies to the visit is desired this event should be added to the list
      * of events that run on the first hit in a visit.
      */
     public static String checkTrackingCodeCookies(HttpServletRequest request, HttpServletResponse response) {
@@ -343,35 +361,42 @@ public class TrackingCodeEvents {
                         try {
                             trackingCode = EntityQuery.use(delegator).from("TrackingCode").where("trackingCodeId", trackingCodeId).cache().queryOne();
                         } catch (GenericEntityException e) {
-                            Debug.logError(e, "Error looking up TrackingCode with trackingCodeId [" + trackingCodeId + "], ignoring this trackingCodeId", module);
+                            Debug.logError(e, "Error looking up TrackingCode with trackingCodeId [" + trackingCodeId + "], ignoring this "
+                                    + "trackingCodeId", MODULE);
                             continue;
                         }
 
                         if (trackingCode == null) {
-                            Debug.logError("TrackingCode not found for trackingCodeId [" + trackingCodeId + "], ignoring this trackingCodeId.", module);
+                            Debug.logError("TrackingCode not found for trackingCodeId [" + trackingCodeId + "], ignoring this trackingCodeId.",
+                                    MODULE);
                             //this return value will be ignored, but we'll designate this as an error anyway
                             continue;
                         }
 
                         //check effective dates
                         if (trackingCode.get("fromDate") != null && nowStamp.before(trackingCode.getTimestamp("fromDate"))) {
-                            if (Debug.infoOn()) Debug.logInfo("The TrackingCode with ID [" + trackingCodeId + "] has not yet gone into effect, ignoring this trackingCodeId", module);
+                            if (Debug.infoOn()) {
+                                Debug.logInfo("The TrackingCode with ID [" + trackingCodeId + "] has not yet gone into effect, ignoring this "
+                                        + "trackingCodeId", MODULE);
+                            }
                             continue;
                         }
                         if (trackingCode.get("thruDate") != null && nowStamp.after(trackingCode.getTimestamp("thruDate"))) {
-                            if (Debug.infoOn()) Debug.logInfo("The TrackingCode with ID [" + trackingCodeId + "] has expired, ignoring this trackingCodeId", module);
+                            if (Debug.infoOn()) {
+                                Debug.logInfo("The TrackingCode with ID [" + trackingCodeId + "] has expired, ignoring this trackingCodeId", MODULE);
+                            }
                             continue;
                         }
 
                         // for each trackingCodeId found in this way attach to the visit with the TKCDSRC_COOKIE sourceEnumId
                         GenericValue trackingCodeVisit = delegator.makeValue("TrackingCodeVisit",
                                 UtilMisc.toMap("trackingCodeId", trackingCodeId, "visitId", visit.get("visitId"),
-                                "fromDate", nowStamp, "sourceEnumId", "TKCDSRC_COOKIE"));
+                                        "fromDate", nowStamp, "sourceEnumId", "TKCDSRC_COOKIE"));
                         try {
                             //not doing this inside a transaction, want each one possible to go in
                             trackingCodeVisit.create();
                         } catch (GenericEntityException e) {
-                            Debug.logError(e, "Error while saving TrackingCodeVisit", module);
+                            Debug.logError(e, "Error while saving TrackingCodeVisit", MODULE);
                             //don't return error, want to get as many as possible: return "error";
                         }
                     }
@@ -405,7 +430,7 @@ public class TrackingCodeEvents {
             try {
                 trackingCode = EntityQuery.use(delegator).from("TrackingCode").where("trackingCodeId", trackingCodeId).cache().queryOne();
             } catch (GenericEntityException e) {
-                Debug.logError(e, "Error looking up TrackingCode with trackingCodeId [" + trackingCodeId + "], ignoring this trackingCodeId", module);
+                Debug.logError(e, "Error looking up TrackingCode with trackingCodeId [" + trackingCodeId + "], ignoring this trackingCodeId", MODULE);
             }
             if (trackingCode != null) {
                 // verify the tracking code type
@@ -416,17 +441,20 @@ public class TrackingCodeEvents {
                             // tracking code is valid
                             return "success";
                         } else {
-                            if (Debug.infoOn())
-                                Debug.logInfo("The TrackingCode with ID [" + trackingCodeId + "] has expired, ignoring this trackingCodeId", module);
+                            if (Debug.infoOn()) {
+                                Debug.logInfo("The TrackingCode with ID [" + trackingCodeId + "] has expired, ignoring this trackingCodeId", MODULE);
+                            }
                             request.setAttribute("_ERROR_MESSAGE_", "Access code [" + trackingCodeId + "], is not valid.");
                         }
                     } else {
-                        if (Debug.infoOn())
-                            Debug.logInfo("The TrackingCode with ID [" + trackingCodeId + "] has not yet gone into effect, ignoring this trackingCodeId", module);
+                        if (Debug.infoOn()) {
+                            Debug.logInfo("The TrackingCode with ID [" + trackingCodeId + "] has not yet gone into effect, ignoring this "
+                                    + "trackingCodeId", MODULE);
+                        }
                         request.setAttribute("_ERROR_MESSAGE_", "Access code [" + trackingCodeId + "], is not valid.");
                     }
                 } else {
-                    Debug.logWarning("Tracking code found [" + trackingCodeId + "] but was not of the type ACCESS; access denied", module);
+                    Debug.logWarning("Tracking code found [" + trackingCodeId + "] but was not of the type ACCESS; access denied", MODULE);
                     request.setAttribute("_ERROR_MESSAGE_", "Access code [" + trackingCodeId + "] not found.");
                 }
             } else {
@@ -438,7 +466,9 @@ public class TrackingCodeEvents {
         return ":_protect_:";
     }
 
-    /** Removes the ACCESS tracking code cookie */
+    /**
+     * Removes the ACCESS tracking code cookie
+     */
     public static String removeAccesTrackingCodeCookie(HttpServletRequest request, HttpServletResponse response) {
         Cookie[] cookies = request.getCookies();
         if (cookies != null) {
@@ -452,7 +482,10 @@ public class TrackingCodeEvents {
         return "success";
     }
 
-    /** Makes a list of TrackingCodeOrder entities to be attached to the current order; called by the createOrder event; the values in the returned List will not have the orderId set */
+    /**
+     * Makes a list of TrackingCodeOrder entities to be attached to the current order; called by the createOrder event; the values in the returned
+     * List will not have the orderId set
+     */
     public static List<GenericValue> makeTrackingCodeOrders(HttpServletRequest request) {
         Delegator delegator = (Delegator) request.getAttribute("delegator");
         java.sql.Timestamp nowStamp = UtilDateTime.nowTimestamp();
@@ -474,11 +507,11 @@ public class TrackingCodeEvents {
                 // find the referred timestamp cookie if it exists
                 if ("Ofbiz.TKCD.UpdatedTimeStamp".equals(cookieName)) {
                     String affiliateReferredTime = cookies[i].getValue();
-                    if (affiliateReferredTime !=null && !affiliateReferredTime.equals("")) {
+                    if (affiliateReferredTime != null && !"".equals(affiliateReferredTime)) {
                         try {
                             affiliateReferredTimeStamp = Timestamp.valueOf(affiliateReferredTime);
-                        } catch (IllegalArgumentException  e) {
-                            Debug.logError(e, "Error parsing affiliateReferredTimeStamp value from cookie", module);
+                        } catch (IllegalArgumentException e) {
+                            Debug.logError(e, "Error parsing affiliateReferredTimeStamp value from cookie", MODULE);
                         }
                     }
                 }
@@ -500,28 +533,33 @@ public class TrackingCodeEvents {
         try {
             trackingCode = EntityQuery.use(delegator).from("TrackingCode").where("trackingCodeId", trackingCodeId).cache().queryOne();
         } catch (GenericEntityException e) {
-            Debug.logError(e, "Error looking up TrackingCode with trackingCodeId [" + trackingCodeId + "], ignoring this trackingCodeId", module);
+            Debug.logError(e, "Error looking up TrackingCode with trackingCodeId [" + trackingCodeId + "], ignoring this trackingCodeId", MODULE);
         }
 
         if (trackingCode != null) {
             //check effective dates
             if (trackingCode.get("fromDate") != null && nowStamp.before(trackingCode.getTimestamp("fromDate"))) {
-                if (Debug.infoOn()) Debug.logInfo("The TrackingCode with ID [" + trackingCodeId + "] has not yet gone into effect, ignoring this trackingCodeId", module);
+                if (Debug.infoOn()) {
+                    Debug.logInfo("The TrackingCode with ID [" + trackingCodeId + "] has not yet gone into effect, ignoring this trackingCodeId",
+                            MODULE);
+                }
             }
             if (trackingCode.get("thruDate") != null && nowStamp.after(trackingCode.getTimestamp("thruDate"))) {
-                if (Debug.infoOn()) Debug.logInfo("The TrackingCode with ID [" + trackingCodeId + "] has expired, ignoring this trackingCodeId", module);
+                if (Debug.infoOn()) {
+                    Debug.logInfo("The TrackingCode with ID [" + trackingCodeId + "] has expired, ignoring this trackingCodeId", MODULE);
+                }
             }
             GenericValue trackingCodeOrder = delegator.makeValue("TrackingCodeOrder",
                     UtilMisc.toMap("trackingCodeTypeId", trackingCode.get("trackingCodeTypeId"),
-                    "trackingCodeId", trackingCodeId, "isBillable", isBillable, "siteId", siteId,
-                    "hasExported", "N", "affiliateReferredTimeStamp",affiliateReferredTimeStamp));
+                            "trackingCodeId", trackingCodeId, "isBillable", isBillable, "siteId", siteId,
+                            "hasExported", "N", "affiliateReferredTimeStamp", affiliateReferredTimeStamp));
 
-            Debug.logInfo(" trackingCodeOrder is " + trackingCodeOrder, module);
+            Debug.logInfo(" trackingCodeOrder is " + trackingCodeOrder, MODULE);
             trackingCodeOrders.add(trackingCodeOrder);
         } else {
             // Only log an error if there was a trackingCodeId to begin with
             if (trackingCodeId != null) {
-                Debug.logError("TrackingCode not found for trackingCodeId [" + trackingCodeId + "], ignoring this trackingCodeId.", module);
+                Debug.logError("TrackingCode not found for trackingCodeId [" + trackingCodeId + "], ignoring this trackingCodeId.", MODULE);
             }
         }
 

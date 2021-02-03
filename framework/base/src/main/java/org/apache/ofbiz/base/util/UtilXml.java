@@ -30,6 +30,7 @@ import java.io.Reader;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.net.URL;
+import java.net.URLConnection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
@@ -83,21 +84,21 @@ import com.thoughtworks.xstream.XStream;
  */
 public final class UtilXml {
 
-    public static final String module = UtilXml.class.getName();
-    private static final XStream xstream = createXStream();
-    private UtilXml () {}
+    private static final String MODULE = UtilXml.class.getName();
+    private static final XStream X_STREAM = createXStream();
+    private UtilXml() { }
 
     private static XStream createXStream() {
         XStream xstream = new XStream();
-        /* This method is a pure helper method for XStream 1.4.x. 
+        /* This method is a pure helper method for XStream 1.4.x.
          * It initializes an XStream instance with a white list of well-known and simple types of the Java runtime
          *  as it is done in XStream 1.5.x by default. This method will do therefore nothing in XStream 1.5
-         *  and could be removed them  
-         */ 
-        XStream.setupDefaultSecurity(xstream); 
-        /* You may want to enhance the white list created by XStream::setupDefaultSecurity (or by default with XStream 1.5) 
+         *  and could be removed them
+         */
+        XStream.setupDefaultSecurity(xstream);
+        /* You may want to enhance the white list created by XStream::setupDefaultSecurity (or by default with XStream 1.5)
          * using xstream::allowTypesByWildcard with your own classes
-         */  
+         */
         return xstream;
     }
 
@@ -111,9 +112,10 @@ public final class UtilXml {
      * @throws InstantiationException
      * @throws IllegalAccessException
      */
-    public static DOMImplementationLS getDomLsImplementation() throws ClassCastException, ClassNotFoundException, InstantiationException, IllegalAccessException {
+    public static DOMImplementationLS getDomLsImplementation()
+            throws ClassCastException, ClassNotFoundException, InstantiationException, IllegalAccessException {
         DOMImplementationRegistry registry = DOMImplementationRegistry.newInstance();
-        return (DOMImplementationLS)registry.getDOMImplementation("LS");
+        return (DOMImplementationLS) registry.getDOMImplementation("LS");
     }
 
     /** Returns a <code>LSOutput</code> instance.
@@ -167,7 +169,8 @@ public final class UtilXml {
      * @throws InstantiationException
      * @throws IllegalAccessException
      */
-    public static void writeXmlDocument(OutputStream os, Node node, String encoding, boolean includeXmlDeclaration, boolean enablePrettyPrint) throws ClassCastException, ClassNotFoundException, InstantiationException, IllegalAccessException {
+    public static void writeXmlDocument(OutputStream os, Node node, String encoding, boolean includeXmlDeclaration, boolean enablePrettyPrint)
+            throws ClassCastException, ClassNotFoundException, InstantiationException, IllegalAccessException {
         DOMImplementationLS impl = getDomLsImplementation();
         LSOutput out = createLSOutput(impl, os, encoding);
         LSSerializer writer = createLSSerializer(impl, includeXmlDeclaration, enablePrettyPrint);
@@ -189,7 +192,8 @@ public final class UtilXml {
      * @see <a href="http://java.sun.com/javase/6/docs/api/javax/xml/transform/package-summary.html">JAXP TrAX</a>
      * @throws TransformerConfigurationException
      */
-    public static Transformer createOutputTransformer(String encoding, boolean omitXmlDeclaration, boolean indent, int indentAmount) throws TransformerConfigurationException {
+    public static Transformer createOutputTransformer(String encoding, boolean omitXmlDeclaration, boolean indent, int indentAmount)
+            throws TransformerConfigurationException {
         // Developers: This stylesheet strips all formatting space characters from the XML,
         // then indents the XML using the specified indentation.
         StringBuilder sb = new StringBuilder();
@@ -245,7 +249,8 @@ public final class UtilXml {
      * @see <a href="http://java.sun.com/javase/6/docs/api/javax/xml/transform/package-summary.html">JAXP TrAX</a>
      * @throws TransformerException
      */
-    public static void writeXmlDocument(Node node, OutputStream os, String encoding, boolean omitXmlDeclaration, boolean indent, int indentAmount) throws TransformerException {
+    public static void writeXmlDocument(Node node, OutputStream os, String encoding, boolean omitXmlDeclaration, boolean indent, int indentAmount)
+            throws TransformerException {
         Transformer transformer = createOutputTransformer(encoding, omitXmlDeclaration, indent, indentAmount);
         transformDomDocument(transformer, node, os);
     }
@@ -253,64 +258,58 @@ public final class UtilXml {
     // ----- Java Object Marshalling/Unmarshalling ----- //
 
     /** Deserialize an object from an <code>InputStream</code>.
-     *
      * @param input The <code>InputStream</code>
      * @return The deserialized <code>Object</code>
      */
     public static Object fromXml(InputStream input) {
-        return xstream.fromXML(input);
+        return X_STREAM.fromXML(input);
     }
 
     /** Deserialize an object from a <code>Reader</code>.
-     *
      * @param reader The <code>Reader</code>
      * @return The deserialized <code>Object</code>
      */
     public static Object fromXml(Reader reader) {
-        return xstream.fromXML(reader);
+        return X_STREAM.fromXML(reader);
     }
 
     /** Deserialize an object from a <code>String</code>.
-     *
      * @param str The <code>String</code>
      * @return The deserialized <code>Object</code>
      */
     public static Object fromXml(String str) {
-        return xstream.fromXML(str);
+        return X_STREAM.fromXML(str);
     }
 
     /** Serialize an object to an XML <code>String</code>.
-     *
      * @param obj The object to serialize
      * @return An XML <code>String</code>
      */
     public static String toXml(Object obj) {
-        return xstream.toXML(obj);
+        return X_STREAM.toXML(obj);
     }
 
     /** Serialize an object to an <code>OutputStream</code>.
-     *
      * @param obj The object to serialize
      * @param output The <code>OutputStream</code>
      */
     public static void toXml(Object obj, OutputStream output) {
-        xstream.toXML(obj, output);
+        X_STREAM.toXML(obj, output);
     }
 
     /** Serialize an object to a <code>Writer</code>.
-     *
      * @param obj The object to serialize
      * @param writer The <code>Writer</code>
      */
     public static void toXml(Object obj, Writer writer) {
-        xstream.toXML(obj, writer);
+        X_STREAM.toXML(obj, writer);
     }
 
     // ------------------------------------------------- //
 
     public static String writeXmlDocument(Node node) throws java.io.IOException {
         if (node == null) {
-            Debug.logWarning("[UtilXml.writeXmlDocument] Node was null, doing nothing", module);
+            Debug.logWarning("[UtilXml.writeXmlDocument] Node was null, doing nothing", MODULE);
             return null;
         }
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
@@ -320,28 +319,22 @@ public final class UtilXml {
 
     public static void writeXmlDocument(String filename, Node node) throws FileNotFoundException, IOException {
         if (node == null) {
-            Debug.logWarning("[UtilXml.writeXmlDocument] Node was null, doing nothing", module);
+            Debug.logWarning("[UtilXml.writeXmlDocument] Node was null, doing nothing", MODULE);
             return;
         }
         if (filename == null) {
-            Debug.logWarning("[UtilXml.writeXmlDocument] Filename was null, doing nothing", module);
+            Debug.logWarning("[UtilXml.writeXmlDocument] Filename was null, doing nothing", MODULE);
             return;
         }
         File outFile = new File(filename);
-        FileOutputStream fos = null;
-        try {
-            fos = new FileOutputStream(outFile);
+        try (FileOutputStream fos = new FileOutputStream(outFile)) {
             writeXmlDocument(fos, node);
-        } finally {
-            if (fos != null) {
-                fos.close();
-            }
         }
     }
 
     public static void writeXmlDocument(OutputStream os, Node node) throws java.io.IOException {
         if (node == null) {
-            Debug.logWarning("[UtilXml.writeXmlDocument] Node was null, doing nothing", module);
+            Debug.logWarning("[UtilXml.writeXmlDocument] Node was null, doing nothing", MODULE);
             return;
         }
         // OutputFormat defaults are: indent on, indent = 4, include XML declaration,
@@ -362,7 +355,7 @@ public final class UtilXml {
     public static Document readXmlDocument(String content, boolean validate)
             throws SAXException, ParserConfigurationException, java.io.IOException {
         if (content == null) {
-            Debug.logWarning("[UtilXml.readXmlDocument] content was null, doing nothing", module);
+            Debug.logWarning("[UtilXml.readXmlDocument] content was null, doing nothing", MODULE);
             return null;
         }
         ByteArrayInputStream bis = new ByteArrayInputStream(content.getBytes("UTF-8"));
@@ -372,7 +365,7 @@ public final class UtilXml {
     public static Document readXmlDocument(String content, boolean validate, boolean withPosition)
             throws SAXException, ParserConfigurationException, java.io.IOException {
         if (content == null) {
-            Debug.logWarning("[UtilXml.readXmlDocument] content was null, doing nothing", module);
+            Debug.logWarning("[UtilXml.readXmlDocument] content was null, doing nothing", MODULE);
             return null;
         }
         ByteArrayInputStream bis = new ByteArrayInputStream(content.getBytes("UTF-8"));
@@ -387,10 +380,15 @@ public final class UtilXml {
     public static Document readXmlDocument(URL url, boolean validate)
             throws SAXException, ParserConfigurationException, java.io.IOException {
         if (url == null) {
-            Debug.logWarning("[UtilXml.readXmlDocument] URL was null, doing nothing", module);
+            Debug.logWarning("[UtilXml.readXmlDocument] URL was null, doing nothing", MODULE);
             return null;
         }
-        try (InputStream is = url.openStream()) {
+
+        URLConnection connection = url.openConnection();
+        // OFBIZ-12118: Ensure caching is disabled otherwise we may find another thread has already closed the
+        // underlying file's InputStream when dealing with URLs to JAR resources.
+        connection.setUseCaches(false);
+        try (InputStream is = connection.getInputStream()) {
             return readXmlDocument(is, validate, url.toString());
         }
     }
@@ -398,7 +396,7 @@ public final class UtilXml {
     public static Document readXmlDocument(URL url, boolean validate, boolean withPosition)
             throws SAXException, ParserConfigurationException, java.io.IOException {
         if (url == null) {
-            Debug.logWarning("[UtilXml.readXmlDocument] URL was null, doing nothing", module);
+            Debug.logWarning("[UtilXml.readXmlDocument] URL was null, doing nothing", MODULE);
             return null;
         }
         InputStream is = url.openStream();
@@ -420,7 +418,7 @@ public final class UtilXml {
     public static Document readXmlDocument(InputStream is, boolean validate, String docDescription)
             throws SAXException, ParserConfigurationException, java.io.IOException {
         if (is == null) {
-            Debug.logWarning("[UtilXml.readXmlDocument] InputStream was null, doing nothing", module);
+            Debug.logWarning("[UtilXml.readXmlDocument] InputStream was null, doing nothing", MODULE);
             return null;
         }
 
@@ -453,9 +451,9 @@ public final class UtilXml {
         }
         document = builder.parse(is);
 
-        double totalSeconds = (System.currentTimeMillis() - startTime)/1000.0;
+        double totalSeconds = (System.currentTimeMillis() - startTime) / 1000.0;
         if (Debug.verboseOn()) {
-            Debug.logVerbose("XML Read " + totalSeconds + "s: " + docDescription, module);
+            Debug.logVerbose("XML Read " + totalSeconds + "s: " + docDescription, MODULE);
         }
         return document;
     }
@@ -467,7 +465,7 @@ public final class UtilXml {
         }
 
         if (is == null) {
-            Debug.logWarning("[UtilXml.readXmlDocument] InputStream was null, doing nothing", module);
+            Debug.logWarning("[UtilXml.readXmlDocument] InputStream was null, doing nothing", MODULE);
             return null;
         }
 
@@ -497,7 +495,7 @@ public final class UtilXml {
                         setLineColumn(node);
                     }
                 } catch (SAXException ex) {
-                    Debug.logWarning(ex, module);
+                    Debug.logWarning(ex, MODULE);
                 }
             }
 
@@ -505,10 +503,10 @@ public final class UtilXml {
                 try {
                     Node node = (Node) getProperty("http://apache.org/xml/properties/dom/current-element-node");
                     if (node != null) {
-                       setLineColumn(node.getLastChild());
+                        setLineColumn(node.getLastChild());
                     }
                 } catch (SAXException ex) {
-                    Debug.logWarning(ex, module);
+                    Debug.logWarning(ex, MODULE);
                 }
             }
 
@@ -531,7 +529,8 @@ public final class UtilXml {
             }
 
             @Override
-            public void startDocument(XMLLocator locator, String encoding, NamespaceContext namespaceContext, Augmentations augs) throws XNIException {
+            public void startDocument(XMLLocator locator, String encoding, NamespaceContext namespaceContext, Augmentations augs)
+                    throws XNIException {
                 super.startDocument(locator, encoding, namespaceContext, augs);
                 this.locator = locator;
                 setLineColumn();
@@ -578,9 +577,9 @@ public final class UtilXml {
         parser.parse(inputSource);
         document = parser.getDocument();
 
-        double totalSeconds = (System.currentTimeMillis() - startTime)/1000.0;
+        double totalSeconds = (System.currentTimeMillis() - startTime) / 1000.0;
         if (Debug.verboseOn()) {
-            Debug.logVerbose("XML Read " + totalSeconds + "s: " + docDescription, module);
+            Debug.logVerbose("XML Read " + totalSeconds + "s: " + docDescription, MODULE);
         }
         return document;
     }
@@ -599,7 +598,7 @@ public final class UtilXml {
 
             document = builder.newDocument();
         } catch (Exception e) {
-            Debug.logError(e, module);
+            Debug.logError(e, MODULE);
         }
 
         if (document == null) {
@@ -678,7 +677,8 @@ public final class UtilXml {
                     Element childElement = (Element) node;
                     elements.add(childElement);
                 }
-            } while ((node = node.getNextSibling()) != null);
+                node = node.getNextSibling();
+            } while (node != null);
         }
         return elements;
     }
@@ -697,12 +697,12 @@ public final class UtilXml {
         if (node != null) {
             do {
                 String nodeName = UtilXml.getNodeNameIgnorePrefix(node);
-                if (node.getNodeType() == Node.ELEMENT_NODE && (childElementName == null ||
-                    childElementName.equals(nodeName))) {
+                if (node.getNodeType() == Node.ELEMENT_NODE && (childElementName == null || childElementName.equals(nodeName))) {
                     Element childElement = (Element) node;
                     elements.add(childElement);
                 }
-            } while ((node = node.getNextSibling()) != null);
+                node = node.getNextSibling();
+            } while (node != null);
         }
         return elements;
     }
@@ -727,7 +727,8 @@ public final class UtilXml {
                     Element childElement = (Element) node;
                     elements.add(childElement);
                 }
-            } while ((node = node.getNextSibling()) != null);
+                node = node.getNextSibling();
+            } while (node != null);
         }
         return elements;
     }
@@ -752,7 +753,8 @@ public final class UtilXml {
                     Element childElement = (Element) node;
                     elements.add(childElement);
                 }
-            } while ((node = node.getNextSibling()) != null);
+                node = node.getNextSibling();
+            } while (node != null);
         }
         return elements;
     }
@@ -770,7 +772,8 @@ public final class UtilXml {
             if (node.getNodeType() == Node.ELEMENT_NODE || node.getNodeType() == Node.COMMENT_NODE) {
                 nodes.add(node);
             }
-        } while ((node = node.getNextSibling()) != null);
+            node = node.getNextSibling();
+        } while (node != null);
         return nodes;
     }
 
@@ -790,7 +793,8 @@ public final class UtilXml {
 
                     return childElement;
                 }
-            } while ((node = node.getNextSibling()) != null);
+                node = node.getNextSibling();
+            } while (node != null);
         }
         return null;
     }
@@ -817,7 +821,8 @@ public final class UtilXml {
 
                     return childElement;
                 }
-            } while ((node = node.getNextSibling()) != null);
+                node = node.getNextSibling();
+            } while (node != null);
         }
         return null;
     }
@@ -837,15 +842,15 @@ public final class UtilXml {
         if (node != null) {
             do {
                 String nodeName = node.getLocalName();
-                if (nodeName == null){
+                if (nodeName == null) {
                     nodeName = UtilXml.getNodeNameIgnorePrefix(node);
                 }
-                if (node.getNodeType() == Node.ELEMENT_NODE && (childElementName == null ||
-                    childElementName.equals(nodeName))) {
+                if (node.getNodeType() == Node.ELEMENT_NODE && (childElementName == null || childElementName.equals(nodeName))) {
                     Element childElement = (Element) node;
                     return childElement;
                 }
-            } while ((node = node.getNextSibling()) != null);
+                node = node.getNextSibling();
+            } while (node != null);
         }
         return null;
     }
@@ -861,8 +866,8 @@ public final class UtilXml {
 
         if (node != null) {
             do {
-                if (node.getNodeType() == Node.ELEMENT_NODE && (childElementName == null ||
-                        childElementName.equals(node.getLocalName() != null ? node.getLocalName() : node.getNodeName()))) {
+                if (node.getNodeType() == Node.ELEMENT_NODE && (childElementName == null
+                        || childElementName.equals(node.getLocalName() != null ? node.getLocalName() : node.getNodeName()))) {
                     Element childElement = (Element) node;
 
                     String value = childElement.getAttribute(attrName);
@@ -871,7 +876,8 @@ public final class UtilXml {
                         return childElement;
                     }
                 }
-            } while ((node = node.getNextSibling()) != null);
+                node = node.getNextSibling();
+            } while (node != null);
         }
         return null;
     }
@@ -936,7 +942,8 @@ public final class UtilXml {
             if (textNode.getNodeType() == Node.CDATA_SECTION_NODE || textNode.getNodeType() == Node.TEXT_NODE) {
                 valueBuffer.append(textNode.getNodeValue());
             }
-        } while ((textNode = textNode.getNextSibling()) != null);
+            textNode = textNode.getNextSibling();
+        } while (textNode != null);
         return valueBuffer.toString();
     }
 
@@ -951,7 +958,8 @@ public final class UtilXml {
             if (node.getNodeType() == Node.CDATA_SECTION_NODE || node.getNodeType() == Node.TEXT_NODE || node.getNodeType() == Node.COMMENT_NODE) {
                 valueBuffer.append(node.getNodeValue());
             }
-        } while ((node = node.getNextSibling()) != null);
+            node = node.getNextSibling();
+        } while (node != null);
         return valueBuffer.toString();
     }
 
@@ -1010,7 +1018,8 @@ public final class UtilXml {
         StringBuilder sb = new StringBuilder();
         for (int index = 0; index < nodeName.length(); index++) {
             char character = nodeName.charAt(index);
-            if ((sb.length() == 0 && !Character.isJavaIdentifierStart(character)) || (sb.length() != 0 && !Character.isJavaIdentifierPart(character))) {
+            if ((sb.length() == 0 && !Character.isJavaIdentifierStart(character))
+                    || (sb.length() != 0 && !Character.isJavaIdentifierPart(character))) {
                 capitalize = true;
                 continue;
             }
@@ -1056,8 +1065,8 @@ public final class UtilXml {
             String dtd = UtilProperties.getSplitPropertyValue(UtilURL.fromResource("localdtds.properties"), publicId);
             if (UtilValidate.isNotEmpty(dtd)) {
                 if (Debug.verboseOn()) {
-                    Debug.logVerbose("[UtilXml.LocalResolver.resolveEntity] resolving DTD with publicId [" + publicId +
-                            "], systemId [" + systemId + "] and the dtd file is [" + dtd + "]", module);
+                    Debug.logVerbose("[UtilXml.LocalResolver.resolveEntity] resolving DTD with publicId [" + publicId
+                            + "], systemId [" + systemId + "] and the dtd file is [" + dtd + "]", MODULE);
                 }
                 try {
                     URL dtdURL = UtilURL.fromResource(dtd);
@@ -1070,12 +1079,12 @@ public final class UtilXml {
                     inputSource.setPublicId(publicId);
                     hasDTD = true;
                     if (Debug.verboseOn()) {
-                        Debug.logVerbose("[UtilXml.LocalResolver.resolveEntity] got LOCAL DTD input source with publicId [" +
-                                publicId + "] and the dtd file is [" + dtd + "]", module);
+                        Debug.logVerbose("[UtilXml.LocalResolver.resolveEntity] got LOCAL DTD input source with publicId ["
+                                + publicId + "] and the dtd file is [" + dtd + "]", MODULE);
                     }
                     return inputSource;
                 } catch (GeneralException | IOException e) {
-                    Debug.logWarning(e, module);
+                    Debug.logWarning(e, MODULE);
                 }
             } else {
                 // nothing found by the public ID, try looking at the systemId, or at least the filename part of it and look for that on the classpath
@@ -1098,13 +1107,13 @@ public final class UtilXml {
                     }
                     hasDTD = true;
                     if (Debug.verboseOn()) {
-                        Debug.logVerbose("[UtilXml.LocalResolver.resolveEntity] got LOCAL DTD/Schema input source with publicId [" +
-                                publicId + "] and the file/resource is [" + filename + "]", module);
+                        Debug.logVerbose("[UtilXml.LocalResolver.resolveEntity] got LOCAL DTD/Schema input source with publicId ["
+                                + publicId + "] and the file/resource is [" + filename + "]", MODULE);
                     }
                     return inputSource;
                 }
-                Debug.logWarning("[UtilXml.LocalResolver.resolveEntity] could not find LOCAL DTD/Schema with publicId [" +
-                        publicId + "] and the file/resource is [" + filename + "]", module);
+                Debug.logWarning("[UtilXml.LocalResolver.resolveEntity] could not find LOCAL DTD/Schema with publicId ["
+                        + publicId + "] and the file/resource is [" + filename + "]", MODULE);
                 return null;
             }
             return defaultResolver.resolveEntity(publicId, systemId);
@@ -1140,12 +1149,11 @@ public final class UtilXml {
             Matcher matcher = valueFlexExpr.matcher(exceptionMessage.toLowerCase());
             if (localResolver.hasDTD() && !matcher.find()) {
                 Debug.logError("XmlFileLoader: File "
-                    + docDescription
-                    + " process error. Line: "
-                    + String.valueOf(exception.getLineNumber())
-                    + ". Error message: "
-                    + exceptionMessage, module
-               );
+                        + docDescription
+                        + " process error. Line: "
+                        + String.valueOf(exception.getLineNumber())
+                        + ". Error message: "
+                        + exceptionMessage, MODULE);
             }
         }
 
@@ -1153,12 +1161,11 @@ public final class UtilXml {
         public void fatalError(SAXParseException exception) {
             if (localResolver.hasDTD()) {
                 Debug.logError("XmlFileLoader: File "
-                    + docDescription
-                    + " process fatal error. Line: "
-                    + String.valueOf(exception.getLineNumber())
-                    + ". Error message: "
-                    + exception.getMessage(), module
-               );
+                        + docDescription
+                        + " process fatal error. Line: "
+                        + String.valueOf(exception.getLineNumber())
+                        + ". Error message: "
+                        + exception.getMessage(), MODULE);
             }
         }
 
@@ -1166,12 +1173,11 @@ public final class UtilXml {
         public void warning(SAXParseException exception) {
             if (localResolver.hasDTD()) {
                 Debug.logError("XmlFileLoader: File "
-                    + docDescription
-                    + " process warning. Line: "
-                    + String.valueOf(exception.getLineNumber())
-                    + ". Error message: "
-                    + exception.getMessage(), module
-               );
+                        + docDescription
+                        + " process warning. Line: "
+                        + String.valueOf(exception.getLineNumber())
+                        + ". Error message: "
+                        + exception.getMessage(), MODULE);
             }
         }
     }
@@ -1181,12 +1187,12 @@ public final class UtilXml {
      * @param node
      * @return nodeName
      */
-    public static String getNodeNameIgnorePrefix(Node node){
-        if (node==null) {
+    public static String getNodeNameIgnorePrefix(Node node) {
+        if (node == null) {
             return null;
         }
         String nodeName = node.getNodeName();
-        if (nodeName.contains(":")){
+        if (nodeName.contains(":")) {
             // remove any possible prefix
             nodeName = nodeName.split(":")[1];
         }
@@ -1197,13 +1203,13 @@ public final class UtilXml {
      * get tag name without any prefix
      * @param element
      * @return tagName
-     */ 
-    public static String getTagNameIgnorePrefix(Element element){
-        if (element==null) {
+     */
+    public static String getTagNameIgnorePrefix(Element element) {
+        if (element == null) {
             return null;
         }
         String tagName = element.getTagName();
-        if (tagName.contains(":")){
+        if (tagName.contains(":")) {
             // remove any possible prefix
             tagName = tagName.split(":")[1];
         }
@@ -1215,19 +1221,18 @@ public final class UtilXml {
      * @param element
      * @return The value of the node, depending on its type; see the table Node class
      */
-    public static String getAttributeValueIgnorePrefix(Element element, String attributeName){
-        if (element==null) {
+    public static String getAttributeValueIgnorePrefix(Element element, String attributeName) {
+        if (element == null) {
             return "";
         }
 
         NamedNodeMap attributes = element.getAttributes();
-        if (attributes != null){
-            for (int i = 0, size = attributes.getLength(); i < size; i++)
-            {
+        if (attributes != null) {
+            for (int i = 0, size = attributes.getLength(); i < size; i++) {
                 Node node = attributes.item(i);
-                if (node.getNodeType() == Node.ATTRIBUTE_NODE){
+                if (node.getNodeType() == Node.ATTRIBUTE_NODE) {
                     String nodeName = UtilXml.getNodeNameIgnorePrefix(node);
-                    if (nodeName.equals(attributeName)){
+                    if (nodeName.equals(attributeName)) {
                         return node.getNodeValue();
                     }
                 }

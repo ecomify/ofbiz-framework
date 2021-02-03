@@ -35,28 +35,36 @@ import org.apache.ofbiz.widget.model.ModelMenuItem;
 
 /**
  * Widget Library - HTML Menu Renderer implementation
+ *
+ * @deprecated since 2021-01-14
  */
-
+@Deprecated
 public class HtmlMenuRendererImage extends HtmlMenuRenderer {
 
-    protected HtmlMenuRendererImage() {}
+    protected HtmlMenuRendererImage() { }
 
     public HtmlMenuRendererImage(HttpServletRequest request, HttpServletResponse response) {
         super(request, response);
     }
 
-
+    /**
+     * Build div str string.
+     * @param menuItem the menu item
+     * @param context  the context
+     * @return the string
+     * @throws IOException the io exception
+     */
     public String buildDivStr(ModelMenuItem menuItem, Map<String, Object> context) throws IOException {
 
         StringBuilder imgStr = new StringBuilder("<img src=\"");
         String contentId = menuItem.getAssociatedContentId(context);
-        Delegator delegator = (Delegator)request.getAttribute("delegator");
+        Delegator delegator = (Delegator) getRequest().getAttribute("delegator");
         GenericValue webSitePublishPoint = null;
         try {
             if (WidgetContentWorker.getContentWorker() != null) {
                 webSitePublishPoint = WidgetContentWorker.getContentWorker().getWebSitePublishPointExt(delegator, contentId, false);
             } else {
-                Debug.logError("Not rendering image because can't get WebSitePublishPoint, not ContentWorker found.", module);
+                Debug.logError("Not rendering image because can't get WebSitePublishPoint, not ContentWorker found.", MODULE);
             }
         } catch (GenericEntityException e) {
             throw new RuntimeException(e.getMessage());

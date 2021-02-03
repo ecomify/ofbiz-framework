@@ -41,43 +41,50 @@ import org.w3c.dom.Element;
 @SuppressWarnings("serial")
 public class ServiceMcaCondition implements java.io.Serializable {
 
-    public static final String module = ServiceMcaCondition.class.getName();
+    private static final String MODULE = ServiceMcaCondition.class.getName();
     public static final int CONDITION_FIELD = 1;
     public static final int CONDITION_HEADER = 2;
     public static final int CONDITION_SERVICE = 3;
 
-    protected String serviceName = null;
-    protected String headerName = null;
-    protected String fieldName = null;
-    protected String operator = null;
-    protected String value = null;
+    private String serviceName = null;
+    private String headerName = null;
+    private String fieldName = null;
+    private String operator = null;
+    private String value = null;
 
     public ServiceMcaCondition(Element condElement, int condType) {
         switch (condType) {
-            case CONDITION_FIELD:
-                // fields: from|to|subject|body|sent-date|receieved-date
-                this.fieldName = condElement.getAttribute("field-name");
-                // operators: equals|not-equals|empty|not-empty|matches|not-matches
-                this.operator = condElement.getAttribute("operator");
-                // value to compare
-                this.value = condElement.getAttribute("value");
-                break;
-            case CONDITION_HEADER:
-                // free form header name
-                this.headerName = condElement.getAttribute("header-name");
-                // operators: equals|not-equals|empty|not-empty|matches|not-matches
-                this.operator = condElement.getAttribute("operator");
-                // value to compare
-                this.value = condElement.getAttribute("value");
-                break;
-            case CONDITION_SERVICE:
-                this.serviceName = condElement.getAttribute("service-name");
-                break;
-            default:
-                Debug.logWarning("There was an error in the switch-case in ServiceMcaCondition", module);
+        case CONDITION_FIELD:
+            // fields: from|to|subject|body|sent-date|receieved-date
+            this.fieldName = condElement.getAttribute("field-name");
+            // operators: equals|not-equals|empty|not-empty|matches|not-matches
+            this.operator = condElement.getAttribute("operator");
+            // value to compare
+            this.value = condElement.getAttribute("value");
+            break;
+        case CONDITION_HEADER:
+            // free form header name
+            this.headerName = condElement.getAttribute("header-name");
+            // operators: equals|not-equals|empty|not-empty|matches|not-matches
+            this.operator = condElement.getAttribute("operator");
+            // value to compare
+            this.value = condElement.getAttribute("value");
+            break;
+        case CONDITION_SERVICE:
+            this.serviceName = condElement.getAttribute("service-name");
+            break;
+        default:
+            Debug.logWarning("There was an error in the switch-case in ServiceMcaCondition", MODULE);
         }
     }
 
+    /**
+     * Eval boolean.
+     * @param dispatcher the dispatcher
+     * @param messageWrapper the message wrapper
+     * @param userLogin the user login
+     * @return the boolean
+     */
     public boolean eval(LocalDispatcher dispatcher, MimeMessageWrapper messageWrapper, GenericValue userLogin) {
         boolean passedCondition = false;
         if (serviceName != null) {
@@ -85,15 +92,15 @@ public class ServiceMcaCondition implements java.io.Serializable {
             try {
                 result = dispatcher.runSync(serviceName, UtilMisc.<String, Object>toMap("messageWrapper", messageWrapper, "userLogin", userLogin));
             } catch (GenericServiceException e) {
-                Debug.logError(e, module);
+                Debug.logError(e, MODULE);
                 return false;
             }
             if (result == null) {
-                Debug.logError("Service MCA Condition Service [" + serviceName + "] returned null!", module);
+                Debug.logError("Service MCA Condition Service [" + serviceName + "] returned null!", MODULE);
                 return false;
             }
             if (ServiceUtil.isError(result)) {
-                Debug.logError(ServiceUtil.getErrorMessage(result), module);
+                Debug.logError(ServiceUtil.getErrorMessage(result), MODULE);
                 return false;
             }
             Boolean reply = (Boolean) result.get("conditionReply");
@@ -108,7 +115,7 @@ public class ServiceMcaCondition implements java.io.Serializable {
             try {
                 headerValues = message.getHeader(headerName);
             } catch (MessagingException e) {
-                Debug.logError(e, module);
+                Debug.logError(e, MODULE);
             }
 
             if (headerValues != null) {
@@ -149,7 +156,7 @@ public class ServiceMcaCondition implements java.io.Serializable {
             try {
                 fieldValues = this.getFieldValue(message, fieldName);
             } catch (MessagingException | IOException e) {
-                Debug.logError(e, module);
+                Debug.logError(e, MODULE);
             }
 
             if (fieldValues != null) {
@@ -191,6 +198,14 @@ public class ServiceMcaCondition implements java.io.Serializable {
         return passedCondition;
     }
 
+    /**
+     * Get field value string [ ].
+     * @param message the message
+     * @param fieldName the field name
+     * @return the string [ ]
+     * @throws MessagingException the messaging exception
+     * @throws IOException the io exception
+     */
     protected String[] getFieldValue(MimeMessage message, String fieldName) throws MessagingException, IOException {
         String[] values = null;
         if ("to".equals(fieldName)) {

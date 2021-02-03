@@ -31,14 +31,16 @@ import org.apache.ofbiz.base.util.template.FreeMarkerWorker;
 import org.apache.ofbiz.entity.Delegator;
 import org.apache.ofbiz.entity.GenericEntityException;
 import org.apache.ofbiz.entity.GenericValue;
+import org.apache.ofbiz.entity.util.EntityQuery;
 import org.apache.ofbiz.entity.util.EntityUtilProperties;
 import org.apache.ofbiz.product.category.CatalogUrlFilter;
 import org.apache.ofbiz.product.category.CategoryContentWrapper;
-import org.apache.ofbiz.product.category.SeoConfigUtil;
 import org.apache.ofbiz.product.product.ProductContentWrapper;
+import org.apache.ofbiz.security.CsrfUtil;
 import org.apache.ofbiz.service.LocalDispatcher;
 import org.apache.ofbiz.webapp.OfbizUrlBuilder;
 import org.apache.ofbiz.webapp.control.WebAppConfigurationException;
+import org.apache.ofbiz.webapp.SeoConfigUtil;
 
 import freemarker.core.Environment;
 import freemarker.ext.beans.BeanModel;
@@ -48,11 +50,16 @@ import freemarker.template.SimpleNumber;
 import freemarker.template.SimpleScalar;
 import freemarker.template.TemplateModelException;
 import freemarker.template.TemplateTransformModel;
-import org.apache.ofbiz.entity.util.EntityQuery;
 
 public class CatalogAltUrlSeoTransform implements TemplateTransformModel {
-    public final static String module = CatalogUrlSeoTransform.class.getName();
+    private static final String MODULE = CatalogUrlSeoTransform.class.getName();
 
+    /**
+     * Gets string arg.
+     * @param args the args
+     * @param key the key
+     * @return the string arg
+     */
     public String getStringArg(Map<?, ?> args, String key) {
         Object o = args.get(key);
         if (o instanceof SimpleScalar) {
@@ -67,6 +74,13 @@ public class CatalogAltUrlSeoTransform implements TemplateTransformModel {
         return null;
     }
 
+    /**
+     * Check arg boolean.
+     * @param args the args
+     * @param key the key
+     * @param defaultValue the default value
+     * @return the boolean
+     */
     public boolean checkArg(Map<?, ?> args, String key, boolean defaultValue) {
         if (!args.containsKey(key)) {
             return defaultValue;
@@ -118,24 +132,33 @@ public class CatalogAltUrlSeoTransform implements TemplateTransformModel {
                         StringBuilder newURL = new StringBuilder();
                         if (UtilValidate.isNotEmpty(productId)) {
                             if (SeoConfigUtil.isCategoryUrlEnabled(request.getContextPath())) {
-                                url = CatalogUrlSeoTransform.makeProductUrl(request, productId, productCategoryId, previousCategoryId);
+                                url = CatalogUrlSeoTransform.makeProductUrl(request, productId, productCategoryId,
+                                        previousCategoryId);
                             } else {
-                                url = CatalogUrlFilter.makeProductUrl(request, previousCategoryId, productCategoryId, productId);
+                                url = CatalogUrlFilter.makeProductUrl(request, previousCategoryId, productCategoryId,
+                                        productId);
                             }
                         } else {
                             if (SeoConfigUtil.isCategoryUrlEnabled(request.getContextPath())) {
-                                url = CatalogUrlSeoTransform.makeCategoryUrl(request, productCategoryId, previousCategoryId, viewSize, viewIndex, viewSort, searchString);
+                                url = CatalogUrlSeoTransform.makeCategoryUrl(request, productCategoryId,
+                                        previousCategoryId, viewSize, viewIndex, viewSort, searchString);
                             } else {
-                                url = CatalogUrlFilter.makeCategoryUrl(request, previousCategoryId, productCategoryId, productId, viewSize, viewIndex, viewSort, searchString);
+                                url = CatalogUrlFilter.makeCategoryUrl(request, previousCategoryId, productCategoryId,
+                                        productId, viewSize, viewIndex, viewSort, searchString);
                             }
                         }
+
+                        // add / update csrf token to link when required
+                        String tokenValue = CsrfUtil.generateTokenForNonAjax(request, "product");
+                        url = CsrfUtil.addOrUpdateTokenInUrl(url, tokenValue);
+
                         // make the link
                         if (fullPath) {
                             try {
                                 OfbizUrlBuilder builder = OfbizUrlBuilder.from(request);
                                 builder.buildHostPart(newURL, "", secure);
                             } catch (WebAppConfigurationException e) {
-                                Debug.logError(e.getMessage(), module);
+                                Debug.logError(e.getMessage(), MODULE);
                             }
                         }
                         newURL.append(url);
@@ -152,21 +175,32 @@ public class CatalogAltUrlSeoTransform implements TemplateTransformModel {
                             contextPath = prefixString.substring(prefixString.lastIndexOf('/'));
                         }
                         if (UtilValidate.isNotEmpty(productId)) {
-                            GenericValue product = EntityQuery.use(delegator).from("Product").where("productId", productId).queryOne();
-                            ProductContentWrapper wrapper = new ProductContentWrapper(dispatcher, product, locale, EntityUtilProperties.getPropertyValue("content", "defaultMimeType", "text/html; charset=utf-8", delegator));
+                            GenericValue product = EntityQuery.use(delegator).from("Product")
+                                    .where("productId", productId).queryOne();
+                            ProductContentWrapper wrapper = new ProductContentWrapper(dispatcher, product, locale,
+                                    EntityUtilProperties.getPropertyValue("content", "defaultMimeType",
+                                            "text/html; charset=utf-8", delegator));
                             if (SeoConfigUtil.isCategoryUrlEnabled(contextPath)) {
-                                url = CatalogUrlSeoTransform.makeProductUrl(delegator, wrapper, prefixString, contextPath, productCategoryId, previousCategoryId, productId);
+                                url = CatalogUrlSeoTransform.makeProductUrl(delegator, wrapper, prefixString,
+                                        contextPath, productCategoryId, previousCategoryId, productId);
                             } else {
-                                url = CatalogUrlFilter.makeProductUrl(wrapper, null, prefixString, previousCategoryId, productCategoryId, productId);
+                                url = CatalogUrlFilter.makeProductUrl(wrapper, null, prefixString, previousCategoryId,
+                                        productCategoryId, productId);
                             }
                         } else {
-                            GenericValue productCategory = EntityQuery.use(delegator).from("ProductCategory").where("productCategoryId", productCategoryId).queryOne();
-                            CategoryContentWrapper wrapper = new CategoryContentWrapper(dispatcher, productCategory, locale, EntityUtilProperties.getPropertyValue("content", "defaultMimeType", "text/html; charset=utf-8", delegator));
+                            GenericValue productCategory = EntityQuery.use(delegator).from("ProductCategory")
+                                    .where("productCategoryId", productCategoryId).queryOne();
+                            CategoryContentWrapper wrapper = new CategoryContentWrapper(dispatcher, productCategory,
+                                    locale, EntityUtilProperties.getPropertyValue("content", "defaultMimeType",
+                                            "text/html; charset=utf-8", delegator));
                             if (SeoConfigUtil.isCategoryUrlEnabled(contextPath)) {
-                                url = CatalogUrlSeoTransform.makeCategoryUrl(delegator, wrapper, prefixString, productCategoryId, previousCategoryId, productId, viewSize, viewIndex, viewSort, searchString);
+                                url = CatalogUrlSeoTransform.makeCategoryUrl(delegator, wrapper, prefixString,
+                                        productCategoryId, previousCategoryId, productId, viewSize, viewIndex, viewSort,
+                                        searchString);
                             } else {
-                                url = CatalogUrlFilter.makeCategoryUrl(delegator, wrapper, null, prefixString, previousCategoryId, productCategoryId,
-                                        productId, viewSize, viewIndex, viewSort, searchString);
+                                url = CatalogUrlFilter.makeCategoryUrl(delegator, wrapper, null, prefixString,
+                                        previousCategoryId, productCategoryId, productId, viewSize, viewIndex, viewSort,
+                                        searchString);
                             }
                         }
                         out.write(url);

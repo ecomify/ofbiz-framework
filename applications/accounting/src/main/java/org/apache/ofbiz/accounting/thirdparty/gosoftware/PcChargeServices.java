@@ -42,10 +42,10 @@ import org.apache.ofbiz.service.ServiceUtil;
 
 public class PcChargeServices {
 
-    public static final String module = PcChargeServices.class.getName();
-    private static int decimals = UtilNumber.getBigDecimalScale("invoice.decimals");
-    private static RoundingMode rounding = UtilNumber.getRoundingMode("invoice.rounding");
-    public final static String resource = "AccountingUiLabels";
+    private static final String MODULE = PcChargeServices.class.getName();
+    private static final String RESOURCE = "AccountingUiLabels";
+    private static final int DECIMALS = UtilNumber.getBigDecimalScale("invoice.decimals");
+    private static final RoundingMode ROUNDING_MODE = UtilNumber.getRoundingMode("invoice.rounding");
 
     public static Map<String, Object> ccAuth(DispatchContext dctx, Map<String, ? extends Object> context) {
         Locale locale = (Locale) context.get("locale");
@@ -54,7 +54,7 @@ public class PcChargeServices {
         Properties props = buildPccProperties(context, delegator);
         PcChargeApi api = getApi(props);
         if (api == null) {
-            return ServiceUtil.returnError(UtilProperties.getMessage(resource,
+            return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE,
                     "AccountingPcChargeErrorGettingPaymentGatewayConfig", locale));
         }
 
@@ -84,7 +84,7 @@ public class PcChargeServices {
         try {
             out = api.send();
         } catch (IOException | GeneralException e) {
-            Debug.logError(e, module);
+            Debug.logError(e, MODULE);
             return ServiceUtil.returnError(e.getMessage());
         }
 
@@ -142,7 +142,7 @@ public class PcChargeServices {
         }
 
         if (authTransaction == null) {
-            return ServiceUtil.returnError(UtilProperties.getMessage(resource,
+            return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE,
                     "AccountingPaymentTransactionAuthorizationNotFoundCannotCapture", locale));
         }
 
@@ -150,7 +150,7 @@ public class PcChargeServices {
         Properties props = buildPccProperties(context, delegator);
         PcChargeApi api = getApi(props);
         if (api == null) {
-            return ServiceUtil.returnError(UtilProperties.getMessage(resource,
+            return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE,
                     "AccountingPcChargeErrorGettingPaymentGatewayConfig", locale));
         }
 
@@ -162,7 +162,7 @@ public class PcChargeServices {
         try {
             out = api.send();
         } catch (IOException | GeneralException e) {
-            Debug.logError(e, module);
+            Debug.logError(e, MODULE);
             return ServiceUtil.returnError(e.getMessage());
         }
 
@@ -194,7 +194,7 @@ public class PcChargeServices {
         }
 
         if (authTransaction == null) {
-            return ServiceUtil.returnError(UtilProperties.getMessage(resource,
+            return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE,
                     "AccountingPaymentTransactionAuthorizationNotFoundCannotRelease", locale));
         }
 
@@ -202,7 +202,7 @@ public class PcChargeServices {
         Properties props = buildPccProperties(context, delegator);
         PcChargeApi api = getApi(props);
         if (api == null) {
-            return ServiceUtil.returnError(UtilProperties.getMessage(resource,
+            return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE,
                     "AccountingPcChargeErrorGettingPaymentGatewayConfig", locale));
         }
 
@@ -211,7 +211,7 @@ public class PcChargeServices {
 
         // check to make sure we are configured for SALE mode
         if (!"true".equalsIgnoreCase(props.getProperty("autoBill"))) {
-            return ServiceUtil.returnError(UtilProperties.getMessage(resource,
+            return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE,
                     "AccountingPcChargeCannotSupportReleasingPreAuth", locale));
         }
 
@@ -220,7 +220,7 @@ public class PcChargeServices {
         try {
             out = api.send();
         } catch (IOException | GeneralException e) {
-            Debug.logError(e, module);
+            Debug.logError(e, MODULE);
             return ServiceUtil.returnError(e.getMessage());
         }
 
@@ -252,7 +252,7 @@ public class PcChargeServices {
         }
 
         if (authTransaction == null) {
-            return ServiceUtil.returnError(UtilProperties.getMessage(resource,
+            return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE,
                     "AccountingPaymentTransactionAuthorizationNotFoundCannotRefund", locale));
         }
 
@@ -260,7 +260,7 @@ public class PcChargeServices {
         Properties props = buildPccProperties(context, delegator);
         PcChargeApi api = getApi(props);
         if (api == null) {
-            return ServiceUtil.returnError(UtilProperties.getMessage(resource,
+            return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE,
                     "AccountingPcChargeErrorGettingPaymentGatewayConfig", locale));
         }
 
@@ -272,7 +272,7 @@ public class PcChargeServices {
         try {
             out = api.send();
         } catch (IOException | GeneralException e) {
-            Debug.logError(e, module);
+            Debug.logError(e, MODULE);
             return ServiceUtil.returnError(e.getMessage());
         }
 
@@ -352,7 +352,7 @@ public class PcChargeServices {
 
     private static PcChargeApi getApi(Properties props) {
         if (props == null) {
-            Debug.logError("Cannot load API w/ null properties", module);
+            Debug.logError("Cannot load API w/ null properties", MODULE);
             return null;
         }
         String host = props.getProperty("host");
@@ -360,7 +360,7 @@ public class PcChargeServices {
         try {
             port = Integer.parseInt(props.getProperty("port"));
         } catch (RuntimeException e) {
-            Debug.logError(e, module);
+            Debug.logError(e, MODULE);
         }
         PcChargeApi api = null;
         if (port > 0 && host != null) {
@@ -390,15 +390,15 @@ public class PcChargeServices {
 
         // some property checking
         if (UtilValidate.isEmpty(processorId)) {
-            Debug.logWarning("The processorID property in [" + configString + "] is not configured", module);
+            Debug.logWarning("The processorID property in [" + configString + "] is not configured", MODULE);
             return null;
         }
         if (UtilValidate.isEmpty(merchantId)) {
-            Debug.logWarning("The merchantID property in [" + configString + "] is not configured", module);
+            Debug.logWarning("The merchantID property in [" + configString + "] is not configured", MODULE);
             return null;
         }
         if (UtilValidate.isEmpty(userId)) {
-            Debug.logWarning("The userID property in [" + configString + "] is not configured", module);
+            Debug.logWarning("The userID property in [" + configString + "] is not configured", MODULE);
             return null;
         }
 
@@ -410,14 +410,14 @@ public class PcChargeServices {
         props.put("host", host);
         props.put("port", port);
         props.put("autoBill", autoBill);
-        Debug.logInfo("Returning properties - " + props, module);
+        Debug.logInfo("Returning properties - " + props, MODULE);
 
         return props;
     }
 
     private static String getAmountString(Map<String, ? extends Object> context, String amountField) {
         BigDecimal processAmount = (BigDecimal) context.get(amountField);
-        return processAmount.setScale(decimals, rounding).toPlainString();
+        return processAmount.setScale(DECIMALS, ROUNDING_MODE).toPlainString();
     }
 
 }

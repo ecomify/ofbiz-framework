@@ -34,17 +34,17 @@ import org.xml.sax.SAXException;
 
 /**
  * A facade class used to connect SOAP code to the legacy XML serialization code.
- *
  */
 public class SoapSerializer {
-    public static final String module = SoapSerializer.class.getName();
+    private static final String MODULE = SoapSerializer.class.getName();
 
-    public static Object deserialize(String content, Delegator delegator) throws SerializeException, SAXException, ParserConfigurationException, IOException {
+    public static Object deserialize(String content, Delegator delegator) throws SerializeException, SAXException, ParserConfigurationException,
+            IOException {
         Document document = UtilXml.readXmlDocument(content, false);
         if (document != null) {
             return XmlSerializer.deserialize(document, delegator);
         }
-        Debug.logWarning("Serialized document came back null", module);
+        Debug.logWarning("Serialized document came back null", MODULE);
         return null;
     }
 

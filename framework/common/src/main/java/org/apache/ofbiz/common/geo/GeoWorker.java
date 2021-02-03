@@ -22,7 +22,10 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Locale;
 
+import com.ibm.icu.util.LocaleData;
+import com.ibm.icu.util.ULocale;
 import org.apache.ofbiz.base.util.Debug;
 import org.apache.ofbiz.base.util.UtilMisc;
 import org.apache.ofbiz.base.util.UtilValidate;
@@ -37,16 +40,16 @@ import org.apache.ofbiz.entity.util.EntityUtil;
  */
 public final class GeoWorker {
 
-    public static final String module = GeoWorker.class.getName();
+    private static final String MODULE = GeoWorker.class.getName();
 
-    private GeoWorker() {}
+    private GeoWorker() { }
 
     public static List<GenericValue> expandGeoGroup(String geoId, Delegator delegator) {
         GenericValue geo = null;
         try {
             geo = EntityQuery.use(delegator).from("Geo").where("geoId", geoId).cache().queryOne();
         } catch (GenericEntityException e) {
-            Debug.logError(e, "Unable to look up Geo from geoId : " + geoId, module);
+            Debug.logError(e, "Unable to look up Geo from geoId : " + geoId, MODULE);
         }
         return expandGeoGroup(geo);
     }
@@ -64,7 +67,7 @@ public final class GeoWorker {
         try {
             thisGeoAssoc = geo.getRelated("AssocGeoAssoc", UtilMisc.toMap("geoAssocTypeId", "GROUP_MEMBER"), null, false);
         } catch (GenericEntityException e) {
-            Debug.logError(e, "Unable to get associated Geo GROUP_MEMBER relationship(s)", module);
+            Debug.logError(e, "Unable to get associated Geo GROUP_MEMBER relationship(s)", MODULE);
         }
         if (UtilValidate.isNotEmpty(thisGeoAssoc)) {
             for (GenericValue nextGeoAssoc: thisGeoAssoc) {
@@ -72,11 +75,11 @@ public final class GeoWorker {
                 try {
                     nextGeo = nextGeoAssoc.getRelatedOne("MainGeo", false);
                 } catch (GenericEntityException e) {
-                    Debug.logError(e, "Unable to get related Geo", module);
+                    Debug.logError(e, "Unable to get related Geo", MODULE);
                 }
                 geoList.addAll(expandGeoGroup(nextGeo));
             }
-        } 
+        }
         return geoList;
     }
 
@@ -84,7 +87,7 @@ public final class GeoWorker {
         if (UtilValidate.isEmpty(geoIdByTypeMapOrig)) {
             return geoIdByTypeMapOrig;
         }
-        Map<String, String> geoIdByTypeMapTemp =  new LinkedHashMap<>();
+        Map<String, String> geoIdByTypeMapTemp = new LinkedHashMap<>();
         for (Map.Entry<String, String> geoIdByTypeEntry: geoIdByTypeMapOrig.entrySet()) {
             List<GenericValue> geoAssocList = EntityQuery.use(delegator)
                                                          .from("GeoAssoc")
@@ -97,7 +100,7 @@ public final class GeoWorker {
             }
         }
         geoIdByTypeMapTemp = expandGeoRegionDeep(geoIdByTypeMapTemp, delegator);
-        Map<String, String> geoIdByTypeMapNew =  new LinkedHashMap<>();
+        Map<String, String> geoIdByTypeMapNew = new LinkedHashMap<>();
         // add the temp Map first, then the original over top of it, ie give the original priority over the sub/expanded values
         geoIdByTypeMapNew.putAll(geoIdByTypeMapTemp);
         geoIdByTypeMapNew.putAll(geoIdByTypeMapOrig);
@@ -109,7 +112,7 @@ public final class GeoWorker {
         try {
             geo = EntityQuery.use(delegator).from("Geo").where("geoId", geoId).cache().queryOne();
         } catch (GenericEntityException e) {
-            Debug.logError(e, "Unable to look up Geo from geoId : " + geoId, module);
+            Debug.logError(e, "Unable to look up Geo from geoId : " + geoId, MODULE);
         }
         return containsGeo(geoList, geo);
     }
@@ -121,7 +124,8 @@ public final class GeoWorker {
         return geoList.contains(geo);
     }
 
-    public static GenericValue findLatestGeoPoint(Delegator delegator, String entityName, String mainId, String mainValueId, String secondId, String secondValueId) {
+    public static GenericValue findLatestGeoPoint(Delegator delegator, String entityName, String mainId, String mainValueId, String secondId,
+                                                  String secondValueId) {
         List<GenericValue> gptList = null;
         if (UtilValidate.isNotEmpty(secondId) && UtilValidate.isNotEmpty(secondValueId)) {
             try {
@@ -131,13 +135,14 @@ public final class GeoWorker {
                                      .orderBy("-fromDate")
                                      .queryList();
             } catch (GenericEntityException e) {
-                Debug.logError(e, "Error while finding latest GeoPoint for " + mainId + " with Id [" + mainValueId + "] and " + secondId + " Id [" + secondValueId + "] " + e.toString(), module);
+                Debug.logError(e, "Error while finding latest GeoPoint for " + mainId + " with Id [" + mainValueId + "] and " + secondId
+                        + " Id [" + secondValueId + "] " + e.toString(), MODULE);
             }
         } else {
             try {
                 gptList = EntityQuery.use(delegator).from(entityName).where(mainId, mainValueId).orderBy("-fromDate").queryList();
             } catch (GenericEntityException e) {
-                Debug.logError(e, "Error while finding latest GeoPoint for " + mainId + " with Id [" + mainValueId + "] " + e.toString(), module);
+                Debug.logError(e, "Error while finding latest GeoPoint for " + mainId + " with Id [" + mainValueId + "] " + e.toString(), MODULE);
             }
         }
         if (UtilValidate.isNotEmpty(gptList)) {
@@ -145,5 +150,13 @@ public final class GeoWorker {
             return EntityUtil.getFirst(gptList);
         }
         return null;
+    }
+    public static String getMeasurementSystem(Locale locale) {
+        ULocale loc = new ULocale(locale.toString());
+        LocaleData.MeasurementSystem measurementSystem = LocaleData.getMeasurementSystem(loc);
+        if (measurementSystem.equals(LocaleData.MeasurementSystem.US)) {
+            return "IMPERIAL";
+        }
+        return "METRIC";
     }
 }

@@ -32,9 +32,8 @@ import org.w3c.dom.Element;
  */
 public class InFieldOper extends MakeInStringOperation {
 
-    public static final String module = InFieldOper.class.getName();
-
-    String fieldName;
+    private static final String MODULE = InFieldOper.class.getName();
+    private String fieldName;
 
     public InFieldOper(Element element) {
         super(element);
@@ -45,13 +44,13 @@ public class InFieldOper extends MakeInStringOperation {
     public String exec(Map<String, Object> inMap, List<Object> messages, Locale locale, ClassLoader loader) {
         Object obj = inMap.get(fieldName);
         if (obj == null) {
-            Debug.logWarning("[SimpleMapProcessor.InFieldOper.exec] In field " + fieldName + " not found, not appending anything", module);
+            Debug.logWarning("[SimpleMapProcessor.InFieldOper.exec] In field " + fieldName + " not found, not appending anything", MODULE);
             return null;
         }
         try {
             return (String) ObjectType.simpleTypeOrObjectConvert(obj, "String", null, locale);
         } catch (GeneralException e) {
-            Debug.logWarning(e, module);
+            Debug.logWarning(e, MODULE);
             messages.add("Error converting incoming field \"" + fieldName + "\" in map processor: " + e.getMessage());
             return null;
         }

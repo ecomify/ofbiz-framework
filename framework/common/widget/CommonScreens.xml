@@ -170,6 +170,16 @@ under the License.
         </section>
     </screen>
 
+    <!-- Global decorator for Shortcut pop-up windows or layered CSS on webapp overview-->
+    <screen name="ShortcutDecorator">
+        <section>
+            <widgets>
+                <include-screen name="GlobalActions" />
+                <include-screen name="ShortcutDecorator" location="${groovy:commonScreenLocations.ShortcutDecorator?commonScreenLocations.ShortcutDecorator:commonDecoratorLocation}"/>
+            </widgets>
+        </section>
+    </screen>
+
     <!-- Simple decorator (no application and menu bars); it can be used:
          * for printer friendly html screens (no logo and no application bar, header and footer); a print button is also available at the top of the screen
          * for simple PDF report (a simple header with the logo/date is rendered and a footer with page numbers)
@@ -256,13 +266,6 @@ under the License.
         <section>
             <actions>
                 <set field="userLoginId" from-field="parameters.USERNAME"/>
-                <entity-and entity-name="UserLoginSecurityQuestion" list="securityQuestions">
-                    <field-map field-name="userLoginId" />
-                </entity-and>
-                <set field="questionEnumId" from-field="securityQuestions[0].questionEnumId" />
-                <entity-one entity-name="Enumeration" value-field="securityQuestion">
-                    <field-map field-name="enumId" from-field="questionEnumId" />
-                </entity-one>
             </actions>
             <widgets>
                 <include-screen name="MinimalActions" />

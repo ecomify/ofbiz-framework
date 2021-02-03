@@ -31,19 +31,19 @@ import org.w3c.dom.Element;
 
 /**
  * Implements the &lt;entity-and&gt; element.
- * 
  * @see <a href="https://cwiki.apache.org/confluence/display/OFBIZ/Mini+Language+-+minilang+-+simple-method+-+Reference">Mini-language Reference</a>
  */
 public final class EntityAnd extends EntityOperation {
 
-    public static final String module = EntityAnd.class.getName();
+    private static final String MODULE = EntityAnd.class.getName();
 
     private final ByAndFinder finder;
 
     public EntityAnd(Element element, SimpleMethod simpleMethod) throws MiniLangException {
         super(element, simpleMethod);
         if (MiniLangValidate.validationOn()) {
-            MiniLangValidate.attributeNames(simpleMethod, element, "entity-name", "use-cache", "filter-by-date", "list", "distinct", "delegator-name");
+            MiniLangValidate.attributeNames(simpleMethod, element, "entity-name", "use-cache", "filter-by-date",
+                    "list", "distinct", "delegator-name");
             MiniLangValidate.requiredAttributes(simpleMethod, element, "entity-name", "list");
             MiniLangValidate.expressionAttributes(simpleMethod, element, "list");
             MiniLangValidate.childElements(simpleMethod, element, "field-map", "order-by", "limit-range", "limit-view", "use-iterator");
@@ -59,8 +59,8 @@ public final class EntityAnd extends EntityOperation {
             this.finder.runFind(methodContext.getEnvMap(), delegator);
         } catch (GeneralException e) {
             String errMsg = "Exception thrown while performing entity find: " + e.getMessage();
-            Debug.logWarning(e, errMsg, module);
-            simpleMethod.addErrorMessage(methodContext, errMsg);
+            Debug.logWarning(e, errMsg, MODULE);
+            getSimpleMethod().addErrorMessage(methodContext, errMsg);
             return false;
         }
         return true;

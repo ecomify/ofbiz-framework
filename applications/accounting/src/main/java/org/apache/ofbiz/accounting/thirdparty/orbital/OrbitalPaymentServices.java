@@ -19,6 +19,7 @@
 package org.apache.ofbiz.accounting.thirdparty.orbital;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -26,7 +27,6 @@ import java.util.Map;
 import org.apache.ofbiz.accounting.payment.PaymentGatewayServices;
 import org.apache.ofbiz.base.util.Debug;
 import org.apache.ofbiz.base.util.UtilFormatOut;
-import org.apache.ofbiz.base.util.UtilMisc;
 import org.apache.ofbiz.base.util.UtilNumber;
 import org.apache.ofbiz.base.util.UtilProperties;
 import org.apache.ofbiz.base.util.UtilValidate;
@@ -34,7 +34,6 @@ import org.apache.ofbiz.entity.Delegator;
 import org.apache.ofbiz.entity.GenericEntityException;
 import org.apache.ofbiz.entity.GenericValue;
 import org.apache.ofbiz.entity.util.EntityQuery;
-import org.apache.ofbiz.entity.util.EntityUtil;
 import org.apache.ofbiz.service.DispatchContext;
 import org.apache.ofbiz.service.ModelService;
 import org.apache.ofbiz.service.ServiceUtil;
@@ -51,12 +50,13 @@ import com.paymentech.orbital.sdk.util.exceptions.InitializationException;
 
 public class OrbitalPaymentServices {
 
-    public static String module = OrbitalPaymentServices.class.getName();
-    private static int decimals = UtilNumber.getBigDecimalScale("invoice.decimals");
-    private static RoundingMode rounding = UtilNumber.getRoundingMode("invoice.rounding");
-    public final static String resource = "AccountingUiLabels";
+    private static final String MODULE = OrbitalPaymentServices.class.getName();
+    private static final String RESOURCE = "AccountingUiLabels";
+    private static final String ERROR = "Error";
 
-    public static String ERROR    = "Error";
+    private static final int DECIMALS = UtilNumber.getBigDecimalScale("invoice.decimals");
+    private static final RoundingMode ROUNDING = UtilNumber.getRoundingMode("invoice.rounding");
+
 
     public static final String BIN_VALUE = "000002";
     public static TransactionProcessorIF tp = null;
@@ -72,7 +72,7 @@ public class OrbitalPaymentServices {
         try {
             request = new Request(RequestIF.NEW_ORDER_TRANSACTION);
         } catch (InitializationException e) {
-            Debug.logError(e, "Error in request initialization", module);
+            Debug.logError(e, "Error in request initialization", MODULE);
         }
         buildAuthOrAuthCaptureTransaction(context, delegator, props, request, results);
         Map<String, Object> validateResults = validateRequest(context, props, request);
@@ -98,7 +98,7 @@ public class OrbitalPaymentServices {
         try {
             request = new Request(RequestIF.NEW_ORDER_TRANSACTION);
         } catch (InitializationException e) {
-            Debug.logError(e, "Error in request initialization", module);
+            Debug.logError(e, "Error in request initialization", MODULE);
         }
         buildAuthOrAuthCaptureTransaction(context, delegator, props, request, results);
         Map<String, Object> validateResults = validateRequest(context, props, request);
@@ -125,13 +125,13 @@ public class OrbitalPaymentServices {
         try {
             creditCard = orderPaymentPreference.getRelatedOne("CreditCard", false);
         } catch (GenericEntityException e) {
-            Debug.logError(e, module);
-            return ServiceUtil.returnError(UtilProperties.getMessage(resource, 
+            Debug.logError(e, MODULE);
+            return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE,
                     "AccountingPaymentUnableToGetCCInfo", locale));
         }
         GenericValue authTransaction = PaymentGatewayServices.getAuthTransaction(orderPaymentPreference);
         if (authTransaction == null) {
-            return ServiceUtil.returnError(UtilProperties.getMessage(resource, 
+            return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE,
                     "AccountingPaymentTransactionAuthorizationNotFoundCannotCapture", locale));
         }
         context.put("creditCard", creditCard);
@@ -143,7 +143,7 @@ public class OrbitalPaymentServices {
         try {
             request = new Request(RequestIF.MARK_FOR_CAPTURE_TRANSACTION);
         } catch (InitializationException e) {
-            Debug.logError(e, "Error in request initialization", module);
+            Debug.logError(e, "Error in request initialization", MODULE);
         }
         buildCaptureTransaction(context, delegator, props, request, results);
         Map<String, Object> validateResults = validateRequest(context, props, request);
@@ -170,13 +170,13 @@ public class OrbitalPaymentServices {
         try {
             creditCard = orderPaymentPreference.getRelatedOne("CreditCard", false);
         } catch (GenericEntityException e) {
-            Debug.logError(e, module);
-            return ServiceUtil.returnError(UtilProperties.getMessage(resource, 
+            Debug.logError(e, MODULE);
+            return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE,
                     "AccountingPaymentUnableToGetCCInfo", locale));
         }
         GenericValue authTransaction = PaymentGatewayServices.getAuthTransaction(orderPaymentPreference);
         if (authTransaction == null) {
-            return ServiceUtil.returnError(UtilProperties.getMessage(resource, 
+            return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE,
                     "AccountingPaymentTransactionAuthorizationNotFoundCannotRefund", locale));
         }
         context.put("creditCard", creditCard);
@@ -187,7 +187,7 @@ public class OrbitalPaymentServices {
         try {
             request = new Request(RequestIF.NEW_ORDER_TRANSACTION);
         } catch (InitializationException e) {
-            Debug.logError(e, "Error in request initialization", module);
+            Debug.logError(e, "Error in request initialization", MODULE);
         }
         buildRefundTransaction(context, props, request, results);
         Map<String, Object> validateResults = validateRequest(context, props, request);
@@ -214,13 +214,13 @@ public class OrbitalPaymentServices {
         try {
             orderPaymentPreference.getRelatedOne("CreditCard", false);
         } catch (GenericEntityException e) {
-            Debug.logError(e, module);
-            return ServiceUtil.returnError(UtilProperties.getMessage(resource, 
+            Debug.logError(e, MODULE);
+            return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE,
                     "AccountingPaymentUnableToGetCCInfo", locale));
         }
         GenericValue authTransaction = PaymentGatewayServices.getAuthTransaction(orderPaymentPreference);
         if (authTransaction == null) {
-            return ServiceUtil.returnError(UtilProperties.getMessage(resource, 
+            return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE,
                     "AccountingPaymentTransactionAuthorizationNotFoundCannotRelease", locale));
         }
         context.put("authTransaction", authTransaction);
@@ -230,7 +230,7 @@ public class OrbitalPaymentServices {
         try {
             request = new Request(RequestIF.REVERSE_TRANSACTION);
         } catch (InitializationException e) {
-            Debug.logError(e, "Error in request initialization", module);
+            Debug.logError(e, "Error in request initialization", MODULE);
         }
         buildReleaseTransaction(context, delegator, props, request, results);
         Map<String, Object> validateResults = validateRequest(context, props, request);
@@ -252,7 +252,7 @@ public class OrbitalPaymentServices {
         //TODO: Will move this to property file and then will read it from there.
         String configFile = "/applications/accounting/config/linehandler.properties";
         String paymentGatewayConfigId = (String) context.get("paymentGatewayConfigId");
-        Map<String, Object> buildConfiguratorContext = new HashMap<String, Object>();
+        Map<String, Object> buildConfiguratorContext = new HashMap<>();
         try {
             buildConfiguratorContext.put("OrbitalConnectionUsername", getPaymentGatewayConfigValue(delegator, paymentGatewayConfigId, "username"));
             buildConfiguratorContext.put("OrbitalConnectionPassword", getPaymentGatewayConfigValue(delegator, paymentGatewayConfigId, "connectionPassword"));
@@ -273,7 +273,7 @@ public class OrbitalPaymentServices {
             buildConfiguratorContext.putAll(config.getConfigurations());
             config.setConfigurations(buildConfiguratorContext);
         } catch (InitializationException e) {
-            Debug.logError(e, "Orbital Configurator Initialization Error: " + e.getMessage(), module);
+            Debug.logError(e, "Orbital Configurator Initialization Error: " + e.getMessage(), MODULE);
         }
         return buildConfiguratorContext;
     }
@@ -291,7 +291,7 @@ public class OrbitalPaymentServices {
                     }
                 }
             } catch (GenericEntityException e) {
-                Debug.logError(e, module);
+                Debug.logError(e, MODULE);
             }
         }
         return returnValue;
@@ -300,12 +300,12 @@ public class OrbitalPaymentServices {
     private static void buildAuthOrAuthCaptureTransaction(Map<String, Object> params, Delegator delegator, Map<String, Object> props, RequestIF request, Map<String, Object> results) {
         GenericValue cc = (GenericValue) params.get("creditCard");
         BigDecimal amount = (BigDecimal) params.get("processAmount");
-        String amountValue = amount.setScale(decimals, rounding).movePointRight(2).toPlainString();
+        String amountValue = amount.setScale(DECIMALS, ROUNDING).movePointRight(2).toPlainString();
         String number = UtilFormatOut.checkNull(cc.getString("cardNumber"));
         String expDate = UtilFormatOut.checkNull(cc.getString("expireDate"));
         expDate = formatExpDateForOrbital(expDate);
         String cardSecurityCode = (String) params.get("cardSecurityCode");
-        String orderId = UtilFormatOut.checkNull((String)params.get("orderId"));
+        String orderId = UtilFormatOut.checkNull((String) params.get("orderId"));
         String transType = props.get("transType").toString();
         String messageType = null;
         if ("AUTH_ONLY".equals(transType)) {
@@ -330,7 +330,7 @@ public class OrbitalPaymentServices {
                 if ("CREDIT_CARD".equals(opp.getString("paymentMethodTypeId"))) {
                     // sometimes the ccAuthCapture interface is used, in which case the creditCard is passed directly
                      creditCard = (GenericValue) params.get("creditCard");
-                    if (creditCard == null || ! (opp.get("paymentMethodId").equals(creditCard.get("paymentMethodId")))) {
+                    if (creditCard == null || !(opp.get("paymentMethodId").equals(creditCard.get("paymentMethodId")))) {
                         creditCard = opp.getRelatedOne("CreditCard", false);
                     }
                 }
@@ -347,8 +347,8 @@ public class OrbitalPaymentServices {
                 }
             } else {
                 // this would be the case for an authorization
-                GenericValue cp = (GenericValue)params.get("billToParty");
-                GenericValue ba = (GenericValue)params.get("billingAddress");
+                GenericValue cp = (GenericValue) params.get("billToParty");
+                GenericValue ba = (GenericValue) params.get("billingAddress");
                 request.setFieldValue("AVSname", UtilFormatOut.checkNull(cp.getString("firstName")) + UtilFormatOut.checkNull(cp.getString("lastName")));
                 request.setFieldValue("AVSaddress1", UtilFormatOut.checkNull(ba.getString("address1")));
                 request.setFieldValue("AVScity", UtilFormatOut.checkNull(ba.getString("city")));
@@ -370,11 +370,11 @@ public class OrbitalPaymentServices {
             }
             results.put("processAmount", amount);
         } catch (InitializationException ie) {
-            Debug.logInfo("Unable to initialize request object", module);
+            Debug.logInfo("Unable to initialize request object", MODULE);
         } catch (FieldNotFoundException fnfe) {
-            Debug.logError("Unable to find XML field in template", module);
+            Debug.logError("Unable to find XML field in template", MODULE);
         } catch (Exception e) {
-            Debug.logError(e, module);
+            Debug.logError(e, MODULE);
         }
     }
 
@@ -382,8 +382,8 @@ public class OrbitalPaymentServices {
         GenericValue authTransaction = (GenericValue) params.get("authTransaction");
         GenericValue creditCard = (GenericValue) params.get("creditCard");
         BigDecimal amount = (BigDecimal) params.get("captureAmount");
-        String amountValue = amount.setScale(decimals, rounding).movePointRight(2).toPlainString();
-        String orderId = UtilFormatOut.checkNull((String)params.get("orderId"));
+        String amountValue = amount.setScale(DECIMALS, ROUNDING).movePointRight(2).toPlainString();
+        String orderId = UtilFormatOut.checkNull((String) params.get("orderId"));
         try {
             //If there were no errors preparing the template, we can now specify the data
             //Basic Auth Fields
@@ -409,22 +409,22 @@ public class OrbitalPaymentServices {
             Debug.logInfo("\nCapture Request:\n ======== " + request.getXML());
             results.put("captureAmount", amount);
         } catch (InitializationException ie) {
-            Debug.logInfo("Unable to initialize request object", module);
+            Debug.logInfo("Unable to initialize request object", MODULE);
         } catch (FieldNotFoundException fnfe) {
-            Debug.logError("Unable to find XML field in template" + fnfe.getMessage(), module);
+            Debug.logError("Unable to find XML field in template" + fnfe.getMessage(), MODULE);
         } catch (Exception e) {
-            Debug.logError(e, module);
+            Debug.logError(e, MODULE);
         }
     }
 
     private static void buildRefundTransaction(Map<String, Object> params, Map<String, Object> props, RequestIF request, Map<String, Object> results) {
         GenericValue cc = (GenericValue) params.get("creditCard");
         BigDecimal amount = (BigDecimal) params.get("refundAmount");
-        String amountValue = amount.setScale(decimals, rounding).movePointRight(2).toPlainString();
+        String amountValue = amount.setScale(DECIMALS, ROUNDING).movePointRight(2).toPlainString();
         String number = UtilFormatOut.checkNull(cc.getString("cardNumber"));
         String expDate = UtilFormatOut.checkNull(cc.getString("expireDate"));
         expDate = formatExpDateForOrbital(expDate);
-        String orderId = UtilFormatOut.checkNull((String)params.get("orderId"));
+        String orderId = UtilFormatOut.checkNull((String) params.get("orderId"));
         try {
             //If there were no errors preparing the template, we can now specify the data
             //Basic Auth Fields
@@ -441,18 +441,18 @@ public class OrbitalPaymentServices {
             Debug.logInfo("\nRefund Request:\n ======== " + request.getXML());
             results.put("refundAmount", amount);
         } catch (InitializationException ie) {
-            Debug.logInfo("Unable to initialize request object", module);
+            Debug.logInfo("Unable to initialize request object", MODULE);
         } catch (FieldNotFoundException fnfe) {
-            Debug.logError("Unable to find XML field in template", module);
+            Debug.logError("Unable to find XML field in template", MODULE);
         } catch (Exception e) {
-            Debug.logError(e, module);
+            Debug.logError(e, MODULE);
         }
     }
 
     private static void buildReleaseTransaction(Map<String, Object> params, Delegator delegator, Map<String, Object> props, RequestIF request, Map<String, Object> results) {
         BigDecimal amount = (BigDecimal) params.get("releaseAmount");
         GenericValue authTransaction = (GenericValue) params.get("authTransaction");
-        String orderId = UtilFormatOut.checkNull((String)params.get("orderId"));
+        String orderId = UtilFormatOut.checkNull((String) params.get("orderId"));
         try {
             //If there were no errors preparing the template, we can now specify the data
             //Basic Auth Fields
@@ -465,11 +465,11 @@ public class OrbitalPaymentServices {
             Debug.logInfo("\nRelease Request:\n ======== " + request.getXML());
             results.put("releaseAmount", amount);
         } catch (InitializationException ie) {
-            Debug.logInfo("Unable to initialize request object", module);
+            Debug.logInfo("Unable to initialize request object", MODULE);
         } catch (FieldNotFoundException fnfe) {
-            Debug.logError("Unable to find XML field in template" + fnfe.getMessage(), module);
+            Debug.logError("Unable to find XML field in template" + fnfe.getMessage(), MODULE);
         } catch (Exception e) {
-            Debug.logError(e, module);
+            Debug.logError(e, MODULE);
         }
     }
 
@@ -481,13 +481,13 @@ public class OrbitalPaymentServices {
         try {
             tp = new TransactionProcessor();
         } catch (InitializationException iex) {
-            Debug.logError("TransactionProcessor failed to initialize" + iex.getMessage(), module);
+            Debug.logError("TransactionProcessor failed to initialize" + iex.getMessage(), MODULE);
             iex.printStackTrace();
         }
     }
 
     private static Map<String, Object> processCard(RequestIF request) {
-        Map<String, Object> processCardResult = new HashMap<String, Object>();
+        Map<String, Object> processCardResult = new HashMap<>();
         try {
             response = tp.process(request);
             if (response.isApproved()) {
@@ -497,7 +497,7 @@ public class OrbitalPaymentServices {
             }
             processCardResult.put("processCardResponse", response);
         } catch (TransactionException tex) {
-            Debug.logError("TransactionProcessor failed to initialize" + tex.getMessage(), module);
+            Debug.logError("TransactionProcessor failed to initialize" + tex.getMessage(), MODULE);
             tex.printStackTrace();
         }
         processCardResult.put(ModelService.RESPONSE_MESSAGE, ModelService.RESPOND_SUCCESS);
@@ -521,7 +521,7 @@ public class OrbitalPaymentServices {
             results.put("processAmount", BigDecimal.ZERO);
             results.put("authRefNum", OrbitalPaymentServices.ERROR);
         }
-        Debug.logInfo("processAuthTransResult: " + results.toString(),module);
+        Debug.logInfo("processAuthTransResult: " + results.toString(), MODULE);
     }
 
     private static void processAuthCaptureTransResult(Map<String, Object> processCardResponseContext, Map<String, Object> results) {
@@ -545,7 +545,7 @@ public class OrbitalPaymentServices {
             results.put("processAmount", BigDecimal.ZERO);
             results.put("authRefNum", OrbitalPaymentServices.ERROR);
         }
-        Debug.logInfo("processAuthCaptureTransResult: " + results.toString(),module);
+        Debug.logInfo("processAuthCaptureTransResult: " + results.toString(), MODULE);
     }
 
     private static void processCaptureTransResult(Map<String, Object> processCardResponseContext, Map<String, Object> results) {
@@ -561,7 +561,7 @@ public class OrbitalPaymentServices {
         } else {
             results.put("captureAmount", BigDecimal.ZERO);
         }
-        Debug.logInfo("processCaptureTransResult: " + results.toString(),module);
+        Debug.logInfo("processCaptureTransResult: " + results.toString(), MODULE);
     }
 
     private static void processRefundTransResult(Map<String, Object> processCardResponseContext, Map<String, Object> results) {
@@ -577,7 +577,7 @@ public class OrbitalPaymentServices {
         } else {
             results.put("refundAmount", BigDecimal.ZERO);
         }
-        Debug.logInfo("processRefundTransResult: " + results.toString(),module);
+        Debug.logInfo("processRefundTransResult: " + results.toString(), MODULE);
     }
 
     private static void processReleaseTransResult(Map<String, Object> processCardResponseContext, Map<String, Object> results) {
@@ -593,25 +593,25 @@ public class OrbitalPaymentServices {
         } else {
             results.put("releaseAmount", BigDecimal.ZERO);
         }
-        Debug.logInfo("processReleaseTransResult: " + results.toString(),module);
+        Debug.logInfo("processReleaseTransResult: " + results.toString(), MODULE);
     }
 
     private static void printTransResult(ResponseIF response) {
-        Map<String, Object> generatedResponse = new HashMap<String, Object>();
-        generatedResponse.put("isGood",  response.isGood());
+        Map<String, Object> generatedResponse = new HashMap<>();
+        generatedResponse.put("isGood", response.isGood());
         generatedResponse.put("isError", response.isError());
-        generatedResponse.put("isQuickResponse",  response.isQuickResponse());
+        generatedResponse.put("isQuickResponse", response.isQuickResponse());
         generatedResponse.put("isApproved", response.isApproved());
-        generatedResponse.put("isDeclined",  response.isDeclined());
-        generatedResponse.put("AuthCode",  response.getAuthCode());
-        generatedResponse.put("TxRefNum",  response.getTxRefNum());
-        generatedResponse.put("ResponseCode",  response.getResponseCode());
-        generatedResponse.put("Status",  response.getStatus());
-        generatedResponse.put("Message",  response.getMessage());
-        generatedResponse.put("AVSCode",  response.getAVSResponseCode());
+        generatedResponse.put("isDeclined", response.isDeclined());
+        generatedResponse.put("AuthCode", response.getAuthCode());
+        generatedResponse.put("TxRefNum", response.getTxRefNum());
+        generatedResponse.put("ResponseCode", response.getResponseCode());
+        generatedResponse.put("Status", response.getStatus());
+        generatedResponse.put("Message", response.getMessage());
+        generatedResponse.put("AVSCode", response.getAVSResponseCode());
         generatedResponse.put("CVV2ResponseCode", response.getCVV2RespCode());
 
-        Debug.logInfo("printTransResult === " + generatedResponse.toString(),module);
+        Debug.logInfo("printTransResult === " + generatedResponse.toString(), MODULE);
     }
 
     private static String formatExpDateForOrbital(String expDate) {
@@ -634,14 +634,14 @@ public class OrbitalPaymentServices {
                 shippingRef = "No Tracking Info processed in order";
             }
         } catch (GenericEntityException e) {
-            Debug.logError("Shipping Ref not found returning empty string", module);
-            Debug.logError(e, module);
+            Debug.logError("Shipping Ref not found returning empty string", MODULE);
+            Debug.logError(e, MODULE);
         }
         return shippingRef;
     }
 
     private static Map<String, Object> validateRequest(Map<String, Object> params, Map props, RequestIF request) {
-        Map<String, Object> result = new HashMap<String, Object>();
+        Map<String, Object> result = new HashMap<>();
         result.put(ModelService.RESPONSE_MESSAGE, ModelService.RESPOND_SUCCESS);
         return result;
     }

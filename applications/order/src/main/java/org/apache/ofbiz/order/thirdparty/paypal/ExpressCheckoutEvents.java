@@ -45,9 +45,9 @@ import org.apache.ofbiz.service.ServiceUtil;
 
 public class ExpressCheckoutEvents {
 
-    public static final String resourceErr = "AccountingErrorUiLabels";
-    public static final String module = ExpressCheckoutEvents.class.getName();
-    public static enum CheckoutType {PAYFLOW, STANDARD, NONE}
+    private static final String RES_ERROR = "AccountingErrorUiLabels";
+    private static final String MODULE = ExpressCheckoutEvents.class.getName();
+    public enum CheckoutType { PAYFLOW, STANDARD, NONE }
 
     public static String setExpressCheckout(HttpServletRequest request, HttpServletResponse response) {
         Locale locale = UtilHttp.getLocale(request);
@@ -67,14 +67,14 @@ public class ExpressCheckoutEvents {
             try {
                 result = dispatcher.runSync(serviceName, inMap);
             } catch (GenericServiceException e) {
-                Debug.logInfo(e, module);
-                request.setAttribute("_EVENT_MESSAGE_", UtilProperties.getMessage(resourceErr, "AccountingPayPalCommunicationError", locale));
+                Debug.logInfo(e, MODULE);
+                request.setAttribute("_EVENT_MESSAGE_", UtilProperties.getMessage(RES_ERROR, "AccountingPayPalCommunicationError", locale));
                 return "error";
             }
             if (ServiceUtil.isError(result)) {
                 String errorMessage = ServiceUtil.getErrorMessage(result);
                 request.setAttribute("_ERROR_MESSAGE_", errorMessage);
-                Debug.logError(errorMessage, module);
+                Debug.logError(errorMessage, MODULE);
                 return "error";
             }
         }
@@ -89,7 +89,7 @@ public class ExpressCheckoutEvents {
         GenericValue payPalGatewayConfig = null;
         String productStoreId = null;
         if (UtilValidate.isEmpty(token)) {
-            Debug.logError("No ExpressCheckout token found in cart, you must do a successful setExpressCheckout before redirecting.", module);
+            Debug.logError("No ExpressCheckout token found in cart, you must do a successful setExpressCheckout before redirecting.", MODULE);
             return "error";
         }
         productStoreId = cart.getProductStoreId();
@@ -101,9 +101,10 @@ public class ExpressCheckoutEvents {
         }
         if (paymentGatewayConfigId != null) {
             try {
-                payPalGatewayConfig = EntityQuery.use(delegator).from("PaymentGatewayPayPal").where("paymentGatewayConfigId", paymentGatewayConfigId).cache().queryOne();
+                payPalGatewayConfig = EntityQuery.use(delegator).from("PaymentGatewayPayPal").where("paymentGatewayConfigId",
+                        paymentGatewayConfigId).cache().queryOne();
             } catch (GenericEntityException e) {
-                Debug.logError(e, module);
+                Debug.logError(e, MODULE);
             }
         }
         if (payPalGatewayConfig == null) {
@@ -116,7 +117,7 @@ public class ExpressCheckoutEvents {
         try {
             response.sendRedirect(redirectUrl.toString());
         } catch (IOException e) {
-            Debug.logError(e, module);
+            Debug.logError(e, MODULE);
             return "error";
         }
         return "success";
@@ -134,11 +135,11 @@ public class ExpressCheckoutEvents {
                 if (ServiceUtil.isError(result)) {
                     String errorMessage = ServiceUtil.getErrorMessage(result);
                     request.setAttribute("_ERROR_MESSAGE_", errorMessage);
-                    Debug.logError(errorMessage, module);
+                    Debug.logError(errorMessage, MODULE);
                     return "error";
                 }
             } catch (GenericServiceException e) {
-                Debug.logError(e, module);
+                Debug.logError(e, MODULE);
             }
         }
         return "success";
@@ -162,13 +163,13 @@ public class ExpressCheckoutEvents {
             try {
                 result = dispatcher.runSync(serviceName, inMap);
             } catch (GenericServiceException e) {
-                request.setAttribute("_EVENT_MESSAGE_", UtilProperties.getMessage(resourceErr, "AccountingPayPalCommunicationError", locale));
+                request.setAttribute("_EVENT_MESSAGE_", UtilProperties.getMessage(RES_ERROR, "AccountingPayPalCommunicationError", locale));
                 return "error";
             }
             if (ServiceUtil.isError(result)) {
                 String errorMessage = ServiceUtil.getErrorMessage(result);
                 request.setAttribute("_ERROR_MESSAGE_", errorMessage);
-                Debug.logError(errorMessage, module);
+                Debug.logError(errorMessage, MODULE);
                 return "error";
             }
         }
@@ -176,7 +177,8 @@ public class ExpressCheckoutEvents {
         return "success";
     }
 
-    public static Map<String, Object> doExpressCheckout(String productStoreId, String orderId, GenericValue paymentPref, GenericValue userLogin, Delegator delegator, LocalDispatcher dispatcher) {
+    public static Map<String, Object> doExpressCheckout(String productStoreId, String orderId, GenericValue paymentPref,
+                                                        GenericValue userLogin, Delegator delegator, LocalDispatcher dispatcher) {
         CheckoutType checkoutType = determineCheckoutType(delegator, productStoreId);
         if (!checkoutType.equals(CheckoutType.NONE)) {
             String serviceName = null;
@@ -234,7 +236,7 @@ public class ExpressCheckoutEvents {
                     }
                 }
             } catch (GenericEntityException e) {
-                Debug.logError(e, module);
+                Debug.logError(e, MODULE);
             }
         }
         return CheckoutType.NONE;

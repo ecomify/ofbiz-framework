@@ -42,17 +42,14 @@ public class ModelSingleForm extends ModelForm {
      * ----------------------------------------------------------------------- *
      *                     DEVELOPERS PLEASE READ
      * ----------------------------------------------------------------------- *
-     *
      * This model is intended to be a read-only data structure that represents
      * an XML element. Outside of object construction, the class should not
      * have any behaviors. All behavior should be contained in model visitors.
-     *
      * Instances of this class will be shared by multiple threads - therefore
      * it is immutable. DO NOT CHANGE THE OBJECT'S STATE AT RUN TIME!
-     *
      */
 
-    public static final String module = ModelSingleForm.class.getName();
+    private static final String MODULE = ModelSingleForm.class.getName();
 
     /** XML Constructor */
     public ModelSingleForm(Element formElement, String formLocation, ModelReader entityModelReader,
@@ -83,7 +80,7 @@ public class ModelSingleForm extends ModelForm {
                             visualTheme, dispatchContext);
                 } catch (Exception e) {
                     Debug.logError(e, "Failed to load parent form definition '" + parentForm + "' at resource '" + parentResource
-                            + "'", module);
+                            + "'", MODULE);
                 }
             } else if (!parentForm.equals(formElement.getAttribute("name"))) {
                 // try to find a form definition in the same file
@@ -99,10 +96,10 @@ public class ModelSingleForm extends ModelForm {
                     }
                 }
                 if (parent == null) {
-                    Debug.logError("Failed to find parent form definition '" + parentForm + "' in same document.", module);
+                    Debug.logError("Failed to find parent form definition '" + parentForm + "' in same document.", MODULE);
                 }
             } else {
-                Debug.logError("Recursive form definition found for '" + formElement.getAttribute("name") + ".'", module);
+                Debug.logError("Recursive form definition found for '" + formElement.getAttribute("name") + ".'", MODULE);
             }
         }
         return parent;

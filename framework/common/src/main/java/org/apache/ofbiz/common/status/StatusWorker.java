@@ -34,9 +34,9 @@ import org.apache.ofbiz.entity.util.EntityQuery;
  */
 public final class StatusWorker {
 
-    public static final String module = StatusWorker.class.getName();
+    private static final String MODULE = StatusWorker.class.getName();
 
-    private StatusWorker() {}
+    private StatusWorker() { }
 
     public static void getStatusItems(PageContext pageContext, String attributeName, String statusTypeId) {
         Delegator delegator = (Delegator) pageContext.getRequest().getAttribute("delegator");
@@ -51,7 +51,7 @@ public final class StatusWorker {
             if (statusItems != null)
                 pageContext.setAttribute(attributeName, statusItems);
         } catch (GenericEntityException e) {
-            Debug.logError(e, module);
+            Debug.logError(e, MODULE);
         }
     }
 
@@ -60,7 +60,7 @@ public final class StatusWorker {
         List<GenericValue> statusItems = new LinkedList<>();
 
         try {
-             List<GenericValue> calItems = EntityQuery.use(delegator)
+            List<GenericValue> calItems = EntityQuery.use(delegator)
                                                       .from("StatusItem")
                                                       .where("statusTypeId", statusTypeIdOne)
                                                       .orderBy("sequenceId")
@@ -69,7 +69,7 @@ public final class StatusWorker {
             if (calItems != null)
                 statusItems.addAll(calItems);
         } catch (GenericEntityException e) {
-            Debug.logError(e, module);
+            Debug.logError(e, MODULE);
         }
         try {
             List<GenericValue> taskItems = EntityQuery.use(delegator)
@@ -81,10 +81,10 @@ public final class StatusWorker {
             if (taskItems != null)
                 statusItems.addAll(taskItems);
         } catch (GenericEntityException e) {
-            Debug.logError(e, module);
+            Debug.logError(e, MODULE);
         }
 
-        if (statusItems.size() > 0)
+        if (!statusItems.isEmpty())
             pageContext.setAttribute(attributeName, statusItems);
     }
 
@@ -100,7 +100,7 @@ public final class StatusWorker {
                                                     .cache(true)
                                                     .queryList();
         } catch (GenericEntityException e) {
-            Debug.logError(e, module);
+            Debug.logError(e, MODULE);
         }
 
         if (statusValidChangeToDetails != null)

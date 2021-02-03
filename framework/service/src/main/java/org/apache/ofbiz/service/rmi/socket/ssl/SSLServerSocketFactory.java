@@ -42,23 +42,37 @@ import org.apache.ofbiz.base.util.SSLUtil;
 @SuppressWarnings("serial")
 public class SSLServerSocketFactory implements RMIServerSocketFactory, Serializable {
 
-    public static final String module =  SSLServerSocketFactory.class.getName();
-    protected boolean clientAuth = false;
-    protected String keystore = null;
-    protected String ksType = null;
-    protected String ksPass = null;
-    protected String alias = null;
+    private static final String MODULE = SSLServerSocketFactory.class.getName();
+    private boolean clientAuth = false;
+    private String keystore = null;
+    private String ksType = null;
+    private String ksPass = null;
+    private String alias = null;
 
+    /**
+     * Sets need client auth.
+     * @param clientAuth the client auth
+     */
     public void setNeedClientAuth(boolean clientAuth) {
         this.clientAuth = clientAuth;
     }
 
+    /**
+     * Sets key store.
+     * @param location the location
+     * @param type the type
+     * @param password the password
+     */
     public void setKeyStore(String location, String type, String password) {
         this.keystore = location;
         this.ksType = type;
         this.ksPass = password;
     }
 
+    /**
+     * Sets key store alias.
+     * @param alias the alias
+     */
     public void setKeyStoreAlias(String alias) {
         this.alias = alias;
     }
@@ -76,7 +90,7 @@ public class SSLServerSocketFactory implements RMIServerSocketFactory, Serializa
                 ks = KeyStore.getInstance(ksType);
                 ks.load(fis, passphrase);
             } catch (NoSuchAlgorithmException | IOException | KeyStoreException | CertificateException e) {
-                Debug.logError(e, module);
+                Debug.logError(e, MODULE);
                 throw new IOException(e.getMessage());
             }
         }
@@ -93,7 +107,7 @@ public class SSLServerSocketFactory implements RMIServerSocketFactory, Serializa
                 factory = SSLUtil.getSSLServerSocketFactory(alias);
             }
         } catch (GeneralSecurityException | GenericConfigException e) {
-            Debug.logError(e, "Error getting javax.net.ssl.SSLServerSocketFactory instance for Service Engine RMI calls: " + e.toString(), module);
+            Debug.logError(e, "Error getting javax.net.ssl.SSLServerSocketFactory instance for Service Engine RMI calls: " + e.toString(), MODULE);
             throw new IOException(e.toString());
         }
 

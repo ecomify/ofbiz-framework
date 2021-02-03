@@ -43,9 +43,9 @@ import org.apache.ofbiz.webapp.website.WebSiteWorker;
 
 public final class UrlServletHelper {
 
-    public final static String module = UrlServletHelper.class.getName();
+    private static final String MODULE = UrlServletHelper.class.getName();
 
-    private UrlServletHelper() {}
+    private UrlServletHelper() { }
 
     public static void setRequestAttributes(ServletRequest request, Delegator delegator, ServletContext servletContext) {
         HttpServletRequest httpRequest = (HttpServletRequest) request;
@@ -74,7 +74,7 @@ public final class UrlServletHelper {
                 }
 
             } catch (GenericEntityException e) {
-                Debug.logWarning(e, "Unable to get Tenant", module);
+                Debug.logWarning(e, "Unable to get Tenant", MODULE);
             }
         }
 
@@ -83,7 +83,7 @@ public final class UrlServletHelper {
         request.setAttribute("delegator", delegator);
 
         // set the webSiteId in the session
-        if (UtilValidate.isEmpty(httpRequest.getSession().getAttribute("webSiteId"))){
+        if (UtilValidate.isEmpty(httpRequest.getSession().getAttribute("webSiteId"))) {
             httpRequest.getSession().setAttribute("webSiteId", httpRequest.getSession().getServletContext().getAttribute("webSiteId"));
         }
     }
@@ -133,19 +133,19 @@ public final class UrlServletHelper {
         }
 
         //Set query string parameters to url
-        if(UtilValidate.isNotEmpty(viewIndex)){
+        if (UtilValidate.isNotEmpty(viewIndex)) {
             urlBuilder.append("/~VIEW_INDEX=" + viewIndex);
             request.setAttribute("VIEW_INDEX", viewIndex);
         }
-        if(UtilValidate.isNotEmpty(viewSize)){
+        if (UtilValidate.isNotEmpty(viewSize)) {
             urlBuilder.append("/~VIEW_SIZE=" + viewSize);
             request.setAttribute("VIEW_SIZE", viewSize);
         }
-        if(UtilValidate.isNotEmpty(viewSort)){
+        if (UtilValidate.isNotEmpty(viewSort)) {
             urlBuilder.append("/~VIEW_SORT=" + viewSort);
             request.setAttribute("VIEW_SORT", viewSort);
         }
-        if(UtilValidate.isNotEmpty(searchString)){
+        if (UtilValidate.isNotEmpty(searchString)) {
             urlBuilder.append("/~SEARCH_STRING=" + searchString);
             request.setAttribute("SEARCH_STRING", searchString);
         }
@@ -163,14 +163,14 @@ public final class UrlServletHelper {
                                    .cache()
                                    .queryOne();
         } catch (GenericEntityException e) {
-            Debug.logError(e, module);
+            Debug.logError(e, MODULE);
         }
         if (pathAlias != null) {
             String alias = pathAlias.getString("aliasTo");
             String contentId = pathAlias.getString("contentId");
             if (contentId == null && UtilValidate.isNotEmpty(alias)) {
                 if (!alias.startsWith("/")) {
-                   alias = "/" + alias;
+                    alias = "/" + alias;
                 }
 
                 RequestDispatcher rd = request.getRequestDispatcher(alias);
@@ -178,7 +178,7 @@ public final class UrlServletHelper {
                     rd.forward(request, response);
                     return;
                 } catch (ServletException | IOException e) {
-                    Debug.logWarning(e, module);
+                    Debug.logWarning(e, MODULE);
                 }
             }
         } else {
@@ -193,7 +193,7 @@ public final class UrlServletHelper {
                     return;
                 }
             } catch (GenericEntityException | IOException e) {
-                Debug.logError(e, module);
+                Debug.logError(e, MODULE);
             }
         }
     }
@@ -265,14 +265,14 @@ public final class UrlServletHelper {
         str = str.replace("‘", "-");
         str = str.replace("？", "-");
         str = str.replace("–", "");
-        while(str.startsWith("-")){
+        while (str.startsWith("-")) {
             str = str.substring(1);
         }
-        while(str.endsWith("-")){
-            str = str.substring(0,str.length() - 1);
+        while (str.endsWith("-")) {
+            str = str.substring(0, str.length() - 1);
         }
-        while(str.indexOf("--") != -1){
-            str = str.replace("--","-");
+        while (str.indexOf("--") != -1) {
+            str = str.replace("--", "-");
         }
         return str;
     }

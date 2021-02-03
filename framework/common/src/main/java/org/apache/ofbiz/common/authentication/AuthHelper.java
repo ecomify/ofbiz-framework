@@ -22,7 +22,6 @@ package org.apache.ofbiz.common.authentication;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ServiceLoader;
@@ -37,7 +36,7 @@ import org.apache.ofbiz.service.LocalDispatcher;
  */
 public final class AuthHelper {
 
-    private static final String module = AuthHelper.class.getName();
+    private static final String MODULE = AuthHelper.class.getName();
     private static List<Authenticator> authenticators = new ArrayList<>();
     private static boolean authenticatorsLoaded = false;
 
@@ -100,11 +99,11 @@ public final class AuthHelper {
 
     public static void loadAuthenticators(LocalDispatcher dispatcher) {
         if (!authenticatorsLoaded) {
-            loadAuthenticators_internal(dispatcher);
+            loadAuthenticatorsInternal(dispatcher);
         }
     }
 
-    private synchronized static void loadAuthenticators_internal(LocalDispatcher dispatcher) {
+    private static synchronized void loadAuthenticatorsInternal(LocalDispatcher dispatcher) {
         if (!authenticatorsLoaded) {
             Iterator<Authenticator> it = ServiceLoader.load(Authenticator.class, getContextClassLoader()).iterator();
             while (it.hasNext()) {
@@ -115,11 +114,11 @@ public final class AuthHelper {
                         authenticators.add(auth);
                     }
                 } catch (ClassCastException e) {
-                    Debug.logError(e, module);
+                    Debug.logError(e, MODULE);
                 }
             }
 
-            Collections.sort(authenticators, new AuthenticationComparator());
+            authenticators.sort(new AuthenticationComparator());
             authenticatorsLoaded = true;
         }
     }
@@ -131,17 +130,14 @@ public final class AuthHelper {
      */
     private static ClassLoader getContextClassLoader() {
         return AccessController.doPrivileged(
-                new PrivilegedAction<ClassLoader>() {
-                    @Override
-                    public ClassLoader run() {
-                        ClassLoader cl = null;
-                        try {
-                            cl = Thread.currentThread().getContextClassLoader();
-                        } catch (SecurityException e) {
-                            Debug.logError(e, e.getMessage(), module);
-                        }
-                        return cl;
+                (PrivilegedAction<ClassLoader>) () -> {
+                    ClassLoader cl = null;
+                    try {
+                        cl = Thread.currentThread().getContextClassLoader();
+                    } catch (SecurityException e) {
+                        Debug.logError(e, e.getMessage(), MODULE);
                     }
+                    return cl;
                 });
     }
 }

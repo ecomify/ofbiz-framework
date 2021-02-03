@@ -21,7 +21,6 @@ package org.apache.ofbiz.entity.util;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
-import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
@@ -57,7 +56,7 @@ import org.xml.sax.SAXException;
  */
 public class EntityDataLoader {
 
-    public static final String module = EntityDataLoader.class.getName();
+    private static final String MODULE = EntityDataLoader.class.getName();
 
     public static String getPathsString(String helperName) {
         StringBuilder pathBuffer = new StringBuilder();
@@ -120,43 +119,44 @@ public class EntityDataLoader {
                     entityDataReaderInfo = EntityConfig.getInstance().getEntityDataReader(readerName);
                     if (entityDataReaderInfo == null) {
                         // create a reader name defined at runtime
-                        Debug.logInfo("Could not find entity-data-reader named: " + readerName + ". Creating a new reader with this name. ", module);
+                        Debug.logInfo("Could not find entity-data-reader named: " + readerName + ". Creating a new reader with this name. ", MODULE);
                         entityDataReaderInfo = new EntityDataReader(readerName);
                     }
                 } catch (GenericEntityConfException e) {
-                    Debug.logWarning(e, "Exception thrown while getting entity data reader config: ", module);
+                    Debug.logWarning(e, "Exception thrown while getting entity data reader config: ", MODULE);
                 }
                 if (entityDataReaderInfo != null) {
                     for (Resource resourceElement: entityDataReaderInfo.getResourceList()) {
-                        ResourceHandler handler = new MainResourceHandler(EntityConfig.ENTITY_ENGINE_XML_FILENAME, resourceElement.getLoader(), resourceElement.getLocation());
+                        ResourceHandler handler = new MainResourceHandler(EntityConfig.ENTITY_ENGINE_XML_FILENAME, resourceElement.getLoader(),
+                                resourceElement.getLocation());
                         try {
                             urlList.add(handler.getURL());
                         } catch (GenericConfigException e) {
                             String errorMsg = "Could not get URL for Main ResourceHandler: " + e.toString();
-                            Debug.logWarning(errorMsg, module);
+                            Debug.logWarning(errorMsg, MODULE);
                         }
                     }
 
                     // get all of the component resource model stuff, ie specified in each ofbiz-component.xml file
                     for (ComponentConfig.EntityResourceInfo componentResourceInfo: ComponentConfig.getAllEntityResourceInfos("data", componentName)) {
-                        if (readerName.equals(componentResourceInfo.readerName)) {
+                        if (readerName.equals(componentResourceInfo.getReaderName())) {
                             ResourceHandler handler = componentResourceInfo.createResourceHandler();
                             try {
                                 urlList.add(handler.getURL());
                             } catch (GenericConfigException e) {
                                 String errorMsg = "Could not get URL for Component ResourceHandler: " + e.toString();
-                                Debug.logWarning(errorMsg, module);
+                                Debug.logWarning(errorMsg, MODULE);
                             }
                         }
                     }
                 } else {
                     String errorMsg = "Could not find entity-data-reader named: " + readerName;
-                    Debug.logWarning(errorMsg, module);
+                    Debug.logWarning(errorMsg, MODULE);
                 }
             }
         } else {
             String errorMsg = "Could not find datasource named: " + helperName;
-            Debug.logWarning(errorMsg, module);
+            Debug.logWarning(errorMsg, MODULE);
         }
 
         // get files from the paths string
@@ -175,7 +175,7 @@ public class EntityDataLoader {
                             }
                         }
                     }
-                    Collections.sort(tempFileList);
+                    tempFileList.sort(null);
                     for (File dataFile: tempFileList) {
                         if (dataFile.exists()) {
                             URL url = null;
@@ -184,11 +184,11 @@ public class EntityDataLoader {
                                 urlList.add(url);
                             } catch (java.net.MalformedURLException e) {
                                 String xmlError = "Error loading XML file \"" + dataFile.getAbsolutePath() + "\"; Error was: " + e.getMessage();
-                                Debug.logError(xmlError, module);
+                                Debug.logError(xmlError, MODULE);
                             }
                         } else {
                             String errorMsg = "Could not find file: \"" + dataFile.getAbsolutePath() + "\"";
-                            Debug.logError(errorMsg, module);
+                            Debug.logError(errorMsg, MODULE);
                         }
                     }
                 }
@@ -200,7 +200,7 @@ public class EntityDataLoader {
 
     public static List<URL> getUrlByComponentList(String helperName, List<String> components, List<String> readerNames) {
         List<URL> urlList = new LinkedList<>();
-        for (String readerName:  readerNames) {
+        for (String readerName : readerNames) {
             List<String> loadReaderNames = new LinkedList<>();
             loadReaderNames.add(readerName);
             for (String component : components) {
@@ -213,7 +213,7 @@ public class EntityDataLoader {
     public static List<URL> getUrlByComponentList(String helperName, List<String> components) {
         Datasource datasourceInfo = EntityConfig.getDatasource(helperName);
         List<String> readerNames = new LinkedList<>();
-        for (ReadData readerInfo :  datasourceInfo.getReadDataList()) {
+        for (ReadData readerInfo : datasourceInfo.getReadDataList()) {
             String readerName = readerInfo.getReaderName();
             // ignore the "tenant" reader if the multitenant property is "N"
             if ("tenant".equals(readerName) && "N".equals(UtilProperties.getPropertyValue("general", "multitenant"))) {
@@ -229,25 +229,30 @@ public class EntityDataLoader {
         return loadData(dataUrl, helperName, delegator, errorMessages, -1);
     }
 
-    public static int loadData(URL dataUrl, String helperName, Delegator delegator, List<Object> errorMessages, int txTimeout) throws GenericEntityException {
+    public static int loadData(URL dataUrl, String helperName, Delegator delegator, List<Object> errorMessages, int txTimeout)
+            throws GenericEntityException {
         return loadData(dataUrl, helperName, delegator, errorMessages, txTimeout, false, false, false);
     }
 
-    public static int loadData(URL dataUrl, String helperName, Delegator delegator, List<Object> errorMessages, int txTimeout, boolean dummyFks, boolean maintainTxs, boolean tryInsert) throws GenericEntityException {
+    public static int loadData(URL dataUrl, String helperName, Delegator delegator, List<Object> errorMessages, int txTimeout, boolean dummyFks,
+                               boolean maintainTxs, boolean tryInsert) throws GenericEntityException {
         return loadData(dataUrl, helperName, delegator, errorMessages, txTimeout, false, false, false, true);
     }
 
-    public static int loadData(URL dataUrl, String helperName, Delegator delegator, List<Object> errorMessages, int txTimeout, boolean dummyFks, boolean maintainTxs, boolean tryInsert, boolean continueOnFail) throws GenericEntityException {
+    public static int loadData(URL dataUrl, String helperName, Delegator delegator, List<Object> errorMessages, int txTimeout, boolean dummyFks,
+                               boolean maintainTxs, boolean tryInsert, boolean continueOnFail) throws GenericEntityException {
         int rowsChanged = 0;
 
         if (dataUrl == null) {
             String errMsg = "Cannot load data, dataUrl was null";
             errorMessages.add(errMsg);
-            Debug.logError(errMsg, module);
+            Debug.logError(errMsg, MODULE);
             return 0;
         }
 
-        if (Debug.verboseOn()) Debug.logVerbose("[loadData] Loading XML Resource: \"" + dataUrl.toExternalForm() + "\"", module);
+        if (Debug.verboseOn()) {
+            Debug.logVerbose("[loadData] Loading XML Resource: \"" + dataUrl.toExternalForm() + "\"", MODULE);
+        }
 
         try {
             /* The OLD way
@@ -270,7 +275,7 @@ public class EntityDataLoader {
             String xmlError = "[loadData]: Error loading XML Resource \"" + dataUrl.toExternalForm() + "\"; Error was: " + e.getMessage();
             errorMessages.add(xmlError);
             if (continueOnFail) {
-                Debug.logError(e, xmlError, module);
+                Debug.logError(e, xmlError, MODULE);
             } else {
                 throw new GenericEntityException(xmlError, e);
             }
@@ -293,23 +298,24 @@ public class EntityDataLoader {
                 try {
                     List<GenericValue> toBeStored = new LinkedList<>();
                     toBeStored.add(
-                        delegator.makeValue(
-                            "SecurityPermission",
-                                "permissionId",
-                                baseName + "_ADMIN",
-                                "description",
-                                "Permission to Administer a " + entity.getEntityName() + " entity."));
-                    toBeStored.add(delegator.makeValue("SecurityGroupPermission", "groupId", "FULLADMIN", "permissionId", baseName + "_ADMIN", "fromDate", UtilDateTime.nowTimestamp()));
+                            delegator.makeValue("SecurityPermission", "permissionId", baseName + "_ADMIN", "description",
+                                    "Permission to Administer a " + entity.getEntityName() + " entity."));
+                    toBeStored.add(delegator.makeValue("SecurityGroupPermission", "groupId", "FULLADMIN", "permissionId", baseName
+                            + "_ADMIN", "fromDate", UtilDateTime.nowTimestamp()));
                     rowsChanged += delegator.storeAll(toBeStored);
                 } catch (GenericEntityException e) {
                     errorMessages.add("[generateData] ERROR: Failed Security Generation for entity \"" + baseName + "\"");
                 }
 
                 /*
-                toStore.add(delegator.makeValue("SecurityPermission", "permissionId", baseName + "_VIEW", "description", "Permission to View a " + entity.getEntityName() + " entity."));
-                toStore.add(delegator.makeValue("SecurityPermission", "permissionId", baseName + "_CREATE", "description", "Permission to Create a " + entity.getEntityName() + " entity."));
-                toStore.add(delegator.makeValue("SecurityPermission", "permissionId", baseName + "_UPDATE", "description", "Permission to Update a " + entity.getEntityName() + " entity."));
-                toStore.add(delegator.makeValue("SecurityPermission", "permissionId", baseName + "_DELETE", "description", "Permission to Delete a " + entity.getEntityName() + " entity."));
+                toStore.add(delegator.makeValue("SecurityPermission", "permissionId", baseName + "_VIEW", "description", "Permission to View a "
+                + entity.getEntityName() + " entity."));
+                toStore.add(delegator.makeValue("SecurityPermission", "permissionId", baseName + "_CREATE", "description", "Permission to Create a "
+                + entity.getEntityName() + " entity."));
+                toStore.add(delegator.makeValue("SecurityPermission", "permissionId", baseName + "_UPDATE", "description", "Permission to Update a "
+                + entity.getEntityName() + " entity."));
+                toStore.add(delegator.makeValue("SecurityPermission", "permissionId", baseName + "_DELETE", "description", "Permission to Delete a "
+                + entity.getEntityName() + " entity."));
 
                 toStore.add(delegator.makeValue("SecurityGroupPermission", "groupId", "FLEXADMIN", "permissionId", baseName + "_VIEW"));
                 toStore.add(delegator.makeValue("SecurityGroupPermission", "groupId", "FLEXADMIN", "permissionId", baseName + "_CREATE"));

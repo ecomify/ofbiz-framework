@@ -34,11 +34,12 @@ import org.apache.ofbiz.base.util.template.FreeMarkerWorker;
 import org.apache.ofbiz.entity.Delegator;
 import org.apache.ofbiz.entity.GenericEntityException;
 import org.apache.ofbiz.entity.GenericValue;
-import org.apache.ofbiz.product.category.SeoConfigUtil;
+import org.apache.ofbiz.security.CsrfUtil;
 import org.apache.ofbiz.webapp.OfbizUrlBuilder;
 import org.apache.ofbiz.webapp.WebAppUtil;
 import org.apache.ofbiz.webapp.control.RequestHandler;
 import org.apache.ofbiz.webapp.control.WebAppConfigurationException;
+import org.apache.ofbiz.webapp.SeoConfigUtil;
 import org.apache.oro.text.regex.Pattern;
 import org.apache.oro.text.regex.Perl5Matcher;
 import org.xml.sax.SAXException;
@@ -56,21 +57,20 @@ import freemarker.template.TemplateTransformModel;
  */
 public class UrlRegexpTransform implements TemplateTransformModel {
 
-    private static final String module = UrlRegexpTransform.class.getName();
-
+    private static final String MODULE = UrlRegexpTransform.class.getName();
 
     private static String convertToString(Object o) {
         String result = "";
         if (o != null) {
             if (Debug.verboseOn()) {
-                 Debug.logVerbose("Arg Object : " + o.getClass().getName(), module);
+                Debug.logVerbose("Arg Object : " + o.getClass().getName(), MODULE);
             }
             if (o instanceof TemplateScalarModel) {
                 TemplateScalarModel s = (TemplateScalarModel) o;
                 try {
                     result = s.getAsString();
                 } catch (TemplateModelException e) {
-                    Debug.logError(e, "Template Exception", module);
+                    Debug.logError(e, "Template Exception", MODULE);
                 }
             } else {
                 result = o.toString();
@@ -79,6 +79,13 @@ public class UrlRegexpTransform implements TemplateTransformModel {
         return result;
     }
 
+    /**
+     * Check arg boolean.
+     * @param args the args
+     * @param key the key
+     * @param defaultValue the default value
+     * @return the boolean
+     */
     public boolean checkArg(Map<?, ?> args, String key, boolean defaultValue) {
         if (!args.containsKey(key)) {
             return defaultValue;
@@ -134,8 +141,16 @@ public class UrlRegexpTransform implements TemplateTransformModel {
                         }
 
                         RequestHandler rh = RequestHandler.from(request);
-                        String link = rh.makeLink(request, response, buf.toString(), fullPath, secure || request.isSecure() , encode, controlPath);
-                        out.write(seoUrl(link, userLogin == null));
+                        String seoUrl = seoUrl(rh.makeLink(request, response, buf.toString(), fullPath,
+                                secure || request.isSecure(), encode, controlPath), userLogin == null);
+                        String requestURI = buf.toString();
+
+                        // add / update csrf token to link when required
+                        String tokenValue = CsrfUtil.generateTokenForNonAjax(request,
+                                controlPath + (requestURI.startsWith("/") ? requestURI : "/" + requestURI));
+                        seoUrl = CsrfUtil.addOrUpdateTokenInUrl(seoUrl, tokenValue);
+
+                        out.write(seoUrl);
                     } else if (!webSiteId.isEmpty()) {
                         Delegator delegator = FreeMarkerWorker.unwrap(env.getVariable("delegator"));
                         if (delegator == null) {
@@ -167,11 +182,8 @@ public class UrlRegexpTransform implements TemplateTransformModel {
                     } else {
                         out.write(buf.toString());
                     }
-                } catch (IOException |
-                        SAXException |
-                        TemplateModelException |
-                        GenericEntityException |
-                        WebAppConfigurationException e) {
+                } catch (IOException | SAXException | TemplateModelException | GenericEntityException
+                        | WebAppConfigurationException e) {
                     throw new IOException(e.getMessage());
                 }
             }
@@ -180,10 +192,10 @@ public class UrlRegexpTransform implements TemplateTransformModel {
 
     /**
      * Transform a url according to seo pattern regular expressions.
-     *
-     * @param url String to do the seo transform
-     * @param isAnon boolean to indicate whether it's an anonymous visit.
-     *
+     * @param url
+     *            String to do the seo transform
+     * @param isAnon
+     *            boolean to indicate whether it's an anonymous visit.
      * @return String the transformed url.
      */
     public static String seoUrl(String url, boolean isAnon) {
@@ -228,7 +240,7 @@ public class UrlRegexpTransform implements TemplateTransformModel {
             }
             if (!foundMatch) {
                 if (Debug.verboseOn()) {
-                    Debug.logVerbose("Can NOT find a seo transform pattern for this url: " + url, module);
+                    Debug.logVerbose("Can NOT find a seo transform pattern for this url: " + url, MODULE);
                 }
             }
         }
@@ -241,15 +253,16 @@ public class UrlRegexpTransform implements TemplateTransformModel {
 
     /**
      * Forward a uri according to forward pattern regular expressions. Note: this is developed for Filter usage.
-     *
-     * @param uri String to reverse transform
+     * @param uri
+     *            String to reverse transform
      * @return String
      */
     public static boolean forwardUri(HttpServletResponse response, String uri) {
         Perl5Matcher matcher = new Perl5Matcher();
         boolean foundMatch = false;
         Integer responseCodeInt = null;
-        if (SeoConfigUtil.checkUseUrlRegexp() && SeoConfigUtil.getSeoPatterns() != null && SeoConfigUtil.getForwardReplacements() != null) {
+        if (SeoConfigUtil.checkUseUrlRegexp() && SeoConfigUtil.getSeoPatterns() != null
+                && SeoConfigUtil.getForwardReplacements() != null) {
             Iterator<String> keys = SeoConfigUtil.getSeoPatterns().keySet().iterator();
             while (keys.hasNext()) {
                 String key = keys.next();
@@ -275,7 +288,7 @@ public class UrlRegexpTransform implements TemplateTransformModel {
             }
             response.setHeader("Location", uri);
         } else {
-            Debug.logInfo("Can NOT forward this url: " + uri, module);
+            Debug.logInfo("Can NOT forward this url: " + uri, MODULE);
         }
         return foundMatch;
     }

@@ -52,18 +52,18 @@ import org.w3c.dom.Element;
  */
 public final class CommonWidgetModels {
 
-    public static final String module = CommonWidgetModels.class.getName();
+    private static final String MODULE = CommonWidgetModels.class.getName();
 
     private CommonWidgetModels() {
     }
 
     public static class AutoEntityParameters {
         private String entityName;
-        List<String> excludeList = new ArrayList<>();
-        boolean includeNonPk;
-        boolean includePk;
+        private List<String> excludeList = new ArrayList<>();
+        private boolean includeNonPk;
+        private boolean includePk;
         private String includeType;
-        boolean sendIfEmpty;
+        private boolean sendIfEmpty;
 
         public AutoEntityParameters(Element autoElement) {
             entityName = UtilXml.checkEmpty(autoElement.getAttribute("entity-name"));
@@ -81,6 +81,12 @@ public final class CommonWidgetModels {
             }
         }
 
+        /**
+         * Gets parameters map.
+         * @param context the context
+         * @param defaultEntityName the default entity name
+         * @return the parameters map
+         */
         @SuppressWarnings("unchecked")
         public Map<String, String> getParametersMap(Map<String, Object> context, String defaultEntityName) {
             Map<String, String> autEntityParams = new HashMap<>();
@@ -88,7 +94,7 @@ public final class CommonWidgetModels {
             if (delegator == null) {
                 Debug.logError(
                         "We can not append auto entity Parameters since we could not find delegator in the current context",
-                        module);
+                        MODULE);
                 return autEntityParams;
             }
             if (UtilValidate.isEmpty(entityName)) {
@@ -98,7 +104,7 @@ public final class CommonWidgetModels {
             ModelEntity entity = delegator.getModelEntity(toExpand.expandString(context));
             if (entity == null) {
                 Debug.logError("We can not append auto entity Parameters since we could not find entity with name [" + entityName
-                        + "]", module);
+                        + "]", MODULE);
                 return autEntityParams;
             }
 
@@ -109,7 +115,7 @@ public final class CommonWidgetModels {
                 FlexibleMapAccessor<Object> fma = FlexibleMapAccessor.getInstance(fieldName);
                 boolean shouldExclude = excludeList.contains(fieldName);
                 if ((!shouldExclude) && (!field.getIsAutoCreatedInternal())
-                    && ((field.getIsPk() && includePk) || (!field.getIsPk() && includeNonPk))) {
+                        && ((field.getIsPk() && includePk) || (!field.getIsPk() && includeNonPk))) {
                     Object flexibleValue = fma.get(context);
                     if (UtilValidate.isEmpty(flexibleValue) && context.containsKey("parameters")) {
                         flexibleValue = fma.get((Map<String, Object>) context.get("parameters"));
@@ -124,8 +130,8 @@ public final class CommonWidgetModels {
     }
 
     public static class AutoServiceParameters {
-        List<String> excludeList = new ArrayList<>();
-        boolean sendIfEmpty;
+        private List<String> excludeList = new ArrayList<>();
+        private boolean sendIfEmpty;
         private String serviceName;
 
         public AutoServiceParameters(Element autoElement) {
@@ -141,6 +147,12 @@ public final class CommonWidgetModels {
             }
         }
 
+        /**
+         * Gets parameters map.
+         * @param context the context
+         * @param defaultServiceName the default service name
+         * @return the parameters map
+         */
         @SuppressWarnings("unchecked")
         public Map<String, String> getParametersMap(Map<String, Object> context, String defaultServiceName) {
             Map<String, String> autServiceParams = new HashMap<>();
@@ -148,7 +160,7 @@ public final class CommonWidgetModels {
             if (dispatcher == null) {
                 Debug.logError(
                         "We can not append auto service Parameters since we could not find dispatcher in the current context",
-                        module);
+                        MODULE);
                 return autServiceParams;
             }
             if (UtilValidate.isEmpty(serviceName)) {
@@ -159,11 +171,11 @@ public final class CommonWidgetModels {
             try {
                 service = dispatcher.getDispatchContext().getModelService(toExpand.toString());
             } catch (GenericServiceException e) {
-                Debug.logError("Resolve service throw an error : " + e, module);
+                Debug.logError("Resolve service throw an error : " + e, MODULE);
             }
             if (service == null) {
                 Debug.logError("We can not append auto service Parameters since we could not find service with name ["
-                        + serviceName + "]", module);
+                        + serviceName + "]", MODULE);
                 return autServiceParams;
             }
             Iterator<ModelParam> paramsIter = service.getInModelParamList().iterator();
@@ -590,9 +602,9 @@ public final class CommonWidgetModels {
      * @see <code>widget-form.xsd</code>
      */
     public static class Parameter {
-        protected FlexibleMapAccessor<Object> fromField;
-        protected String name;
-        protected FlexibleStringExpander value;
+        private FlexibleMapAccessor<Object> fromField;
+        private String name;
+        private FlexibleStringExpander value;
 
         public Parameter(Element element) {
             this.name = element.getAttribute("param-name");
@@ -611,18 +623,35 @@ public final class CommonWidgetModels {
             }
         }
 
+        /**
+         * Gets from field.
+         * @return the from field
+         */
         public FlexibleMapAccessor<Object> getFromField() {
             return fromField;
         }
 
+        /**
+         * Gets name.
+         * @return the name
+         */
         public String getName() {
             return name;
         }
 
+        /**
+         * Gets value.
+         * @return the value
+         */
         public FlexibleStringExpander getValue() {
             return value;
         }
 
+        /**
+         * Gets value.
+         * @param context the context
+         * @return the value
+         */
         public String getValue(Map<String, Object> context) {
             if (this.value != null) {
                 return this.value.expandString(context);
