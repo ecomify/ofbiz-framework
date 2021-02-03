@@ -2181,7 +2181,7 @@ public class ModelEntity implements Comparable<ModelEntity>, Serializable {
         if (UtilValidate.isNotEmpty(this.getPackageName()) && !packageName.equals(this.getPackageName())) {
             Debug.logWarning(
                     "Export EntityModel XML Element [" + this.getEntityName() + "] with a NEW package - " + packageName,
-                    module);
+                    MODULE);
         }
 
         Element root = document.createElement("entity-group");
