@@ -17,14 +17,13 @@
  * under the License.
  */
 
-
-
 import java.sql.Timestamp
 
 import org.apache.ofbiz.base.util.UtilDateTime
 import org.apache.ofbiz.base.util.UtilProperties
 import org.apache.ofbiz.entity.GenericValue
 import org.apache.ofbiz.entity.util.EntityUtil
+import org.apache.ofbiz.service.ServiceUtil
 
 /**
  * Create a new Blog Entry
@@ -70,6 +69,10 @@ def createBlogEntry() {
     }
 
     Map serviceResult = run service:"createContent", with: createMain
+    if (!ServiceUtil.isSuccess(serviceResult)) {
+        return serviceResult
+    }
+    result.successMessage = serviceResult.successMessage
     String contentId = serviceResult.contentId
 
     // reset contentIdFrom to new contentId
@@ -108,8 +111,11 @@ def createBlogEntry() {
             createImage._uploadedFile_contentType = parameters._uploadedFile_contentType
         }
 
-        Map serviceResultCCFUF = run service:"createContentFromUploadedFile", with: createImage
-        String imageContentId = serviceResultCCFUF.contentId
+        serviceResult = run service:"createContentFromUploadedFile", with: createImage
+        if (!ServiceUtil.isSuccess(serviceResult)) {
+            return serviceResult
+        }
+        String imageContentId = serviceResult.contentId
     }
 
     if (parameters.articleData) {
@@ -139,8 +145,12 @@ def createBlogEntry() {
             createText.partyId = userLogin.partyId
         }
 
-        Map serviceResultCTC = run service:"createTextContent", with: createText
-        String textContentId = serviceResultCTC.contentId
+        logInfo("calling createTextContent with map: ${createText}")
+        serviceResult = run service:"createTextContent", with: createText
+        if (!ServiceUtil.isSuccess(serviceResult)) {
+            return serviceResult
+        }
+        String textContentId = serviceResult.contentId
     }
 
     if (contentId) {
@@ -171,7 +181,10 @@ def createBlogEntry() {
                 createSummary.partyId = userLogin.partyId
             }
 
-            run service:"createTextContent", with: createSummary
+            serviceResult = run service:"createTextContent", with: createSummary
+            if (!ServiceUtil.isSuccess(serviceResult)) {
+                return serviceResult
+            }
         }
     }
 
@@ -189,10 +202,11 @@ def updateBlogEntry() {
     String ownerContentId
     String contentAssocTypeId
     String contentIdFrom
-    // TODO showNoResult entfernt, da es für andere Handhabe bei Methodeninternem Aufruf relevant war
-    // TODO Aufruf erfolgt jetzt immer über service Definition
 
     Map serviceResult = run service:"getBlogEntry", with: parameters
+    if (!ServiceUtil.isSuccess(serviceResult)) {
+        return serviceResult
+    }
     String contentId = serviceResult.contentId
     String contentName = serviceResult.contentName
     String statusId = serviceResult.statusId
@@ -214,7 +228,10 @@ def updateBlogEntry() {
     parameters.statusId != statusId) {
         Map updContent = parameters
         updContent.dataResourceId = parameters.templateDataResourceId
-        run service:"updateContent" , with: updContent
+        serviceResult = run service:"updateContent" , with: updContent
+        if (!ServiceUtil.isSuccess(serviceResult)) {
+            return serviceResult
+        }
         if (parameters.statusId != statusId) {
             if (imageContent) {
                 GenericValue status = imageContent.status
@@ -253,7 +270,10 @@ def updateBlogEntry() {
             createText.partyId = userLogin.partyId
         }
 
-        run service:"createTextContent", with: createText
+        serviceResult = run service:"createTextContent", with: createText
+        if (!ServiceUtil.isSuccess(serviceResult)) {
+            return serviceResult
+        }
     }
 
     // update article text
@@ -292,7 +312,10 @@ def updateBlogEntry() {
             createSummary.partyId = userLogin.partyId
         }
 
-        run service:"createTextContent", with: createSummary
+        serviceResult = run service:"createTextContent", with: createSummary
+        if (!ServiceUtil.isSuccess(serviceResult)) {
+            return serviceResult
+        }
     }
 
     // update summary text
@@ -338,7 +361,10 @@ def updateBlogEntry() {
         createImage.contentName = parameters.contentName ?: contentName
         createImage.description = parameters.description ?: description
         createImage.statusId = parameters.statusId ?: statusId
-        run service:"createContentFromUploadedFile", with: createImage
+        serviceResult = run service:"createContentFromUploadedFile", with: createImage
+        if (!ServiceUtil.isSuccess(serviceResult)) {
+            return serviceResult
+        }
     }
 
     result.contentId = parameters.contentId
@@ -365,14 +391,20 @@ def getOwnedOrPublishedBlogEntries() {
         mapIn.ownerContentId = parameters.contentId
         mapIn.mainAction = "VIEW"
         Map serviceResult = run service:"genericContentPermission", with: mapIn
+        if (!ServiceUtil.isSuccess(serviceResult)) {
+            return serviceResult
+        }
         Boolean hasPermission = serviceResult.hasPermission
         if (hasPermission) {
             blogList.add(blogItem)
         }
         else {
             mapIn.mainAction = "UPDATE"
-            Map serviceResultGCP = run service:"genericContentPermission", with: mapIn
-            hasPermission = serviceResultGCP.hasPermission
+            serviceResult = run service:"genericContentPermission", with: mapIn
+            if (!ServiceUtil.isSuccess(serviceResult)) {
+                return serviceResult
+            }
+            hasPermission = serviceResult.hasPermission
             if (hasPermission) {
                 blogList.add(blogItem)
             }
@@ -406,7 +438,7 @@ def getBlogEntry() {
     String articleData
 
     if (!parameters.contentId) {
-        result.contentId = parameters?.blogContentId
+        result.blogContentId = parameters?.blogContentId
         return result
     }
 
@@ -429,8 +461,6 @@ def getBlogEntry() {
 
         }
     }
-    // TODO for-Schleife entsprechend verkleinert
-    // TODO Die Abfrage showNoResult ist für Klasseninterne Methodenaufrufe, die durch die Konvertierung nicht mehr länger auftreten, daher unnötig 
     result.contentId = content?.contentId
     result.contentName = content?.contentName
     result.description = content?.description
@@ -438,7 +468,6 @@ def getBlogEntry() {
 
     if(imageContent) {
         result.templateDataResourceId = content.dataResourceId
-        // TODO imageContent entfernt
     }
     result.articleData = articleText?.textData
     result.summaryData = summaryText?.textData
