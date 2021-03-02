@@ -153,7 +153,14 @@ def createInventoryItemCheckSetAtpQoh() {
     Map result = success()
     if (parameters.availableToPromiseTotal || parameters.quantityOnHandTotal) {
         logInfo("Got an InventoryItem with ATP/QOH Total with ID ${parameters.inventoryItemId}, creating InventoryItemDetail")
-        result = run service: "createInventoryItemDetail", with: parameters
+        Map createDetailMap = [inventoryItemId: parameters.inventoryItemId]
+        if (parameters.availableToPromiseTotal) {
+            createDetailMap.availableToPromiseDiff = parameters.availableToPromiseTotal
+        }
+        if (parameters.quantityOnHandTotal) {
+            createDetailMap.quantityOnHandDiff = parameters.quantityOnHandTotal
+        }
+        result = run service: "createInventoryItemDetail", with: createDetailMap
     }
     return result
 }
@@ -488,22 +495,22 @@ def createInventoryItemVariance() {
     }
     // instead of updating InventoryItem, add an InventoryItemDetail
     Map createDetailMap = [inventoryItemId: parameters.inventoryItemId]
-    if(!parameters.physicalInventoryId) {
+    if(parameters.physicalInventoryId) {
         createDetailMap.physicalInventoryId = parameters.physicalInventoryId
     }
-    if(!parameters.availableToPromiseVar) {
+    if(parameters.availableToPromiseVar) {
         createDetailMap.availableToPromiseDiff = parameters.availableToPromiseVar
     }
-    if(!parameters.quantityOnHandVar) {
+    if(parameters.quantityOnHandVar) {
         createDetailMap.quantityOnHandDiff = parameters.quantityOnHandVar
     }
-    if(!parameters.quantityOnHandVar) {
+    if(parameters.quantityOnHandVar) {
         createDetailMap.accountingQuantityDiff = parameters.quantityOnHandVar
     }
-    if(!parameters.varianceReasonId) {
+    if(parameters.varianceReasonId) {
         createDetailMap.reasonEnumId = parameters.varianceReasonId
     }
-    if(!parameters.comments) {
+    if(parameters.comments) {
         createDetailMap.description = parameters.comments
     }
     Map serviceResult = run service: "createInventoryItemDetail", with: createDetailMap
@@ -588,12 +595,18 @@ def getProductInventoryAvailable() {
         // NOTE: this code no longer distinguishes between serialized and non-serialized because both now have availableToPromiseTotal and quantityOnHandTotal populated 
         // (for serialized are based on status, non-serialized are based on InventoryItemDetail)
         if ((parameters.statusId && parameters.statusId.equals(inventoryItem.statusId))
-            || (!parameters.statusId 
-            && (!inventoryItem.statusId || "INV_AVIALABLE".equals(inventoryItem.statusId) 
+            || (!parameters.statusId
+            && (!inventoryItem.statusId || "INV_AVIALABLE".equals(inventoryItem.statusId)
                 || "INV_NS_RETURNED".equals(inventoryItem.statusId) || "SERIALIZED_INV_ITEM".equals(inventoryItem.inventoryItemTypeId)))) {
-            parameters.quantityOnHandTotal += inventoryItem.quantityOnHandTotal
-            parameters.availableToPromiseTotal += inventoryItem.availableToPromiseTotal
-            parameters.accountingQuantityTotal += inventoryItem.accountingQuantityTotal
+            if (inventoryItem.quantityOnHandTotal) {
+                parameters.quantityOnHandTotal += inventoryItem.quantityOnHandTotal
+            }
+            if (inventoryItem.availableToPromiseTotal) {
+                parameters.availableToPromiseTotal += inventoryItem.availableToPromiseTotal
+            }
+            if (inventoryItem.accountingQuantityTotal) {
+                parameters.accountingQuantityTotal += inventoryItem.accountingQuantityTotal
+            }
         }
     }
     result.availableToPromiseTotal = parameters.availableToPromiseTotal
@@ -852,9 +865,16 @@ def reassignInventoryReservationsByAllocationPlan() {
         // Calculated already reserved quantity for the order item
         BigDecimal totalReservedQuantity = (BigDecimal) 0
         for (GenericValue orderItemShipGrpInvRes : orderItemShipGrpInvResList) {
-            BigDecimal reservedQuantity = orderItemShipGrpInvRes.quantity - orderItemShipGrpInvRes.quantityNotAvailable
-            totalReservedQuantity += reservedQuantity.setScale(6)
+            if (orderItemShipGrpInvRes.quantity && orderItemShipGrpInvRes.quantityNotAvailable) {
+                BigDecimal reservedQuantity = orderItemShipGrpInvRes.quantity - orderItemShipGrpInvRes.quantityNotAvailable
+                if (reservedQuantity) {
+                    totalReservedQuantity += reservedQuantity.setScale(6)
+                }
+            }
             // TODO check scale
+        }
+        if (!allocationPlanAndItem.allocatedQuantity) {
+            allocationPlanAndItem.allocatedQuantity = (BigDecimal) 0
         }
         BigDecimal toBeReservedQuantity = allocationPlanAndItem.allocatedQuantity - totalReservedQuantity
 
@@ -862,7 +882,7 @@ def reassignInventoryReservationsByAllocationPlan() {
         Map resMap = [productId: parameters.productId, orderId: allocationPlanAndItem.orderId, orderItemSeqId: allocationPlanAndItem.orderItemSeqId,
             quantity: toBeReservedQuantity, reservedDatetime: nowTimestamp, requireInventory: "Y",
             shipGroupSeqId: allocationPlanAndItem.shipGroupSeqId, facilityId: parameters.facilityId, priority: allocationPlanAndItem.prioritySeqId]
-        logInfo("Reserving product [${resMap.productId}] for order item [${resMap.orderId}:${resMap.orderItemSeqId}] quantity [${toBeRservedQuantity}]; facility [${parameters.facilityId}]")
+        logInfo("Reserving product [${resMap.productId}] for order item [${resMap.orderId}:${resMap.orderItemSeqId}] quantity [${toBeReservedQuantity}]; facility [${parameters.facilityId}]")
         for (Map.Entry<String, String> entry : touchedOrderIdMap.entrySet()) {
             String touchedOrderId = entry.getKey()
             Map checkOrderIsOnBackOrderMap = [orderId: touchedOrderId]
@@ -986,6 +1006,9 @@ def createInventoryTransfersForProduct() {
                 break
         }
         quantityNotTransferred = parameters.quantity
+        if (!quantityNotTransferred) {
+            quantityNotTransferred = (BigDecimal) 0
+        }
         Map locationTypeMap = [enumTypeId: "FACLOC_TYPE"]
         List<GenericValue> locationTypeEnums = from("Enumeration").where(locationTypeMap).queryList()
         List<String> locationTypeEnumIds = EntityUtil.getFieldListFromEntityList(locationTypeEnums, "enumId", true)
@@ -1029,7 +1052,9 @@ def createInventoryTransfersForProduct() {
                     if (!ServiceUtil.isSuccess(serviceResult)) {
                         return serviceResult
                     }
-                    quantityNotTransferred -= inputMap.xferQty
+                    if (inputMap.xferQty) {
+                        quantityNotTransferred -= inputMap.xferQty
+                    }
                 }
                 if (quantityNotTransferred == (BigDecimal) 0) {
                     break
