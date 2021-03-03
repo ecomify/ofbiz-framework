@@ -653,7 +653,7 @@ def countProductInventoryShippedForSales() {
         EntityCondition.makeCondition("quantityOnHandDiff", EntityOperator.LESS_THAN, (BigDecimal) 0));
     GenericValue inventoryItemDetailTotal = from("InventoryItemDetailForSum").where(cond).select("quantityOnHandSum").queryFirst()
     if (inventoryItemDetailTotal.quantityOnHandSum) {
-        quantityOnHandTotal = inventoryItemDetailTotal.quantityOnHandSum * (BigDecimal) -1
+        quantityOnHandTotal = inventoryItemDetailTotal.quantityOnHandSum.multiply((BigDecimal) (-1))
     }
     result.quantityOnHandTotal = quantityOnHandTotal
     return result
