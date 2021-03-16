@@ -50,7 +50,7 @@ def checkFacilityRelatedPermission(String callingMethodName, String checkAction,
     }
     if (!security.hasEntityPermission("CATALOG", "_${checkAction}", parameters.userLogin)
     && (!security.hasEntityPermission("FACILITY", "_${checkAction}", parameters.userLogin))
-    && ((!alternatePermissionRoot) || security.hasEntityPermission("${alternatePermissionRoot}", "_${checkAction}", parameters.userLogin))) {
+    && ((!alternatePermissionRoot) || !security.hasEntityPermission("${alternatePermissionRoot}", "_${checkAction}", parameters.userLogin))) {
         return error(UtilProperties.getMessage("ProductUiLabels", "ProductCatalogCreatePermissionError", parameters.locale))
     }
     return result;
@@ -214,6 +214,9 @@ def inventoryItemCheckSetDefaultValues() {
         // TODO: create a new service getProductStdCost that calls getProductCost
         Map inputMap = [productId: inventoryItem.productId, currencyUomId: inventoryItem.currencyUomId, costComponentTypePrefix: "EST_STD"]
         Map productCostResult = run service: "getProductCost", with: inputMap
+        if (!ServiceUtil.isSuccess(productCostResult)) {
+            return productCostResult
+        }
         inventoryItem.unitCost = productCostResult.productCost
     }
     // if inventoryItem's unitCost is still empty, or negative return an error message
@@ -283,14 +286,16 @@ def updateInventoryItem() {
  */
 def createInventoryItemStatus() {
     Map result = success()
+    Timestamp nowTimestamp = UtilDateTime.nowTimestamp()
+    // find the most recent InventoryItemStatus record and set the statusEndDatetime
     GenericValue oldInventoryItemStatus = from("InventoryItemStatus")
         .where(inventoryItemId: parameters.inventoryItemId).orderBy("-statusDatetime").queryFirst()
     if (oldInventoryItemStatus) {
-        oldInventoryItemStatus.statusEndDatetime = UtilDateTime.nowTimestamp()
+        oldInventoryItemStatus.statusEndDatetime = nowTimestamp
         oldInventoryItemStatus.store()
     }
     GenericValue inventoryItemStatus = makeValue("InventoryItemStatus", parameters)
-    inventoryItemStatus.statusDatetime = UtilDateTime.nowTimestamp()
+    inventoryItemStatus.statusDatetime = nowTimestamp
     inventoryItemStatus.changeByUserLoginId = userLogin.userLoginId
 
     // make sure the current productId is set, if not passed in look up the current value
@@ -400,7 +405,10 @@ def updateOldInventoryToDetailAll() {
     List<GenericValue> inventoryItemList = from("InventoryItem").where(cond).queryList()
     for (GenericValue inventoryItem : inventoryItemList) {
         Map callServiceMap = [inventoryItem: inventoryItem]
-        run service: "updateOldInventoryToDetailSingle", with: callServiceMap
+        Map serviceResult = run service: "updateOldInventoryToDetailSingle", with: callServiceMap
+        if (!ServiceUtil.isSuccess(serviceResult)) {
+            return serviceResult
+        }
     }
     return result
 }
@@ -415,7 +423,10 @@ def updateOldInventoryToDetailSingle() {
     GenericValue inventoryItem = parameters.inventoryItem
     Map createDetailMap = [inventoryItemId: inventoryItem.inventoryItemId, availableToPromiseDiff: inventoryItem.oldAvailableToPromise,
         quantityOnHandDiff: inventoryItem.oldQuantityOnHand]
-    run service: "createInventoryItemDetail", with: createDetailMap
+    Map serviceResult = run service: "createInventoryItemDetail", with: createDetailMap
+    if (!ServiceUtil.isSuccess(serviceResult)) {
+        return serviceResult
+    }
     inventoryItem.oldAvailableToPromise = null
     inventoryItem.oldQuantityOnHand = null
     inventoryItem.store()
@@ -447,7 +458,7 @@ def checkProductInventoryDiscontinuation() {
             }
         }
     }
-    // before checking inventory availability see if the product is already discontinued, and discontinued in the past (if in the future, still check availability and discontinue now if necessary) 
+    // before checking inventory availability see if the product is already discontinued, and discontinued in the past (if in the future, still check availability and discontinue now if necessary)
     if (product && "Y".equals(product.salesDiscWhenNotAvail)
         && (!product.salesDiscontinuationDate || nowTimestamp.before(product.salesDiscontinuationDate))) {
         // now for the real fun, get the inventory available if is less-equal to zero discontinue product
@@ -817,7 +828,7 @@ def reassignInventoryReservations() {
             return serviceResultCOIOBO
         }
         Boolean isBackOrder = serviceResultCOIOBO.isBackOrder
-        if (isBackOrder) {
+        if (!isBackOrder) {
             noLongerOnBackOrderIdMap[touchedOrderId] = "Y"
         }
         if (noLongerOnBackOrderIdMap) {
@@ -834,8 +845,8 @@ def reassignInventoryReservations() {
  */
 def reassignInventoryReservationsByAllocationPlan() {
     Map result = success()
-    // TODO double check Method
     Timestamp nowTimestamp = UtilDateTime.nowTimestamp()
+    Map serviceResult =[:]
     Map touchedOrderIdMap = [:]
     Map noLongerOnBackOrderIdMap = [:]
     List<GenericValue> allocationPlanAndItemList = parameters.allocationPlanAndItemList
@@ -871,7 +882,6 @@ def reassignInventoryReservationsByAllocationPlan() {
                     totalReservedQuantity += reservedQuantity.setScale(6)
                 }
             }
-            // TODO check scale
         }
         if (!allocationPlanAndItem.allocatedQuantity) {
             allocationPlanAndItem.allocatedQuantity = (BigDecimal) 0
@@ -881,24 +891,30 @@ def reassignInventoryReservationsByAllocationPlan() {
         // require inventory is N because it had to be N to begin with to have a negative ATP
         Map resMap = [productId: parameters.productId, orderId: allocationPlanAndItem.orderId, orderItemSeqId: allocationPlanAndItem.orderItemSeqId,
             quantity: toBeReservedQuantity, reservedDatetime: nowTimestamp, requireInventory: "Y",
-            shipGroupSeqId: allocationPlanAndItem.shipGroupSeqId, facilityId: parameters.facilityId, priority: allocationPlanAndItem.prioritySeqId]
+            shipGroupSeqId: orderItemShipGroup.shipGroupSeqId, facilityId: parameters.facilityId, priority: allocationPlanAndItem.prioritySeqId]
         logInfo("Reserving product [${resMap.productId}] for order item [${resMap.orderId}:${resMap.orderItemSeqId}] quantity [${toBeReservedQuantity}]; facility [${parameters.facilityId}]")
-        for (Map.Entry<String, String> entry : touchedOrderIdMap.entrySet()) {
-            String touchedOrderId = entry.getKey()
-            Map checkOrderIsOnBackOrderMap = [orderId: touchedOrderId]
-            Map serviceResult = run service: "checkOrderIsOnBackOrder", with: checkOrderIsOnBackOrderMap
-            if (!ServiceUtil.isSuccess(serviceResult)) {
-                return serviceResult
-            }
-            Boolean isBackOrder = serviceResult.isBackOrder
-            if (isBackOrder) {
-                noLongerOnBackOrderIdMap[touchedOrderId] = "Y"
-            }
-        }
-        if (noLongerOnBackOrderIdMap) {
-            result.noLongerOnBackOrderIdSet = noLongerOnBackOrderIdMap.keySet()
+        serviceResult = run service: "reserveProductInventoryByFacility", with: resMap
+        if (!ServiceUtil.isSuccess(serviceResult)) {
+            return serviceResult
         }
     }
+    // now go through touchedOrderIdMap keys and make a Set/Map of orderIds that are no longer on back-order
+    for (Map.Entry<String, String> entry : touchedOrderIdMap.entrySet()) {
+        String touchedOrderId = entry.getKey()
+        Map checkOrderIsOnBackOrderMap = [orderId: touchedOrderId]
+        serviceResult = run service: "checkOrderIsOnBackOrder", with: checkOrderIsOnBackOrderMap
+        if (!ServiceUtil.isSuccess(serviceResult)) {
+            return serviceResult
+        }
+        Boolean isBackOrder = serviceResult.isBackOrder
+        if (!isBackOrder) {
+            noLongerOnBackOrderIdMap[touchedOrderId] = "Y"
+        }
+    }
+    if (noLongerOnBackOrderIdMap) {
+        result.noLongerOnBackOrderIdSet = noLongerOnBackOrderIdMap.keySet()
+    }
+
     return result
 }
 
@@ -1117,13 +1133,13 @@ def setOrderReservationPriority() {
         for (GenericValue oisgir : oisgirs) {
             if (!oisgir.priority) {
                 oisgir.priority = 2
-                oisgir.store()
             }
+            oisgir.store()
         }
         if (!orderHeader.priority) {
             orderHeader.priority = 2
-            orderHeader.store()
         }
+        orderHeader.store()
     } else {
         orderHeader.priority = priority
         orderHeader.store()
@@ -1203,6 +1219,3 @@ def createInventoryItemLabelAppl() {
     newEntity.create()
     return result
 }
-
-
-
