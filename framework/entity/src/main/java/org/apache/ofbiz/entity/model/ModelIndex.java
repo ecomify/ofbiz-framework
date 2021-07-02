@@ -39,7 +39,6 @@ public final class ModelIndex extends ModelChild {
 
     /**
      * Returns a new <code>ModelIndex</code> instance, initialized with the specified values.
-     * 
      * @param modelEntity The <code>ModelEntity</code> this index is a member of.
      * @param description The index description.
      * @param name The index name.
@@ -63,7 +62,6 @@ public final class ModelIndex extends ModelChild {
 
     /**
      * Returns a new <code>ModelIndex</code> instance, initialized with the specified values.
-     * 
      * @param modelEntity The <code>ModelEntity</code> this index is a member of.
      * @param indexElement The <code>&lt;index&gt;</code> element containing the values for this index.
      */
@@ -71,7 +69,7 @@ public final class ModelIndex extends ModelChild {
         String name = indexElement.getAttribute("name").intern();
         boolean unique = "true".equals(indexElement.getAttribute("unique"));
         String description = UtilXml.childElementValue(indexElement, "description");
-        List<Field>fields = Collections.emptyList();
+        List<Field> fields = Collections.emptyList();
         List<? extends Element> elementList = UtilXml.childElementList(indexElement, "index-field");
         if (!elementList.isEmpty()) {
             fields = new ArrayList<>(elementList.size());

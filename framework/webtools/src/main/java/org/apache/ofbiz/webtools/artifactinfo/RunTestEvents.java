@@ -37,7 +37,7 @@ public class RunTestEvents {
     private static final String MODULE = RunTestEvents.class.getName();
 
     public static String runTest(HttpServletRequest request, HttpServletResponse response) throws ContainerException {
-        
+
         String component = request.getParameter("compName");
         String suiteName = request.getParameter("suiteName");
         String caseName = request.getParameter("caseName");
@@ -54,7 +54,7 @@ public class RunTestEvents {
 
         TestRunContainer testRunContainer = new TestRunContainer();
         testRunContainer.init(ofbizCommands, "frontend test run", "   ");
-        if (testRunContainer.start() == false) {
+        if (!testRunContainer.start()) {
             result = "error";
         } else {
             result = "success";

@@ -25,6 +25,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Optional;
 import java.util.TreeMap;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 
 import org.apache.ofbiz.base.component.ComponentConfig;
@@ -54,11 +55,9 @@ public class WebAppCache {
 
     /**
      * Constructs an empty web application cache.
-     *
-     * @param supplier the source from which components configurations
-     *        are retrieved
+     * @param supplier the source from which components configurations are retrieved
      */
-    public WebAppCache(Supplier<Collection<ComponentConfig>>supplier) {
+    public WebAppCache(Supplier<Collection<ComponentConfig>> supplier) {
         ccs = supplier;
         serverWebApps = new LinkedHashMap<>();
     }
@@ -66,7 +65,6 @@ public class WebAppCache {
     /**
      * Retrieves the web applications information that must be visible
      * in the context of the server {@code serverName}.
-     *
      * @param serverName the name of the server to match
      * @return the corresponding web applications information
      */
@@ -80,7 +78,6 @@ public class WebAppCache {
      * <p>
      * When an empty string or {@code null} is used for {@code menuName},
      * all the web application information corresponding to {@code serverName} are matched.
-     *
      * @param serverName the name of server to match
      * @param menuName the name of the menu to match
      * @return the corresponding web applications information
@@ -93,22 +90,29 @@ public class WebAppCache {
             webInfos = serverWebApps.get(serverWebAppsKey);
         }
         if (webInfos == null) {
-            TreeMap<String, WebappInfo> tm = ccs.get().stream()
+            AtomicInteger emptyPosition = new AtomicInteger(999);
+            TreeMap<Integer, WebappInfo> tm = ccs.get().stream()
                     .flatMap(cc -> cc.getWebappInfos().stream())
                     .filter(wInfo -> {
                         if (wInfo.getAppBarDisplay()) {
-                            return serverName.equals(wInfo.server)
-                                    && (UtilValidate.isEmpty(menuName) || menuName.equals(wInfo.menuName));
+                            return serverName.equals(wInfo.getServer())
+                                    && (UtilValidate.isEmpty(menuName) || menuName.equals(wInfo.getMenuName()));
                         } else {
                             return UtilValidate.isEmpty(menuName);
                         }
                     })
                     // Keep only one WebappInfo per title (the last appearing one).
-                    .collect(TreeMap::new,
-                            (acc, wInfo) -> {
-                                String key = UtilValidate.isNotEmpty(wInfo.position) ? wInfo.position : wInfo.title;
-                                acc.put(key, wInfo);
-                            },
+                    .collect(TreeMap::new, (acc, wInfo) -> {
+                        String stringKey = UtilValidate.isNotEmpty(wInfo.getPosition()) ? wInfo.getPosition() : wInfo.getTitle();
+                        Integer key = null;
+                        try {
+                            key = Integer.valueOf(stringKey);
+                            key = (key != null) ? key : emptyPosition.incrementAndGet();
+                        } catch (NumberFormatException e) {
+                            key = emptyPosition.incrementAndGet();
+                        }
+                        acc.put(key, wInfo);
+                    },
                             TreeMap::putAll);
             // Create the list of WebappInfos ordered by their title/position.
             webInfos = Collections.unmodifiableList(new ArrayList<>(tm.values()));
@@ -123,7 +127,6 @@ public class WebAppCache {
     /**
      * Retrieves the first web application information which mount point correspond to
      * {@code webAppName} in the context of the server {@code serverName}.
-     *
      * @param serverName the name of the server to match
      * @param webAppName the name of the web application to match
      * @return the corresponding web application information
@@ -141,7 +144,6 @@ public class WebAppCache {
 
     /**
      * Provides access to a shared instance of the webapp cache.
-     *
      * @return the shared webapp cache.
      */
     public static WebAppCache getShared() {

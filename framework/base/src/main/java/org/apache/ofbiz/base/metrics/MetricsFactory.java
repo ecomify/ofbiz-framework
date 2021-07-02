@@ -84,7 +84,6 @@ public final class MetricsFactory {
      *     <td>The metric threshold. The meaning of the threshold is determined by client code.</td>
      *     <td>Defaults to "0.0".</td></tr>
      * </table>
-     *
      * @param element The element whose attributes will be used to create the <code>Metrics</code> instance
      * @return A <code>Metrics</code> instance based on <code>element</code> attributes
      * @throws IllegalArgumentException if <code>element</code> is null or if the name attribute is empty
@@ -241,7 +240,8 @@ public final class MetricsFactory {
                 serviceRate = (rate * smoothing) + (serviceRate * (1.0 - smoothing));
                 count = 0;
                 lastTime = curTime;
-                totalEvents = totalServiceTime = 0;
+                totalEvents = 0;
+                totalServiceTime = 0;
             }
         }
 
@@ -250,7 +250,9 @@ public final class MetricsFactory {
             serviceRate = 0.0;
             count = 0;
             lastTime = System.currentTimeMillis();
-            totalEvents = totalServiceTime = cumulativeEvents = 0;
+            totalEvents = 0;
+            totalServiceTime = 0;
+            cumulativeEvents = 0;
         }
 
         @Override
@@ -290,5 +292,5 @@ public final class MetricsFactory {
         }
     }
 
-    private MetricsFactory() {}
+    private MetricsFactory() { }
 }

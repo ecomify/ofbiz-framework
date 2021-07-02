@@ -45,7 +45,11 @@ public class JmsTopicListener extends AbstractJmsListener {
     private TopicSession session = null;
     private Topic topic = null;
 
-    private String jndiServer, jndiName, topicName, userName, password;
+    private String jndiServer;
+    private String jndiName;
+    private String topicName;
+    private String userName;
+    private String password;
 
     /**
      * Creates a new JmsTopicListener - Should only be called by the JmsListenerFactory.
@@ -62,10 +66,12 @@ public class JmsTopicListener extends AbstractJmsListener {
     @Override
     public void close() throws GenericServiceException {
         try {
-            if (session != null)
+            if (session != null) {
                 session.close();
-            if (con != null)
+            }
+            if (con != null) {
                 con.close();
+            }
         } catch (JMSException e) {
             throw new GenericServiceException("Cannot close connection(s).", e);
         }
@@ -87,7 +93,9 @@ public class JmsTopicListener extends AbstractJmsListener {
                     subscriber.setMessageListener(this);
                     con.start();
                     this.setConnected(true);
-                    if (Debug.infoOn()) Debug.logInfo("Listening to topic [" + topicName + "] on [" + jndiServer + "]...", MODULE);
+                    if (Debug.infoOn()) {
+                        Debug.logInfo("Listening to topic [" + topicName + "] on [" + jndiServer + "]...", MODULE);
+                    }
                 } else {
                     throw new GenericServiceException("Topic lookup failed.");
                 }

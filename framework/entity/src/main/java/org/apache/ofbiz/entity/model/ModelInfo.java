@@ -38,7 +38,6 @@ public final class ModelInfo {
 
     /**
      * Returns a new <code>ModelInfo</code> instance initialized to the values found in <code>element</code> attributes.
-     * 
      * @param defaultInfo A <code>ModelInfo</code> instance that will provide default values for missing attributes.
      * @param element
      */
@@ -72,7 +71,6 @@ public final class ModelInfo {
 
     /**
      * Returns a new <code>ModelInfo</code> instance initialized to the values found in <code>element</code> child elements.
-     * 
      * @param defaultInfo A <code>ModelInfo</code> instance that will provide default values for missing child elements.
      * @param element
      */
@@ -90,7 +88,7 @@ public final class ModelInfo {
             copyright = defaultInfo.getCopyright();
         }
         String author = StringUtil.internString(UtilXml.childElementValue(element, "author"));
-        if (author == null ||author.isEmpty()) {
+        if (author == null || author.isEmpty()) {
             author = defaultInfo.getAuthor();
         }
         String version = StringUtil.internString(UtilXml.childElementValue(element, "version"));

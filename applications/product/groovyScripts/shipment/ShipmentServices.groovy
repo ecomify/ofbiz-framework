@@ -303,7 +303,7 @@ def setShipmentSettingsFromPrimaryOrder() {
         List destTelecomOrdercontactMechs = EntityUtil.filterByAnd(orderContactMechs,
                 [contactMechPurposeTypeId: "PHONE_SHIPPING"])
         if (destTelecomOrdercontactMechs) {
-            shipment.destinationTeelcomNumberId = destTelecomOrdercontactMechs[0].contactMechId
+            shipment.destinationTelecomNumberId = destTelecomOrdercontactMechs[0].contactMechId
         } else {
             // use the first unexpired phone number of the shipment partyIdTo
             GenericValue phoneNumber = from("PartyAndTelecomNumber")
@@ -448,7 +448,7 @@ def sendShipmentScheduledNotification() {
             .where(partyId: userLogin.partyId,
                     contactMechTypeId: "EMAIL_ADDRESS")
             .queryFirst()
-    Map sendEmailMap = [sendFrom: ("," + curUserPartyAndContactMech.infoString)]
+    Map sendEmailMap = [sendFrom: curUserPartyAndContactMech.infoString]
 
     // find email addresses of partyIdFrom, set as sendTo
     Map sendToPartyIdMap = [:]
@@ -467,12 +467,15 @@ def sendShipmentScheduledNotification() {
     // go through all send to parties and get email addresses
     List sendTos = []
     for (Map.Entry entry : sendToPartyIdMap) {
-        sendTos << from("PartyAndContactMech")
+        List sendToPartyAndContactMechs = from("PartyAndContactMech")
                 .where(partyId: entry.getKey(),
                         contactMechTypeId: "EMAIL_ADDRESS")
-                .getFieldList("sendTo")
+                .getFieldList("infoString")
+        sendToPartyAndContactMechs.each {
+            sendTos << it
+        }
     }
-    sendEmailMap.sendTo = sendTos.join(',')
+    sendEmailMap.sendTo = sendTos.join(",")
 
     // set subject, contentType, templateName, templateData
     sendEmailMap.subject = "Scheduled Notification for Shipment " + shipment.shipmentId
@@ -506,7 +509,7 @@ def balanceItemIssuancesForShipment() {
                         orderId: issuance.orderId,
                         orderItemSeqId: issuance.orderItemSeqId)
                 .queryList()
-        BigDecimal issuanceQuantity = 0 as BigDecimal
+        BigDecimal issuanceQuantity = BigDecimal.ZERO
         for (GenericValue receipt : receipts) {
             issuanceQuantity = issuanceQuantity + receipt.quantityAccepted + receipt.quantityRejected
         }
@@ -545,7 +548,7 @@ def splitShipmentItemByQuantity() {
             .queryList()
     BigDecimal orderShipmentQuantityLeft = parameters.newItemQuantity
     for (GenericValue itemOrderShipment : itemOrderShipmentList) {
-        if (orderShipmentQuantityLeft > (0 as BigDecimal)) {
+        if (orderShipmentQuantityLeft > (BigDecimal.ZERO)) {
             if (itemOrderShipment.quantity > orderShipmentQuantityLeft) {
                 // there is enough in this OrderShipment record, so just adjust it and move on
                 Map updateOrderShipmentMap = itemOrderShipment.getAllFields()
@@ -556,7 +559,7 @@ def splitShipmentItemByQuantity() {
                                                            shipmentId: itemOrderShipment.shipmentId,
                                                            shipmentItemSeqId: newShipmentItemSeqId,
                                                            quantity: orderShipmentQuantityLeft]
-                orderShipmentQuantityLeft = 0 as BigDecimal
+                orderShipmentQuantityLeft = BigDecimal.ZERO
             } else {
                 // not enough on this one, create a new one for the new item and delete this one
                 run service: "deleteOrderShipment", with: itemOrderShipment.getAllFields()
@@ -1004,7 +1007,7 @@ def createShipmentForFacilityAndShipGroup(GenericValue orderHeader, List orderIt
                 shipmentContext.statusId = "SHIPMENT_INPUT"
             } else {
                 shipmentContext.destinationFacilityId = facility.facilityId
-                shipmentContext.statusId = "PRUCH_SHIP_CREATED"
+                shipmentContext.statusId = "PURCH_SHIP_CREATED"
             }
             Map serviceResult = run service: "createShipment", with: shipmentContext
             GenericValue shipment = from("Shipment").where(shipmentId: serviceResult.shipmentId).queryOne()
@@ -1029,7 +1032,7 @@ def createShipmentForFacilityAndShipGroup(GenericValue orderHeader, List orderIt
                     run service: "issueOrderItemToShipment", with: [shipmentId: shipment.shipmentId,
                                                                     orderId: item.orderId,
                                                                     orderItemSeqId: item.orderItemSeqId,
-                                                                    shipGroupSeqId: item.shipgroupSeqId,
+                                                                    shipGroupSeqId: item.shipGroupSeqId,
                                                                     quantity: item.quantity]
                 }
             }
@@ -1336,7 +1339,7 @@ def removeOrderShipmentFromShipment() {
     GenericValue shipmentItem = from("ShipmentItem").where(parameters).queryOne()
     run service: "deleteOrderShipment", with: parameters
     shipmentItem.quantity = orderShipment.quantity - shipmentItem.quantity
-    if (shipmentItem.quantity > (0 as BigDecimal)) {
+    if (shipmentItem.quantity > (BigDecimal.ZERO)) {
         run service: "updateShipmentItem", with: shipmentItem.getAllFields()
     } else {
         run service: "deleteShipmentItem", with: parameters
@@ -1353,7 +1356,7 @@ def removeOrderShipmentFromShipment() {
 def addOrderShipmentToShipment() {
     Map result = success()
     // if quantity is greater than 0 we add or update the ShipmentPlan
-    if (parameters.quantity > (0 as BigDecimal)) {
+    if (parameters.quantity > (BigDecimal.ZERO)) {
         // get orderHeader
         GenericValue orderHeader = from("OrderHeader").where(parameters).queryOne()
         // get orderItem
@@ -1397,25 +1400,25 @@ def addOrderShipmentToShipment() {
  */
 def getQuantityForShipment() {
     Map result = success()
-    BigDecimal plannedQuantity = 0 as BigDecimal
-    BigDecimal issuedQuantity = 0 as BigDecimal
+    BigDecimal plannedQuantity = BigDecimal.ZERO
+    BigDecimal issuedQuantity = BigDecimal.ZERO
     // get orderItem
     GenericValue orderItem = from("OrderItem").where(parameters).queryOne()
     Map orderShipmentLookup = [orderId: parameters.orderId,
                                orderItemSeqId: parameters.orderItemSeqId]
     List existingOrderShipments = from("OrderShipment").where(orderShipmentLookup).queryList()
     for (GenericValue orderShipment : existingOrderShipments) {
-        plannedQuantity += orderShipment.quantity ?: 0 as BigDecimal
+        plannedQuantity += orderShipment.quantity ?: BigDecimal.ZERO
     }
     existingOrderShipments = from("ItemIssuance").where(orderShipmentLookup).queryList()
     for (GenericValue itemIssuance : existingOrderShipments) {
-        BigDecimal quantity = itemIssuance.quantity ?: 0 as BigDecimal
-        BigDecimal cancelQuantity = itemIssuance.cancelQuantity ?: 0 as BigDecimal
+        BigDecimal quantity = itemIssuance.quantity ?: BigDecimal.ZERO
+        BigDecimal cancelQuantity = itemIssuance.cancelQuantity ?: BigDecimal.ZERO
         issuedQuantity += quantity - cancelQuantity
     }
 
     BigDecimal totPlannedOrIssuedQuantity = issuedQuantity + plannedQuantity
-    BigDecimal orderCancelQuantity = orderItem.cancelQuantity ?: 0 as BigDecimal
+    BigDecimal orderCancelQuantity = orderItem.cancelQuantity ?: BigDecimal.ZERO
 
     result.remainingQuantity = orderCancelQuantity + totPlannedOrIssuedQuantity - orderItem.quantity
     return result

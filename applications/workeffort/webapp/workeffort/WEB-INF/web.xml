@@ -98,31 +98,9 @@ under the License.
         <url-pattern>/control/*</url-pattern>
     </servlet-mapping>
 
-    <session-config>
-        <session-timeout>60</session-timeout><!-- in minutes -->
-    </session-config>
-
     <welcome-file-list>
         <welcome-file>index.jsp</welcome-file>
     </welcome-file-list>
-    <!--
-      <error-page>
-        <error-code>403</error-code>
-        <location>/error/error403.jsp</location>
-      </error-page>
-      <error-page>
-        <error-code>404</error-code>
-        <location>/error/error404.jsp</location>
-      </error-page>
-      <error-page>
-        <error-code>410</error-code>
-        <location>/error/error.jsp</location>
-      </error-page>
-      <error-page>
-        <error-code>500</error-code>
-        <location>/error/error.jsp</location>
-      </error-page>
-    -->
 
     <!-- HTTP Response Code definitions:
     | "400"   ; Bad Request

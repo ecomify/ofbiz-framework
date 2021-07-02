@@ -31,19 +31,24 @@ under the License.
     <#assign center = geoChart.points[0]>
     <#assign zoom = 15> <#-- 0=World, 19=max zoom in -->
   <#else>
-  <#-- hardcoded in GEOPT_ADDRESS_GOOGLE, simpler -->
+    <#-- hardcoded in GEOPT_ADDRESS_GOOGLE, simpler -->
   </#if>
 
 <#-- ================================= Google Maps Init ======================================-->
   <#if geoChart.dataSourceId?has_content>
     <#if "GOOGLE" == geoChart.dataSourceId?substring(geoChart.dataSourceId?length-6 , geoChart.dataSourceId?length)>
-    <div id="${id}"
-         style="border:1px solid #979797; background-color:#e5e3df; width:${geoChart.width}; height:${geoChart.height}; margin:2em auto;">
-        <div style="padding:1em; color:gray;">${uiLabelMap.CommonLoading}</div>
-    </div>
-    <script src="https://maps.googleapis.com/maps/api/js?sensor=false" type="application/javascript"></script>
+        <#assign googleApiKey = Static["org.apache.ofbiz.entity.util.EntityUtilProperties"].getPropertyValue("general", "googleApiKey", delegator)>
+          <div id="${id}"
+            style="border:1px solid #979797; background-color:#e5e3df; width:${geoChart.width}; height:${geoChart.height}; margin:2em auto;">
+            <div style="padding:1em; color:gray;">${uiLabelMap.CommonLoading}</div>
+          </div>
+        <#if !googleApiKey?has_content>
+          <h2>${uiLabelMap.CommonNoGoogleAPIkeyAvailable}</h2>
+          <script src="https://maps.googleapis.com/maps/api/js" type="application/javascript"></script>
+        <#else>
+          <script src="https://maps.googleapis.com/maps/api/js?key=${googleApiKey}" type="application/javascript"></script>
+        </#if>
     </#if>
-
   <#-- ========================== Here we go with different types of maps renderer ===========================-->
     <#if "GEOPT_GOOGLE" == geoChart.dataSourceId>
     <script type="application/javascript">
@@ -115,62 +120,65 @@ under the License.
     <#elseif "GEOPT_OSM" == geoChart.dataSourceId>
     <div id="${id}" class="map" style="border:1px solid #979797; background-color:#e5e3df; width:${geoChart.width}; height:${geoChart.height}; margin:2em auto;"></div>
     <script type="application/javascript">
-        var iconFeatures=[];
+        var libraryFiles = ["/common/js/plugins/OpenLayers-5.3.0.js", "/common/js/plugins/OpenLayers-5.3.0.css"];
+        importLibrary(libraryFiles, function() {
+            var iconFeatures=[];
 
-        <#if geoChart.points?has_content>
-            <#list geoChart.points as point>
-            iconFeatures.push(
-                    new ol.Feature({
-                        geometry: new ol.geom.Point(ol.proj.transform([${point.lon},${point.lat}],
-                                'EPSG:4326', 'EPSG:900913'))
-                    })
-            );
-            </#list>
-        </#if>
+            <#if geoChart.points?has_content>
+                <#list geoChart.points as point>
+                iconFeatures.push(
+                        new ol.Feature({
+                            geometry: new ol.geom.Point(ol.proj.transform([${point.lon},${point.lat}],
+                                    'EPSG:4326', 'EPSG:900913'))
+                        })
+                );
+                </#list>
+            </#if>
 
-        var vectorSource = new ol.source.Vector({
-            features: iconFeatures
-        });
+            var vectorSource = new ol.source.Vector({
+                features: iconFeatures
+            });
 
-        var iconStyle = new ol.style.Style({
-            image: new ol.style.Icon(({
-                anchor: [0.5, 25],
-                anchorXUnits: 'fraction',
-                anchorYUnits: 'pixels',
-                opacity: 0.75,
-                src: '<@ofbizContentUrl>/images/img/marker.png</@ofbizContentUrl>'
-            }))
-        });
+            var iconStyle = new ol.style.Style({
+                image: new ol.style.Icon(({
+                    anchor: [0.5, 25],
+                    anchorXUnits: 'fraction',
+                    anchorYUnits: 'pixels',
+                    opacity: 0.75,
+                    src: '<@ofbizContentUrl>/images/img/marker.png</@ofbizContentUrl>'
+                }))
+            });
 
-        var vectorLayer = new ol.layer.Vector({
-            source: vectorSource,
-            style: iconStyle
-        });
+            var vectorLayer = new ol.layer.Vector({
+                source: vectorSource,
+                style: iconStyle
+            });
 
-        var map = new ol.Map({
-            target: '${id}',
-            layers: [
-                new ol.layer.Tile({
-                    source: new ol.source.OSM()
+            var map = new ol.Map({
+                target: '${id}',
+                layers: [
+                    new ol.layer.Tile({
+                        source: new ol.source.OSM()
+                    }),
+                    vectorLayer
+                ],
+                view: new ol.View({
+                    center: ol.proj.fromLonLat([${center.lon}, ${center.lat}]),
+                    zoom: ${zoom}
                 }),
-                vectorLayer
-            ],
-            view: new ol.View({
-                center: ol.proj.fromLonLat([${center.lon}, ${center.lat}]),
-                zoom: ${zoom}
-            }),
-            controls: [
-                new ol.control.Zoom(),
-                new ol.control.ZoomSlider(),
-                new ol.control.ZoomToExtent(),
-                new ol.control.OverviewMap(),
-                new ol.control.ScaleLine(),
-                new ol.control.FullScreen()
-            ]
-        });
+                controls: [
+                    new ol.control.Zoom(),
+                    new ol.control.ZoomSlider(),
+                    new ol.control.ZoomToExtent(),
+                    new ol.control.OverviewMap(),
+                    new ol.control.ScaleLine(),
+                    new ol.control.FullScreen()
+                ]
+            });
 
-        // fit to show all markers (optional)
-        map.getView().fit(vectorSource.getExtent(), map.getSize());
+            // fit to show all markers (optional)
+            map.getView().fit(vectorSource.getExtent(), map.getSize());
+        });
     </script>
 
     </#if>

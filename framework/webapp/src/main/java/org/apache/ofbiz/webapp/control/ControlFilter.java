@@ -24,7 +24,6 @@ import java.util.Collections;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import javax.servlet.Filter;
 import javax.servlet.FilterChain;
 import javax.servlet.FilterConfig;
 import javax.servlet.ServletException;
@@ -35,10 +34,11 @@ import javax.servlet.http.HttpSession;
 
 import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.validator.routines.UrlValidator;
+import org.apache.logging.log4j.ThreadContext;
 import org.apache.ofbiz.base.util.Debug;
 
 /**
- * A Filter used to specify a whitelist of allowed paths to the OFBiz application.
+ * A Filter used to specify an allowlist of allowed paths to the OFBiz application.
  * Requests that do not match any of the paths listed in allowedPaths are redirected to redirectPath, or an error code
  * is returned (the error code can be set in errorCode, the default value is 403).
  * If forceRedirectAll is set to Y then allowedPaths is ignored and all requests are redirected to redirectPath; note
@@ -58,7 +58,7 @@ import org.apache.ofbiz.base.util.Debug;
  *   - for its internal logic (to avoid an infinite loop of redirections when forceRedirectAll is set) the filter sets
  *     a session parameter (_FORCE_REDIRECT_=true) before the first redirection; the parameter is removed during the
  *     second pass before the request is forwarded to the next filter in the chain
- *   - the filter skips the check against the whitelist of allowed paths if a request attribute
+ *   - the filter skips the check against the allowlist of allowed paths if a request attribute
  *     with name _FORWARDED_FROM_SERVLET_ is present; this attribute is typically set by the ControlServlet to indicate
  *     that the request path is safe and should not be checked again
  */
@@ -97,7 +97,6 @@ public class ControlFilter extends HttpFilter {
     /**
      * Converts {@code code} string to an integer.  If conversion fails, Return
      * {@code DEFAULT_HTTP_ERROR_STATUS} instead.
-     *
      * @param code an arbitrary string which can be {@code null}
      * @return the integer matching {@code code}
      */
@@ -113,7 +112,6 @@ public class ControlFilter extends HttpFilter {
 
     /**
      * Splits the paths defined by {@code paths}.
-     *
      * @param paths a string which can be either {@code null} or a list of
      * paths separated by ':'.
      * @return a set of string
@@ -125,8 +123,6 @@ public class ControlFilter extends HttpFilter {
 
     /**
      * Makes allowed paths pass through while redirecting the others to a fix location.
-     *
-     * @see Filter#doFilter
      */
     @Override
     public void doFilter(HttpServletRequest req, HttpServletResponse resp, FilterChain chain)
@@ -153,7 +149,14 @@ public class ControlFilter extends HttpFilter {
 
             // Check if the requested URI is allowed.
             if (allowedPaths.stream().anyMatch(uri::startsWith)) {
-                chain.doFilter(req, resp);
+                try {
+                    // support OFBizDynamicThresholdFilter in log4j2.xml
+                    ThreadContext.put("uri", uri);
+
+                    chain.doFilter(req, resp);
+                } finally {
+                    ThreadContext.remove("uri");
+                }
             } else {
                 if (redirectPath == null) {
                     resp.sendError(errorCode, uriWithContext);
@@ -170,7 +173,6 @@ public class ControlFilter extends HttpFilter {
 
     /**
      * Sends an HTTP response redirecting to {@code redirectPath}.
-     *
      * @param resp The response to send
      * @param contextPath the prefix to add to the redirection when
      * {@code redirectPath} is a relative URI.

@@ -39,10 +39,8 @@ public class InventoryEventPlannedServices {
     private static final String RESOURCE = "ManufacturingUiLabels";
 
     /**
-     *
      *  Create an MrpEvent.
-     *  Make an update if a record exist with same key,  (adding the event quantity to the exiting record)
-     *
+     *  Make an update if a record exist with same key, (adding the event quantity to the exiting record)
      * @param ctx the dispatch context
      * @param context a map containing the parameters used to create an MrpEvent
      * @return result a map with service status
@@ -54,12 +52,13 @@ public class InventoryEventPlannedServices {
                                         "productId", context.get("productId"),
                                         "eventDate", context.get("eventDate"),
                                         "mrpEventTypeId", context.get("mrpEventTypeId"));
-        BigDecimal quantity = (BigDecimal)context.get("quantity");
+        BigDecimal quantity = (BigDecimal) context.get("quantity");
         try {
-            createOrUpdateMrpEvent(parameters, quantity, (String)context.get("facilityId"), (String)context.get("eventName"), false, delegator);
+            createOrUpdateMrpEvent(parameters, quantity, (String) context.get("facilityId"), (String) context.get("eventName"), false, delegator);
         } catch (GenericEntityException e) {
-            Debug.logError(e,"Error : findOne(\"MrpEvent\", parameters =)"+parameters, MODULE);
-            return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE, "ManufacturingMrpCreateOrUpdateEvent", UtilMisc.toMap("parameters", parameters), locale));
+            Debug.logError(e, "Error : findOne(\"MrpEvent\", parameters =)" + parameters, MODULE);
+            return ServiceUtil.returnError(UtilProperties.getMessage(RESOURCE, "ManufacturingMrpCreateOrUpdateEvent",
+                    UtilMisc.toMap("parameters", parameters), locale));
         }
         return ServiceUtil.returnSuccess();
     }
@@ -73,14 +72,14 @@ public class InventoryEventPlannedServices {
             mrpEvent.put("quantity", newQuantity.doubleValue());
             mrpEvent.put("eventName", eventName);
             mrpEvent.put("facilityId", facilityId);
-            mrpEvent.put("isLate", (isLate? "Y": "N"));
+            mrpEvent.put("isLate", (isLate ? "Y" : "N"));
             mrpEvent.create();
         } else {
             BigDecimal qties = newQuantity.add(mrpEvent.getBigDecimal("quantity"));
             mrpEvent.put("quantity", qties.doubleValue());
             if (UtilValidate.isNotEmpty(eventName)) {
                 String existingEventName = mrpEvent.getString("eventName");
-                mrpEvent.put("eventName", (UtilValidate.isEmpty(existingEventName)? eventName: existingEventName + ", " + eventName));
+                mrpEvent.put("eventName", (UtilValidate.isEmpty(existingEventName) ? eventName : existingEventName + ", " + eventName));
             }
             if (isLate) {
                 mrpEvent.put("isLate", "Y");
