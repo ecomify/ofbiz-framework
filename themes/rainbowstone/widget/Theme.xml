@@ -30,16 +30,16 @@ under the License.
             <description>${util:label('CommonEntityLabels', 'VisualTheme.description.RAINBOWSTONE_AMBER', locale)}</description>
             <screenshot location="/rainbowstone/images/themeAmber.png"/>
         </visual-theme>
-        <visual-theme id="RAINBOWSTONE_RUBY" display-name="Rainbow Stone - Sapphire">
+        <visual-theme id="RAINBOWSTONE_RUBY" display-name="Rainbow Stone - Ruby">
             <description>${util:label('CommonEntityLabels', 'VisualTheme.description.RAINBOWSTONE_RUBY', locale)}</description>
             <screenshot location="/rainbowstone/images/themeRuby.png"/>
         </visual-theme>
-        <visual-theme id="RAINBOWSTONE_EMERALD" display-name="Rainbow Stone - Sapphire">
+        <visual-theme id="RAINBOWSTONE_EMERALD" display-name="Rainbow Stone - Emerald">
             <description>${util:label('CommonEntityLabels', 'VisualTheme.description.RAINBOWSTONE_EMERALD', locale)}</description>
             <screenshot location="/rainbowstone/images/themeEmerald.png"/>
         </visual-theme>
     </visual-themes>
-    
+
     <extends location="component://common-theme/widget/Theme.xml"/>
     <theme-properties>
         <!--header image -->
@@ -60,7 +60,6 @@ under the License.
         <property name="VT_STYLESHEET['add']" value="/rainbowstone/javascript.css"/>
         <property name="VT_RTL_STYLESHEET['add']" value="/rainbowstone/stylertl.css"/>
         <property name="VT_HELPSTYLESHEET['add']" value="/rainbowstone/help.css"/>
-        <property name="VT_DOCBOOKSTYLESHEET['add']" value="/rainbowstone/webapp/rainbowstone/docbook.css"/>
     </theme-properties>
 
     <templates>

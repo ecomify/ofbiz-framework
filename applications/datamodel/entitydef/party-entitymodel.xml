@@ -19,7 +19,7 @@ under the License.
 -->
 
 <entitymodel xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:noNamespaceSchemaLocation="http://ofbiz.apache.org/dtds/entitymodel.xsd">
+    xsi:noNamespaceSchemaLocation="https://ofbiz.apache.org/dtds/entitymodel.xsd">
   <!-- ========================================================= -->
   <!-- ======================== Defaults ======================= -->
   <!-- ========================================================= -->
@@ -75,6 +75,7 @@ under the License.
       <field name="thruDate" type="date-time"></field>
       <field name="description" type="description"></field>
       <field name="textData" type="very-long"></field>
+      <field name="statusId" type="id"></field>
       <prim-key field="agreementId"/>
       <relation type="one" fk-name="AGRMNT_PRODUCT" rel-entity-name="Product">
         <key-map field-name="productId"/>
@@ -361,6 +362,27 @@ under the License.
       <relation type="one" fk-name="AGRMNT_ROLE_PRLE" rel-entity-name="PartyRole">
         <key-map field-name="partyId"/>
         <key-map field-name="roleTypeId"/>
+      </relation>
+    </entity>
+    <entity entity-name="AgreementStatus"
+            package-name="org.apache.ofbiz.party.agreement"
+            title="Agremeement Status">
+      <field name="agreementId" type="id"></field>
+      <field name="statusId" type="id"></field>
+      <field name="statusDate" type="date-time"></field>
+      <field name="comments" type="comment"></field>
+      <field name="changeByUserLoginId" type="id-vlong"></field>
+      <prim-key field="agreementId"/>
+      <prim-key field="statusId"/>
+      <prim-key field="statusDate"/>
+      <relation type="one" fk-name="AGRMNT_STTS_AGRMNT" rel-entity-name="Agreement">
+        <key-map field-name="agreementId"/>
+      </relation>
+      <relation type="one" fk-name="AGRMNT_STTS_STTS" rel-entity-name="StatusItem">
+        <key-map field-name="statusId"/>
+      </relation>
+      <relation type="one" fk-name="AGRMNT_STTS_USRLGN" title="ChangeBy" rel-entity-name="UserLogin">
+          <key-map field-name="changeByUserLoginId" rel-field-name="userLoginId"/>
       </relation>
     </entity>
     <entity entity-name="AgreementTerm"
@@ -2537,11 +2559,15 @@ under the License.
     
     <entity entity-name="PartyRole"
             package-name="org.apache.ofbiz.party.party"
-            title="Party Role">
-      <field name="partyId" type="id"></field>
-      <field name="roleTypeId" type="id"></field>
+            title="Party Role"
+            description="RoleTypes associated to a Party">
+      <field name="partyId" type="id"/>
+      <field name="roleTypeId" type="id"/>
+      <field name="fromDate" type="date-time"/>
+      <field name="thruDate" type="date-time"/>
       <prim-key field="partyId"/>
       <prim-key field="roleTypeId"/>
+      <prim-key field="fromDate"/>
       <relation type="one" fk-name="PARTY_RLE_PARTY" rel-entity-name="Party">
         <key-map field-name="partyId"/>
       </relation>
@@ -2876,8 +2902,7 @@ under the License.
             title="Party Role View">
       <member-entity entity-alias="PR" entity-name="PartyRole"/>
       <member-entity entity-alias="RT" entity-name="RoleType"/>
-      <alias entity-alias="PR" name="partyId"/>
-      <alias entity-alias="RT" name="roleTypeId"/>
+      <alias-all entity-alias="PR"/>
       <alias entity-alias="RT" name="parentTypeId"/>
       <alias entity-alias="RT" name="description"/>
       <view-link entity-alias="RT" rel-entity-alias="PR">

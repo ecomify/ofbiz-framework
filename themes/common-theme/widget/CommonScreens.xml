@@ -344,11 +344,11 @@ under the License.
                         <set field="messagesTemplateLocation" from-field="layoutSettings.VT_MSG_TMPLT_LOC" default-value="component://common-theme/template/includes/Messages.ftl"/>
                         <set field="layoutSettings.styleSheets[]" value="/common/js/jquery/plugins/featherlight/featherlight-1.7.13.min.css" global="true"/>
                         <set field="layoutSettings.javaScripts[+0]" value="/common/js/jquery/plugins/featherlight/featherlight-1.7.13.min.js" global="true"/>
-                        <set field="layoutSettings.javaScripts[+0]" value="/common/js/jquery/ui/jquery-ui-1.12.1.min.js"/>
-                        <set field="layoutSettings.javaScripts[+0]" value="/common/js/jquery/plugins/validate/jquery.validate.min.js"/>
-                        <set field="layoutSettings.javaScripts[+0]" value="/common/js/jquery/plugins/browser-plugin/jquery.browser-0.1.0.min.js" global="true"/>
-                        <set field="layoutSettings.javaScripts[+0]" value="/common/js/jquery/jquery-migrate-3.3.0.min.js" global="true"/>
-                        <set field="layoutSettings.javaScripts[+0]" value="/common/js/jquery/jquery-3.5.1.min.js" global="true"/>
+                        <set field="layoutSettings.javaScripts[+0]" value="/common/js/jquery/ui/jquery-ui-1.13.0.min.js"/>
+                        <set field="layoutSettings.javaScripts[+0]" value="/common/js/node_modules/jquery-validation/dist/jquery.validate.min.js"/>
+                        <set field="layoutSettings.javaScripts[+0]" value="/common/js/node_modules/jquery.browser/dist/jquery.browser.min.js" global="true"/>
+                        <set field="layoutSettings.javaScripts[+0]" value="/common/js/node_modules/jquery-migrate/dist/jquery-migrate.min.js" global="true"/>
+                        <set field="layoutSettings.javaScripts[+0]" value="/common/js/node_modules/jquery/dist/jquery.min.js" global="true"/>
                         <set field="layoutSettings.javaScripts[]" value="/common/js/util/OfbizUtil.js" global="true"/>
                     </actions>
                     <widgets>
@@ -449,13 +449,13 @@ under the License.
                 <!-- Load available JS Language Files -->
                 <set field="layoutSettings.javaScripts[+0]" value="${groovy: org.apache.ofbiz.common.JsLanguageFilesMapping.Validation.getFilePath(initialLocaleComplete)}" global="true"/>
 
-                <set field="layoutSettings.javaScripts[+0]" value="/common/js/jquery/ui/jquery-ui-1.12.1.min.js" global="true"/>
-                <set field="layoutSettings.javaScripts[+0]" value="/common/js/jquery/plugins/validate/jquery.validate.min.js" global="true"/>
-                <set field="layoutSettings.javaScripts[+0]" value="/common/js/jquery/plugins/browser-plugin/jquery.browser-0.1.0.min.js" global="true"/>
-                <set field="layoutSettings.javaScripts[+0]" value="/common/js/jquery/jquery-migrate-3.3.0.min.js" global="true" />
-                <set field="layoutSettings.javaScripts[+0]" value="/common/js/jquery/jquery-3.5.1.min.js" global="true"/>
+                <set field="layoutSettings.javaScripts[+0]" value="/common/js/jquery/ui/jquery-ui-1.13.0.min.js" global="true"/>
+                <set field="layoutSettings.javaScripts[+0]" value="/common/js/node_modules/jquery-validation/dist/jquery.validate.min.js" global="true"/>
+                <set field="layoutSettings.javaScripts[+0]" value="/common/js/node_modules/jquery.browser/dist/jquery.browser.min.js" global="true"/>
+                <set field="layoutSettings.javaScripts[+0]" value="/common/js/node_modules/jquery-migrate/dist/jquery-migrate.min.js" global="true" />
+                <set field="layoutSettings.javaScripts[+0]" value="/common/js/node_modules/jquery/dist/jquery.min.js" global="true"/>
                 <!-- jQuery CSSs -->
-                <set field="layoutSettings.styleSheets[+0]" value="/common/js/jquery/ui/jquery-ui-1.12.1.min.css" global="true" />
+                <set field="layoutSettings.styleSheets[+0]" value="/common/js/jquery/ui/jquery-ui-1.13.0.min.css" global="true" />
 
                 <set field="layoutSettings.javaScripts[]" value="/common/js/util/OfbizUtil.js" global="true"/>
                 <set field="layoutSettings.javaScripts[]" value="/common/js/util/fieldlookup.js" global="true"/>
@@ -666,6 +666,42 @@ under the License.
     <screen name="FindScreenDecorator">
         <section>
             <widgets>
+                <container id="${screen:id(screenStack)}">
+                    <section>
+                        <condition>
+                            <if-empty field="titleProperty"/>
+                        </condition>
+                        <widgets>
+                            <container style="page-title"><label text="${title}"></label></container>
+                        </widgets>
+                        <fail-widgets>
+                            <container style="page-title"><label text="${uiLabelMap[titleProperty]}"></label></container>
+                        </fail-widgets>
+                    </section>
+                    <decorator-section-include name="menu-bar"/>
+                    <container style="clear"/>
+                    <screenlet id="searchOptions" name="findScreenlet" collapsible="true" title="${uiLabelMap.CommonSearchOptions}">
+                        <container id="search-options">
+                            <decorator-section-include name="search-options" />
+                        </container>
+                    </screenlet>
+                    <screenlet padded="false">
+                        <label style="h3" text="${uiLabelMap.CommonSearchResults}"/>
+                        <container id="search-results">
+                            <decorator-section-include name="search-results"/>
+                        </container>
+                    </screenlet>
+                </container>
+            </widgets>
+        </section>
+    </screen>
+
+    <screen name="DetailScreenDecorator">
+        <section>
+            <actions>
+                <set field="detailAreaId" value="${groovy:UUID.randomUUID().toString()}" global="true"/>
+            </actions>
+            <widgets>
                 <section>
                     <condition>
                         <if-empty field="titleProperty"/>
@@ -677,19 +713,84 @@ under the License.
                         <container style="page-title"><label text="${uiLabelMap[titleProperty]}"></label></container>
                     </fail-widgets>
                 </section>
-                <decorator-section-include name="menu-bar"/>
                 <container style="clear"/>
-                <screenlet id="searchOptions" name="findScreenlet" collapsible="true" title="${uiLabelMap.CommonSearchOptions}">
-                    <container id="search-options">
-                        <decorator-section-include name="search-options" />
-                    </container>
-                </screenlet>
-                <screenlet padded="false">
-                    <label style="h3" text="${uiLabelMap.CommonSearchResults}"/>
-                    <container id="search-results">
-                        <decorator-section-include name="search-results"/>
-                    </container>
-                </screenlet>
+                <container style="menu-bar">
+                    <decorator-section-include name="menu-bar"/>
+                </container>
+                <container style="breadcrumbs">
+                    <decorator-section-include name="breadcrumbs"/>
+                </container>
+                <container style="summary">
+                    <decorator-section-include name="summary"/>
+                </container>
+                <container style="actions">
+                    <decorator-section-include name="actions"/>
+                </container>
+                <container style="tab-bar">
+                    <decorator-section-include name="tab-bar"/>
+                </container>
+                <container style="details" id="${detailAreaId}">
+                    <decorator-section-include name="details"/>
+                </container>
+            </widgets>
+        </section>
+    </screen>
+
+    <screen name="EmbeddedDecorator">
+        <section name="embedded">
+            <widgets>
+                <container style="embeddedScreen" id="${screen:id(screenStack)}">
+                    <section>
+                        <condition>
+                            <not><if-empty-section section-name="actions"/></not>
+                        </condition>
+                        <widgets>
+                            <container style="actions">
+                                <decorator-section-include name="actions"/>
+                            </container>
+                        </widgets>
+                    </section>
+                    <section>
+                        <condition>
+                            <not><if-empty-section section-name="menu-bar"/></not>
+                        </condition>
+                        <widgets>
+                            <container style="menu-bar">
+                                <decorator-section-include name="menu-bar"/>
+                            </container>
+                        </widgets>
+                    </section>
+                    <section>
+                        <condition>
+                            <not><if-empty-section section-name="single"/></not>
+                        </condition>
+                        <widgets>
+                            <container style="single">
+                                <decorator-section-include name="single"/>
+                            </container>
+                        </widgets>
+                    </section>
+                    <section>
+                        <condition>
+                            <not><if-empty-section section-name="content"/></not>
+                        </condition>
+                        <widgets>
+                            <container style="content">
+                                <decorator-section-include name="content"/>
+                            </container>
+                        </widgets>
+                    </section>
+                    <section>
+                        <condition>
+                            <not><if-empty-section section-name="list"/></not>
+                        </condition>
+                        <widgets>
+                            <container style="list">
+                                <decorator-section-include name="list"/>
+                            </container>
+                        </widgets>
+                    </section>
+                </container>
             </widgets>
         </section>
     </screen>
