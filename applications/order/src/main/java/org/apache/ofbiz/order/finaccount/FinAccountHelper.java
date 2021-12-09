@@ -21,10 +21,10 @@ package org.apache.ofbiz.order.finaccount;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.security.SecureRandom;
 import java.sql.Timestamp;
 import java.util.List;
 import java.util.Locale;
-import java.util.Random;
 
 import org.apache.ofbiz.base.util.Debug;
 import org.apache.ofbiz.base.util.UtilDateTime;
@@ -117,7 +117,7 @@ public final class FinAccountHelper {
     public static String getNewFinAccountCode(int codeLength, Delegator delegator) throws GenericEntityException {
 
         // keep generating new account codes until a unique one is found
-        Random r = new Random();
+        SecureRandom r = new SecureRandom();
         boolean foundUniqueNewCode = false;
         StringBuilder newAccountCode = null;
         long count = 0;
@@ -271,50 +271,6 @@ public final class FinAccountHelper {
             Debug.logInfo("FinAccount record not found (" + finAccountId + ")", MODULE);
         }
         return false;
-    }
-
-    /**
-     * Generate a random financial number
-     * @param delegator the delegator
-     * @param length    length of the number to generate (up to 19 digits)
-     * @param isId      to be used as an ID (will check the DB to make sure it doesn't already exist)
-     * @return Generated number
-     * @throws GenericEntityException
-     */
-    public static String generateRandomFinNumber(Delegator delegator, int length, boolean isId) throws GenericEntityException {
-        if (length > 19) {
-            length = 19;
-        }
-
-        Random rand = new Random();
-        boolean isValid = false;
-        String number = null;
-        StringBuilder numberBuilder = new StringBuilder();
-        while (!isValid) {
-            for (int i = 0; i < length; i++) {
-                int randInt = rand.nextInt(9);
-                numberBuilder.append(randInt);
-            }
-
-            if (isId) {
-                int check = UtilValidate.getLuhnCheckDigit(number);
-                numberBuilder.append(check);
-                number = numberBuilder.toString();
-                // validate the number
-                if (checkFinAccountNumber(number)) {
-                    // make sure this number doens't already exist
-                    isValid = checkIsNumberInDatabase(delegator, number);
-                }
-            } else {
-                isValid = true;
-            }
-        }
-        return number;
-    }
-
-    private static boolean checkIsNumberInDatabase(Delegator delegator, String number) throws GenericEntityException {
-        GenericValue finAccount = EntityQuery.use(delegator).from("FinAccount").where("finAccountId", number).queryOne();
-        return finAccount == null;
     }
 
     public static boolean checkFinAccountNumber(String number) {

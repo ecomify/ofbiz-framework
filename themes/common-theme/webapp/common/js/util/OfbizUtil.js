@@ -210,7 +210,7 @@ function bindObservers(bind_element) {
     });
     jQuery(bind_element).find("[data-lookup-presentation]").each(function(){
         var element = jQuery(this);
-        var form = element._form();
+        var form = element.form();
         var formName = form.attr("name");
         if (!formName) {
             console.log("Developer: For lookups to work you must provide a form name!");
@@ -879,7 +879,7 @@ function ajaxAutoCompleter(areaCsvString, showDescription, defaultMinLength, def
                 var queryArgs = {"term": request.term};
                 if (typeof args == "object" && jQuery.isArray(args)) {
                      for (var i = 0; i < args.length; i++) {
-                         queryArgs["parm" + i] = jQuery(args[i]).val();
+                         queryArgs["parm" + i] = jQuery(DOMPurify.sanitize(args[i]).val())
                      }
                 }
                 jQuery.ajax({
@@ -904,7 +904,7 @@ function ajaxAutoCompleter(areaCsvString, showDescription, defaultMinLength, def
 
                         if (typeof autocomp != 'undefined') {
                             jQuery.each(autocomp, function(index, item){
-                                item.label = jQuery("<div>").html(item.label).text();
+                                item.label = DOMPurify.sanitize(jQuery("<div>").html(item.label).text());
                             })
                             // autocomp is the JSON Object which will be used for the autocomplete box
                             response(autocomp);
@@ -1010,7 +1010,7 @@ function ajaxAutoCompleteDropDown() {
                     change: function( event, ui ) {
                         var element = jQuery(this);
                         if (element.data('other-field-name') != undefined) {
-                            var otherField = (element._form()).find("input[name=" + element.data('other-field-name') + "]");
+                            var otherField = (element.form()).find("input[name=" + element.data('other-field-name') + "]");
                             if (otherField != undefined) {
                                 process_choice(element, jQuery(otherField));
                             }

@@ -136,8 +136,27 @@ under the License.
         <field position="1" name="referenceNumber" title="${uiLabelMap.FormFieldTitle_referenceNum}"><display/></field>
         <field name="currencyUomId"><hidden/></field>
     </form>
-
-<form name="InvoiceItems" list-name="invItemAndOrdItems" target="" title="" type="list" separate-columns="true" paginate-target="invoiceOverview"
+    <grid name="InvoiceAttributes" list-name="invoiceAttributes" paginate-target="invoiceAttributes"
+        odd-row-style="alternate-row" default-table-style="basic-table hover-bar">
+        <auto-fields-entity entity-name="InvoiceAttribute" default-field-type="display"/>
+    </grid>
+    <grid name="InvoiceContactMech" list-name="invoiceContactMechList" paginate-target="invoiceContactMech"
+        odd-row-style="alternate-row" default-table-style="basic-table hover-bar">
+        <row-actions>
+            <entity-one entity-name="ContactMechDetail" value-field="contactMechDetail"/>
+        </row-actions>
+        <auto-fields-entity entity-name="InvoiceContactMech" default-field-type="display"/>
+        <field name="contactMechDetail" title="${uiLabelMap.FormFieldTitle_cmDetail}"><display/></field>
+    </grid>
+    <grid name="InvoiceContent" list-name="invoiceContentList" paginate-target="invoiceContent"
+        odd-row-style="alternate-row" default-table-style="basic-table hover-bar">
+        <auto-fields-entity entity-name="InvoiceContent" default-field-type="display"/>
+    </grid>
+    <grid name="InvoiceNotes" list-name="invoiceNotesList" paginate-target="invoiceNotes"
+        odd-row-style="alternate-row" default-table-style="basic-table hover-bar">
+        <auto-fields-entity entity-name="InvoiceNote" default-field-type="display"/>
+    </grid>
+    <form name="InvoiceItems" list-name="invItemAndOrdItems" target="" title="" type="list" separate-columns="true" paginate-target="invoiceOverview"
         odd-row-style="alternate-row" default-table-style="basic-table hover-bar">
         <row-actions>
             <set field="quantity" value="${groovy: quantity ?: 1}" type="BigDecimal"/>
@@ -477,6 +496,27 @@ under the License.
             </hyperlink>
         </field>
     </form>
+    
+    <grid name="InvoiceTerms" list-name="invoiceTerms" 
+        odd-row-style="alternate-row" default-table-style="basic-table hover-bar">
+        <field name="invoiceId"><hidden/></field>
+        <field name="invoiceItemSeqId" title="${uiLabelMap.CommonItem}"><display/></field>
+        <field name="invoiceTermId"><display/></field>
+        <field name="termTypeId" title="${uiLabelMap.CommonType}">
+            <display-entity entity-name="TermType"/>
+        </field>
+        <field name="description" title="${uiLabelMap.CommonDescription}"><display/></field>
+        <field name="termDays" title="${uiLabelMap.CommonDays}" widget-area-style="align-right" title-area-style="align-right">
+            <display/>
+        </field>
+        <field name="termValue" title="${uiLabelMap.CommonValue}" widget-area-style="align-right" title-area-style="align-right">
+            <display type="currency" currency="${uomId}"/>
+        </field>
+        <field name="uomId" title="${uiLabelMap.CommonCurrency}">
+            <display-entity entity-name="Uom"/>
+        </field>
+        <field name="textValue" title="${uiLabelMap.CommonText}"><display/></field>
+    </grid>
     
     <form name="EditInvoiceTerm" type="single" target="createInvoiceTerm" title="" 
         header-row-style="header-row" default-table-style="basic-table" default-map-name="invoiceTerm" default-entity-name="InvoiceTerm" >

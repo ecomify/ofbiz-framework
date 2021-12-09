@@ -110,11 +110,13 @@ javadoc {
 node {
     download = true
     version = "12.18.1"
-    // npmVersion will be the one that comes default with the node
+    // npmVersion will be the one that comes default with node
 
     // https://github.com/node-gradle/gradle-node-plugin/blob/2.2.4/README.md
-    //// Set the work directory where node_modules should be located
+    // Set the work directory where node_modules should be located
     nodeModulesDir = file("${project.projectDir}/themes/common-theme/webapp/common/js")
+    // If you set a "CI" env var then ci only will be used: 
+    // https://github.com/node-gradle/gradle-node-plugin/blob/master/docs/faq.md#how-do-i-use-npm-ci-instead-of-npm-install
     npmInstallCommand = System.getenv("CI") ? 'ci' : 'install'
 }
 
@@ -142,7 +144,6 @@ defaultTasks 'jar', 'test'
 
 allprojects {
     repositories{
-        jcenter() // temporary fix as we need it for GH actions and Buildbot (no fail) see OFBIZ-12351
         mavenCentral()
         // the switch from jCenter to mavenCentral needs some additional repositories to be configured here
         // this should be checked frequently to remove obsolete configurations if the artifacts are available
@@ -162,10 +163,6 @@ allprojects {
             metadataSources {
                 artifact()
             }
-        }
-        maven {
-            // com.springsource.com.sun.syndication
-            url "https://repo.spring.io/plugins-release"
         }
         maven {
             url "https://clojars.org/repo"
@@ -204,7 +201,7 @@ dependencies {
     implementation 'com.ibm.icu:icu4j:69.1'
     implementation 'com.lowagie:itext:2.1.7' // Don't update due to license change in newer versions, see OFBIZ-10455
     implementation 'com.sun.mail:javax.mail:1.6.2'
-    implementation 'com.sun.syndication:com.springsource.com.sun.syndication:0.9.0'
+    implementation 'com.rometools:rome:1.16.0'
     implementation 'com.thoughtworks.xstream:xstream:1.4.18'
     implementation 'commons-fileupload:commons-fileupload:1.4'
     implementation 'commons-net:commons-net:3.8.0'
