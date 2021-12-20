@@ -2165,12 +2165,24 @@ public class ModelEntity implements Comparable<ModelEntity>, Serializable {
     }
 
     /**
-     * To xml element element.
+     * To Group elements of a document in a package
      * @param document the document
+     * @param packageName the name of the package where to group the elements of the document
      * @return the element
      */
-    public Element toXmlElement(Document document) {
-        return this.toXmlElement(document, this.getPackageName());
+    public Element toGroupXmlElement(Document document, String packageName) {
+        if (UtilValidate.isNotEmpty(this.getPackageName()) && !packageName.equals(this.getPackageName())) {
+            Debug.logWarning(
+                    "Export EntityModel XML Element [" + this.getEntityName() + "] with a NEW package - " + packageName,
+                    MODULE);
+        }
+
+        Element root = document.createElement("entity-group");
+        root.setAttribute("group", packageName);
+
+        root.setAttribute("entity", this.getEntityName());
+
+        return root;
     }
 
     /**
