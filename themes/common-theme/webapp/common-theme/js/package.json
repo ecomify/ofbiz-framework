@@ -10,7 +10,7 @@
         "jquery.browser": "^0.1.0",
         "dompurify": "^2.4.0",
         "jquery-ui-dist": "^1.13.2",
-        "trumbowyg": "^2.25.2",
+        "trumbowyg": "^2.26.0",
         "flot": "^4.2.3",
         "@chinchilla-software/jquery-ui-timepicker-addon": "^1.6.3",
         "uglify-js": "3.17.2"
